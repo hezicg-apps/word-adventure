@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- שינוי השם כאן קובע מה יופיע במועדפים ובטאב -->
-    <title>English Adventure</title>
-    
+    <title>Word Adventure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
@@ -13,7 +11,6 @@
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="English Adventure">
     <link rel="apple-touch-icon" href="favicon.png">
     <link rel="icon" type="image/png" href="favicon.png?v=3">
     <meta name="theme-color" content="#1e293b">
@@ -32,7 +29,7 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
         }
 
         #splash-screen.hidden {
@@ -41,56 +38,84 @@
         }
 
         .splash-logo {
-            width: 260px; 
+            width: 220px;
             height: auto;
             margin-bottom: 2rem;
-            filter: drop-shadow(0 0 25px rgba(234, 179, 8, 0.4));
-            animation: pulse 3s infinite ease-in-out;
+            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.2));
+            animation: softPulse 3s infinite ease-in-out;
         }
 
-        @keyframes pulse {
+        @keyframes softPulse {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.03); }
+            50% { transform: scale(1.02); }
         }
 
-        .hourglass-container {
-            position: relative;
-            font-size: 4rem;
-            line-height: 1;
+        /* אנימציית עיגולי "מצא את הקוד" */
+        .code-dots {
+            display: flex;
+            gap: 1.5rem;
             margin-top: 1rem;
         }
 
-        .sand-grain {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background-color: #eab308;
+        .dot {
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
-            left: 50%;
-            top: 45%;
-            transform: translateX(-50%);
-            opacity: 0;
-            animation: fall 1.5s infinite linear;
+            background-color: #334155; /* צבע כבוי */
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        .sand-grain:nth-child(2) { animation-delay: 0.5s; }
-        .sand-grain:nth-child(3) { animation-delay: 1s; }
+        /* עיגול 1 - כחול זוהר */
+        .dot:nth-child(1) {
+            animation: glowBlue 1.8s infinite;
+        }
+        /* עיגול 2 - סגול זוהר */
+        .dot:nth-child(2) {
+            animation: glowPurple 1.8s infinite 0.6s;
+        }
+        /* עיגול 3 - כחול זוהר */
+        .dot:nth-child(3) {
+            animation: glowBlue 1.8s infinite 1.2s;
+        }
 
-        @keyframes fall {
-            0% { top: 45%; opacity: 0; transform: translate(-50%, 0); }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 80%; opacity: 0; transform: translate(-50%, 5px); }
+        @keyframes glowBlue {
+            0%, 100% { background-color: #334155; box-shadow: none; }
+            50% { background-color: #38bdf8; box-shadow: 0 0 20px #38bdf8, 0 0 40px rgba(56, 189, 248, 0.4); }
+        }
+
+        @keyframes glowPurple {
+            0%, 100% { background-color: #334155; box-shadow: none; }
+            50% { background-color: #a855f7; box-shadow: 0 0 20px #a855f7, 0 0 40px rgba(168, 85, 247, 0.4); }
+        }
+
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 2.5rem;
+            direction: ltr; 
         }
 
         .loading-text {
             color: #94a3b8;
-            margin-top: 2rem;
             font-family: system-ui, -apple-system, sans-serif;
             letter-spacing: 0.15em;
             text-transform: uppercase;
-            font-size: 0.9rem;
-            font-weight: 700;
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
+
+        .dots::after {
+            content: '';
+            animation: dot-flow 1.5s infinite;
+        }
+
+        @keyframes dot-flow {
+            0% { content: ''; }
+            33% { content: '.'; }
+            66% { content: '..'; }
+            100% { content: '...'; }
         }
     </style>
 </head>
@@ -98,28 +123,28 @@
     
     <!-- Splash Screen -->
     <div id="splash-screen">
-        <img src="favicon.png?v=3" alt="Logo" class="splash-logo">
-        <h1 class="text-5xl font-black text-yellow-500 mb-4 tracking-tight">English Adventure</h1>
+        <img src="favicon.png?v=3" alt="Word Adventure Logo" class="splash-logo">
+        <h1 class="text-5xl font-black text-yellow-500 mb-6 tracking-tight">Word Adventure</h1>
         
-        <div class="hourglass-container">
-            ⏳
-            <div class="sand-grain"></div>
-            <div class="sand-grain"></div>
-            <div class="sand-grain"></div>
+        <!-- עיגולי "מצא את הקוד" הזוהרים -->
+        <div class="code-dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
         </div>
-        
-        <p class="loading-text">Loading Adventure...</p>
+
+        <div class="loading-container">
+            <p class="loading-text">Initializing Mission<span class="dots"></span></p>
+        </div>
     </div>
 
     <header class="flex flex-col items-center px-4 py-3 w-full max-w-2xl mx-auto">
         <div class="w-full flex justify-between items-center mb-4">
             <button id="toggleNight" class="text-3xl bg-transparent border-none cursor-pointer">☀️</button>
-            
             <div class="flex items-center gap-4 flex-row-reverse">
                 <img src="favicon.png?v=3" alt="Logo" class="game-logo h-14 w-auto object-contain bg-transparent">
-                <h1 class="text-3xl font-black text-yellow-500 eng-text tracking-tight">English Adventure</h1>
+                <h1 class="text-3xl font-black text-yellow-500 eng-text tracking-tight text-center">Word Adventure</h1>
             </div>
-
             <div class="w-8"></div>
         </div>
     </header>
@@ -130,6 +155,7 @@
     <script>
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
+            // זמן המתנה של 2.5 שניות כדי לחוות את האנימציה
             setTimeout(() => {
                 splash.classList.add('hidden');
             }, 2500); 

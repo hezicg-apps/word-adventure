@@ -44,7 +44,7 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
         }
 
         #splash-screen.hidden {
@@ -52,50 +52,49 @@
             visibility: hidden;
         }
 
-        /* הגדלת הלוגו במסך הפתיחה */
+        /* לוגו גדול ומרשים עם התאמה לכל נייד */
         .splash-logo {
-            width: 240px; /* הגדלה מ-180px */
-            max-width: 80vw; /* מניעת חריגה במסכים צרים מאוד */
+            width: 85vw; /* תופס 85% מרוחב המסך בנייד */
+            max-width: 320px; /* לא עובר את ה-320px במסכים גדולים */
             height: auto;
-            margin-bottom: 2.5rem;
-            filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.3));
-            animation: softPulse 3s infinite ease-in-out;
+            margin-bottom: 3rem;
+            filter: drop-shadow(0 0 30px rgba(56, 189, 248, 0.4));
+            animation: softPulse 3.5s infinite ease-in-out;
         }
 
         @keyframes softPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.3)); }
+            50% { transform: scale(1.04); filter: drop-shadow(0 0 40px rgba(56, 189, 248, 0.5)); }
         }
 
         /* עיצוב העיגולים הסטטיים שנדלקים לסירוגין */
         .glow-dot {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
-            background-color: #334155; /* צבע "כבוי" */
+            background-color: #334155;
             transition: all 0.3s ease;
         }
 
-        /* אנימציית הדלקה בלבד (ללא שינוי גודל) */
         @keyframes blinkBlue {
             0%, 100% { background-color: #334155; box-shadow: none; }
-            50% { background-color: #38bdf8; box-shadow: 0 0 15px #38bdf8, 0 0 25px rgba(56, 189, 248, 0.6); }
+            50% { background-color: #38bdf8; box-shadow: 0 0 20px #38bdf8, 0 0 35px rgba(56, 189, 248, 0.7); }
         }
 
         @keyframes blinkPurple {
             0%, 100% { background-color: #334155; box-shadow: none; }
-            50% { background-color: #a855f7; box-shadow: 0 0 15px #a855f7, 0 0 25px rgba(168, 85, 247, 0.6); }
+            50% { background-color: #a855f7; box-shadow: 0 0 20px #a855f7, 0 0 35px rgba(168, 85, 247, 0.7); }
         }
 
-        .dot-blue { animation: blinkBlue 1.8s infinite; }
-        .dot-purple { animation: blinkPurple 1.8s infinite; }
+        .dot-blue { animation: blinkBlue 2s infinite; }
+        .dot-purple { animation: blinkPurple 2s infinite; }
 
         /* Header Layout */
         .game-header {
             width: 100%;
             max-width: 800px; 
             margin: 0 auto;
-            padding: 2rem 1.5rem 1rem; 
+            padding: 2.5rem 1.5rem 1rem; 
             display: grid;
             grid-template-columns: 1fr auto 1fr;
             align-items: center;
@@ -119,7 +118,7 @@
             margin: 0;
             outline: none;
             -webkit-tap-highlight-color: transparent;
-            font-size: 2.25rem;
+            font-size: 2.5rem;
         }
 
         .logo-wrapper { display: flex; justify-content: flex-end; }
@@ -127,8 +126,8 @@
 
         @media (max-width: 480px) {
             .game-header { padding: 1.5rem 1rem; gap: 0.5rem; }
-            .header-title { font-size: 1.75rem; }
-            .splash-logo { width: 200px; } /* התאמה למובייל */
+            .header-title { font-size: 1.8rem; }
+            #toggleNight { font-size: 2.2rem; }
         }
     </style>
 </head>
@@ -137,13 +136,13 @@
     <!-- Splash Screen -->
     <div id="splash-screen">
         <img src="favicon.png?v=3" alt="Logo" class="splash-logo">
-        <h1 class="text-4xl md:text-5xl font-bold text-yellow-500 mb-10 brand-font" style="text-transform: capitalize;">Word Adventure</h1>
+        <h1 class="text-4xl md:text-5xl font-bold text-yellow-500 mb-12 brand-font" style="text-transform: capitalize;">Word Adventure</h1>
         
         <!-- עיגולי טעינה נדלקים לסירוגין -->
-        <div class="flex gap-8 mt-4">
+        <div class="flex gap-10 mt-6">
             <div class="glow-dot dot-blue" style="animation-delay: 0s"></div>
-            <div class="glow-dot dot-purple" style="animation-delay: 0.6s"></div>
-            <div class="glow-dot dot-blue" style="animation-delay: 1.2s"></div>
+            <div class="glow-dot dot-purple" style="animation-delay: 0.7s"></div>
+            <div class="glow-dot dot-blue" style="animation-delay: 1.4s"></div>
         </div>
     </div>
 
@@ -166,10 +165,9 @@
     <script>
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
-            // השארתי 2.5 שניות כדי שהשחקן יספיק לראות את הלוגו המוגדל והאנימציה
             setTimeout(() => {
                 splash.classList.add('hidden');
-            }, 2500);
+            }, 3000); // הארכתי מעט ל-3 שניות כדי להנות מהאפקט
         });
 
         const toggleBtn = document.getElementById('toggleNight');

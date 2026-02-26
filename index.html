@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Word Adventure</title>
+    <!-- שינוי השם כאן קובע מה יופיע במועדפים ובטאב -->
+    <title>English Adventure</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
@@ -11,6 +13,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="English Adventure">
     <link rel="apple-touch-icon" href="favicon.png">
     <link rel="icon" type="image/png" href="favicon.png?v=3">
     <meta name="theme-color" content="#1e293b">
@@ -38,7 +41,7 @@
         }
 
         .splash-logo {
-            width: 260px; /* הגדלה נוספת של הלוגו */
+            width: 260px; 
             height: auto;
             margin-bottom: 2rem;
             filter: drop-shadow(0 0 25px rgba(234, 179, 8, 0.4));
@@ -50,7 +53,6 @@
             50% { transform: scale(1.03); }
         }
 
-        /* אנימציית שעון חול עם גרגרים נופלים */
         .hourglass-container {
             position: relative;
             font-size: 4rem;
@@ -62,7 +64,7 @@
             position: absolute;
             width: 4px;
             height: 4px;
-            background-color: #eab308; /* צבע זהב */
+            background-color: #eab308;
             border-radius: 50%;
             left: 50%;
             top: 45%;
@@ -96,12 +98,11 @@
     
     <!-- Splash Screen -->
     <div id="splash-screen">
-        <img src="favicon.png?v=3" alt="Word Adventure Logo" class="splash-logo">
-        <h1 class="text-5xl font-black text-yellow-500 mb-4 tracking-tight">Word Adventure</h1>
+        <img src="favicon.png?v=3" alt="Logo" class="splash-logo">
+        <h1 class="text-5xl font-black text-yellow-500 mb-4 tracking-tight">English Adventure</h1>
         
         <div class="hourglass-container">
             ⏳
-            <!-- גרגרים נופלים -->
             <div class="sand-grain"></div>
             <div class="sand-grain"></div>
             <div class="sand-grain"></div>
@@ -116,7 +117,7 @@
             
             <div class="flex items-center gap-4 flex-row-reverse">
                 <img src="favicon.png?v=3" alt="Logo" class="game-logo h-14 w-auto object-contain bg-transparent">
-                <h1 class="text-3xl font-black text-yellow-500 eng-text tracking-tight">Word Adventure</h1>
+                <h1 class="text-3xl font-black text-yellow-500 eng-text tracking-tight">English Adventure</h1>
             </div>
 
             <div class="w-8"></div>
@@ -127,10 +128,8 @@
 
     <script src="js/main.js"></script>
     <script>
-        // העלמת מסך הפתיחה לאחר טעינת הדף
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
-            // השהייה קלה כדי שיראו את הגרגרים נופלים
             setTimeout(() => {
                 splash.classList.add('hidden');
             }, 2500); 

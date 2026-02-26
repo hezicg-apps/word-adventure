@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>English Learning Adventure</title>
+    <title>Word Adventure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
@@ -14,18 +14,67 @@
     <link rel="apple-touch-icon" href="favicon.png">
     <link rel="icon" type="image/png" href="favicon.png?v=3">
     <meta name="theme-color" content="#1e293b">
-    
+
+    <style>
+        /* Splash Screen Styles */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1e293b; /* צבע רקע תואם לנושא הכהה שלכם */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out, visibility 0.5s;
+        }
+
+        #splash-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .splash-logo {
+            width: 120px;
+            height: auto;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #FFF;
+            border-bottom-color: #eab308; /* צבע צהוב תואם למיתוג */
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body class="bg-blue-50 text-gray-800 min-h-screen">
     
-    
-    
-    
-    
-    
-    
-    
-    
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <img src="favicon.png?v=3" alt="Word Adventure Logo" class="splash-logo">
+        <h1 class="text-4xl font-black text-yellow-500 mb-8 tracking-tight">Word Adventure</h1>
+        <span class="loader"></span>
+    </div>
+
     <header class="flex flex-col items-center px-4 py-3 w-full max-w-2xl mx-auto">
         <div class="w-full flex justify-between items-center mb-4">
             <button id="toggleNight" class="text-3xl bg-transparent border-none cursor-pointer">☀️</button>
@@ -41,7 +90,16 @@
 
     <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center"></div>
 
-    
-<script src="js/main.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // העלמת מסך הפתיחה לאחר טעינת הדף
+        window.addEventListener('load', () => {
+            const splash = document.getElementById('splash-screen');
+            // מוסיף השהייה קטנה כדי שזה לא יראה כמו מצמוץ אם הטעינה מהירה מדי
+            setTimeout(() => {
+                splash.classList.add('hidden');
+            }, 1500); 
+        });
+    </script>
 </body>
 </html>

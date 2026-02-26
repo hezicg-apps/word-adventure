@@ -52,23 +52,25 @@
             visibility: hidden;
         }
 
+        /* הגדלת הלוגו במסך הפתיחה */
         .splash-logo {
-            width: 180px;
+            width: 240px; /* הגדלה מ-180px */
+            max-width: 80vw; /* מניעת חריגה במסכים צרים מאוד */
             height: auto;
-            margin-bottom: 2rem;
-            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.2));
+            margin-bottom: 2.5rem;
+            filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.3));
             animation: softPulse 3s infinite ease-in-out;
         }
 
         @keyframes softPulse {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.03); }
+            50% { transform: scale(1.05); }
         }
 
         /* עיצוב העיגולים הסטטיים שנדלקים לסירוגין */
         .glow-dot {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             background-color: #334155; /* צבע "כבוי" */
             transition: all 0.3s ease;
@@ -126,6 +128,7 @@
         @media (max-width: 480px) {
             .game-header { padding: 1.5rem 1rem; gap: 0.5rem; }
             .header-title { font-size: 1.75rem; }
+            .splash-logo { width: 200px; } /* התאמה למובייל */
         }
     </style>
 </head>
@@ -134,7 +137,7 @@
     <!-- Splash Screen -->
     <div id="splash-screen">
         <img src="favicon.png?v=3" alt="Logo" class="splash-logo">
-        <h1 class="text-4xl font-bold text-yellow-500 mb-10 brand-font" style="text-transform: capitalize;">Word Adventure</h1>
+        <h1 class="text-4xl md:text-5xl font-bold text-yellow-500 mb-10 brand-font" style="text-transform: capitalize;">Word Adventure</h1>
         
         <!-- עיגולי טעינה נדלקים לסירוגין -->
         <div class="flex gap-8 mt-4">
@@ -163,6 +166,7 @@
     <script>
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
+            // השארתי 2.5 שניות כדי שהשחקן יספיק לראות את הלוגו המוגדל והאנימציה
             setTimeout(() => {
                 splash.classList.add('hidden');
             }, 2500);

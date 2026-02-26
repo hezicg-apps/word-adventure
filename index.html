@@ -23,13 +23,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #1e293b; /* צבע רקע תואם לנושא הכהה שלכם */
+            background-color: #1e293b;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.5s ease-out, visibility 0.5s;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
         }
 
         #splash-screen.hidden {
@@ -38,31 +38,57 @@
         }
 
         .splash-logo {
-            width: 120px;
+            width: 260px; /* הגדלה נוספת של הלוגו */
             height: auto;
-            margin-bottom: 1.5rem;
-            animation: pulse 2s infinite ease-in-out;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 25px rgba(234, 179, 8, 0.4));
+            animation: pulse 3s infinite ease-in-out;
         }
 
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.03); }
         }
 
-        .loader {
-            width: 48px;
-            height: 48px;
-            border: 5px solid #FFF;
-            border-bottom-color: #eab308; /* צבע צהוב תואם למיתוג */
+        /* אנימציית שעון חול עם גרגרים נופלים */
+        .hourglass-container {
+            position: relative;
+            font-size: 4rem;
+            line-height: 1;
+            margin-top: 1rem;
+        }
+
+        .sand-grain {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background-color: #eab308; /* צבע זהב */
             border-radius: 50%;
-            display: inline-block;
-            box-sizing: border-box;
-            animation: rotation 1s linear infinite;
+            left: 50%;
+            top: 45%;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: fall 1.5s infinite linear;
         }
 
-        @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .sand-grain:nth-child(2) { animation-delay: 0.5s; }
+        .sand-grain:nth-child(3) { animation-delay: 1s; }
+
+        @keyframes fall {
+            0% { top: 45%; opacity: 0; transform: translate(-50%, 0); }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 80%; opacity: 0; transform: translate(-50%, 5px); }
+        }
+
+        .loading-text {
+            color: #94a3b8;
+            margin-top: 2rem;
+            font-family: system-ui, -apple-system, sans-serif;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            font-weight: 700;
         }
     </style>
 </head>
@@ -71,8 +97,17 @@
     <!-- Splash Screen -->
     <div id="splash-screen">
         <img src="favicon.png?v=3" alt="Word Adventure Logo" class="splash-logo">
-        <h1 class="text-4xl font-black text-yellow-500 mb-8 tracking-tight">Word Adventure</h1>
-        <span class="loader"></span>
+        <h1 class="text-5xl font-black text-yellow-500 mb-4 tracking-tight">Word Adventure</h1>
+        
+        <div class="hourglass-container">
+            ⏳
+            <!-- גרגרים נופלים -->
+            <div class="sand-grain"></div>
+            <div class="sand-grain"></div>
+            <div class="sand-grain"></div>
+        </div>
+        
+        <p class="loading-text">Loading Adventure...</p>
     </div>
 
     <header class="flex flex-col items-center px-4 py-3 w-full max-w-2xl mx-auto">
@@ -95,10 +130,10 @@
         // העלמת מסך הפתיחה לאחר טעינת הדף
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
-            // מוסיף השהייה קטנה כדי שזה לא יראה כמו מצמוץ אם הטעינה מהירה מדי
+            // השהייה קלה כדי שיראו את הגרגרים נופלים
             setTimeout(() => {
                 splash.classList.add('hidden');
-            }, 1500); 
+            }, 2500); 
         });
     </script>
 </body>

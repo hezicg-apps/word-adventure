@@ -1,3 +1,4 @@
+@@ -1,183 +1,183 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -22,38 +23,78 @@
 
     <style>
         /* גופנים */
-        .brand-font { font-family: 'Fredoka', sans-serif; letter-spacing: -0.01em; }
-        .kids-font { font-family: 'Varela Round', sans-serif; }
+        .brand-font {
+            font-family: 'Fredoka', sans-serif;
+            letter-spacing: -0.01em;
+        }
 
-        /* Splash Screen - Large Logo Focus */
+        .kids-font {
+            font-family: 'Varela Round', sans-serif;
+        }
+
+        /* Splash Screen Styles */
         #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #1e293b; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 9999;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
             transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
         }
 
-        #splash-screen.hidden { opacity: 0; visibility: hidden; }
+        #splash-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
 
+        /* לוגו גדול ומרשים עם התאמה לכל נייד */
+        /* לוגו נקי ללא אפקט Glow */
         .splash-logo {
+            width: 85vw; /* תופס 85% מרוחב המסך בנייד */
+            max-width: 320px; /* לא עובר את ה-320px במסכים גדולים */
             width: 85vw; 
-            max-width: 420px; /* גודל לוגו מוגדל לפי בקשתך */
+            max-width: 320px; 
             height: auto;
-            margin-bottom: 2.5rem;
+            margin-bottom: 3rem;
+            filter: drop-shadow(0 0 30px rgba(56, 189, 248, 0.4));
+            /* הסרת ה-drop-shadow שהיה כאן */
             animation: softPulse 3.5s infinite ease-in-out;
         }
 
         @keyframes softPulse {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.1)); }
-            50% { transform: scale(1.06); filter: drop-shadow(0 0 25px rgba(56, 189, 248, 0.3)); }
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.3)); }
+            50% { transform: scale(1.04); filter: drop-shadow(0 0 40px rgba(56, 189, 248, 0.5)); }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
         }
 
-        /* עיגולי טעינה */
-        .glow-dot { width: 18px; height: 18px; border-radius: 50%; background-color: #334155; }
-        @keyframes blink { 0%, 100% { background-color: #334155; } 50% { background-color: #38bdf8; box-shadow: 0 0 15px #38bdf8; } }
-        .dot-1 { animation: blink 1.5s infinite 0s; }
-        .dot-2 { animation: blink 1.5s infinite 0.3s; }
-        .dot-3 { animation: blink 1.5s infinite 0.6s; }
+        /* עיצוב העיגולים הסטטיים שנדלקים לסירוגין */
+        .glow-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background-color: #334155;
+            transition: all 0.3s ease;
+        }
+
+        @keyframes blinkBlue {
+            0%, 100% { background-color: #334155; box-shadow: none; }
+            50% { background-color: #38bdf8; box-shadow: 0 0 20px #38bdf8, 0 0 35px rgba(56, 189, 248, 0.7); }
+        }
+
+        @keyframes blinkPurple {
+            0%, 100% { background-color: #334155; box-shadow: none; }
+            50% { background-color: #a855f7; box-shadow: 0 0 20px #a855f7, 0 0 35px rgba(168, 85, 247, 0.7); }
+        }
+
+        .dot-blue { animation: blinkBlue 2s infinite; }
+        .dot-purple { animation: blinkPurple 2s infinite; }
 
         /* Header Layout */
         .game-header {
@@ -77,98 +118,74 @@
             text-transform: capitalize; 
         }
 
-        /* כפתור הקראה דינמי */
-        .audio-play-btn {
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        #toggleNight {
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+            outline: none;
             -webkit-tap-highlight-color: transparent;
-        }
-        .is-speaking {
-            background-color: #fbbf24 !important; /* צהוב בזמן דיבור */
-            animation: pulse-audio 0.6s infinite alternate;
-        }
-        @keyframes pulse-audio {
-            from { transform: scale(1); }
-            to { transform: scale(1.1); }
+            font-size: 2.5rem;
         }
 
-        /* ביטול ויזואלי של מנעולים (הלוגיקה נשארת ב-JS אך העיצוב נקי) */
-        .game-card.locked {
-            opacity: 0.7;
-            filter: grayscale(0.5);
-            cursor: not-allowed;
-        }
-
-        #toggleNight { background: transparent; border: none; outline: none; font-size: 2.5rem; }
+        .logo-wrapper { display: flex; justify-content: flex-end; }
+        .theme-toggle-wrapper { display: flex; justify-content: flex-start; }
 
         @media (max-width: 480px) {
             .game-header { padding: 1.5rem 1rem; gap: 0.5rem; }
             .header-title { font-size: 1.8rem; }
+            #toggleNight { font-size: 2.2rem; }
         }
     </style>
 </head>
 <body class="bg-blue-50 text-gray-800 min-h-screen kids-font">
-    
+
     <!-- Splash Screen -->
     <div id="splash-screen">
         <img src="favicon.png?v=3" alt="Logo" class="splash-logo">
-        <h1 class="text-4xl font-bold text-white mb-8 brand-font">Word Adventure</h1>
-        <div class="flex gap-6">
-            <div class="glow-dot dot-1"></div>
-            <div class="glow-dot dot-2"></div>
-            <div class="glow-dot dot-3"></div>
+        <h1 class="text-4xl md:text-5xl font-bold text-yellow-500 mb-12 brand-font" style="text-transform: capitalize;">Word Adventure</h1>
+
+        <!-- עיגולי טעינה נדלקים לסירוגין -->
+        <div class="flex gap-10 mt-6">
+            <div class="glow-dot dot-blue" style="animation-delay: 0s"></div>
+            <div class="glow-dot dot-purple" style="animation-delay: 0.7s"></div>
+            <div class="glow-dot dot-blue" style="animation-delay: 1.4s"></div>
         </div>
     </div>
 
     <!-- Header Area -->
     <header class="game-header">
-        <div class="theme-toggle-wrapper flex justify-start">
-            <button id="toggleNight" class="cursor-pointer hover:scale-110 active:scale-95 transition-transform">☀️</button>
+        <div class="theme-toggle-wrapper">
+            <button id="toggleNight" class="cursor-pointer hover:scale-110 active:scale-95 transition-transform duration-200">☀️</button>
         </div>
 
         <h1 class="header-title brand-font">Word Adventure</h1>
 
-        <div class="logo-wrapper flex justify-end">
-            <img src="favicon.png?v=3" alt="Logo" class="h-12 w-auto object-contain">
+        <div class="logo-wrapper">
+            <img src="favicon.png?v=3" alt="Logo" class="h-12 w-auto object-contain drop-shadow-sm">
         </div>
     </header>
 
-    <!-- Main Content Container -->
-    <!-- כאן ה-main.js מזריק את כל התוכן (הנחיות, הזנת מילים, כרטיס המילה והמשחקים) -->
-    <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center">
-        <!-- Loader during JS initialization -->
-        <div class="mt-20 text-blue-400 animate-pulse">טוען הרפתקה...</div>
-    </div>
+    <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center"></div>
 
     <script src="js/main.js"></script>
     <script>
-        // Splash Screen Logic
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
             setTimeout(() => {
-                if(splash) splash.classList.add('hidden');
+                splash.classList.add('hidden');
+            }, 3000); // הארכתי מעט ל-3 שניות כדי להנות מהאפקט
             }, 3000); 
         });
 
-        // Night Mode Toggle
         const toggleBtn = document.getElementById('toggleNight');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => {
-                document.body.classList.toggle('night-mode');
+        toggleBtn.addEventListener('click', () => {
+            setTimeout(() => {
                 const isNight = document.body.classList.contains('night-mode');
                 toggleBtn.innerText = isNight ? '🌙' : '☀️';
-            });
-        }
-
-        // Global Event Listener for Audio Button feedback
-        // ה-main.js משתמש ב-ID 'speak-button' או דומה, אנחנו מאזינים לשינויי סטטוס
-        document.addEventListener('click', (e) => {
-            const btn = e.target.closest('.audio-play-btn');
-            if (btn) {
-                btn.classList.add('is-speaking');
-                // הסרת המחלק אחרי זמן ההקראה המשוער (או סנכרון עם ה-Speech API אם קיים)
-                setTimeout(() => btn.classList.remove('is-speaking'), 1500);
-            }
+            }, 10);
         });
     </script>
 </body>
 </html>
+~

@@ -6,8 +6,9 @@
     <title>English Learning Adventure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
-    
+
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,156 +19,183 @@
     <style>
         body {
             font-family: 'Varela Round', sans-serif;
-            margin: 0;
-            background-color: #f0f9ff;
-            transition: background-color 0.4s ease;
+            transition: background-color 0.4s ease, color 0.4s ease;
         }
 
-        body.dark-mode {
-            background-color: #0f172a !important;
-            color: #f8fafc !important;
-        }
-
-        /* מסך פתיחה - ממורכז לחלוטין */
+        /* מסך פתיחה */
         #splash-screen {
             position: fixed;
             inset: 0;
-            background-color: #1e293b;
+            background-color: #0f172a; /* כהה מאוד */
             display: flex;
             flex-direction: column;
-            justify-content: center; /* מרכוז אנכי */
-            align-items: center;    /* מרכוז אופקי */
-            z-index: 10000;
-            transition: opacity 0.5s ease-out;
-        }
-
-        .splash-branding {
-            display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            text-align: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease-out;
         }
 
-        .splash-logo {
-            width: 80px; /* גודל בולט למסך פתיחה */
-            height: 80px;
-            margin-bottom: 1rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        .splash-logo-big {
+            width: 180px;
+            height: auto;
+            opacity: 0;
+            transform: scale(0.8);
+            animation: fadeInOut 2.5s forwards ease-in-out;
         }
 
-        .splash-title {
+        .splash-text {
             color: #fbbf24;
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: 900;
-            margin: 0;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            opacity: 0;
+            position: absolute;
+            animation: fadeInText 2s forwards ease-in-out 2s;
         }
 
-        /* 3 עיגולים זוהרים לסירוגין */
-        .loading-container {
-            margin-top: 2rem;
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: scale(0.8); }
+            40% { opacity: 1; transform: scale(1); }
+            70% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.1); visibility: hidden; }
+        }
+
+        @keyframes fadeInText {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 3 עיגולים זוהרים מתחת להכל */
+        .splash-dots {
+            position: absolute;
+            bottom: 20%;
             display: flex;
-            gap: 15px;
+            gap: 20px;
         }
 
-        .loader-dot {
-            width: 14px;
-            height: 14px;
+        .dot {
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            background-color: #3b82f6;
-            opacity: 0.2;
-            box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
-            animation: alternate-glow 1.2s infinite ease-in-out;
+            opacity: 0.3;
         }
 
-        .loader-dot:nth-child(1) { animation-delay: 0s; background-color: #a855f7; }
-        .loader-dot:nth-child(2) { animation-delay: 0.4s; background-color: #3b82f6; }
-        .loader-dot:nth-child(3) { animation-delay: 0.8s; background-color: #a855f7; }
+        .dot-purple { background-color: #a855f7; box-shadow: 0 0 15px #a855f7; animation: dotGlow 1.5s infinite; }
+        .dot-blue { background-color: #3b82f6; box-shadow: 0 0 15px #3b82f6; animation: dotGlow 1.5s infinite 0.5s; }
+        .dot-purple-2 { background-color: #a855f7; box-shadow: 0 0 15px #a855f7; animation: dotGlow 1.5s infinite 1s; }
 
-        @keyframes alternate-glow {
-            0%, 100% { 
-                opacity: 0.2; 
-                transform: scale(1);
-                filter: blur(0px);
-            }
-            50% { 
-                opacity: 1; 
-                transform: scale(1.3);
-                filter: blur(1px);
-                box-shadow: 0 0 15px currentColor;
-            }
+        @keyframes dotGlow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+
+        /* מצב לילה מלא */
+        body.dark-mode {
+            background-color: #0f172a !important;
+            color: #fbbf24 !important;
+        }
+        body.dark-mode #app * {
+            background-color: transparent !important;
+            color: #fbbf24 !important;
+            border-color: #334155 !important;
+        }
+        body.dark-mode .bg-white, body.dark-mode .game-card {
+            background-color: #1e293b !important;
+        }
+
+        /* Header Layout - מרכוז ומרווחים שווים */
+        .main-header {
+            display: grid;
+            grid-template-columns: 80px 1fr 80px;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
         }
 
         #main-content {
             display: none;
             opacity: 0;
-            transition: opacity 0.4s ease-in;
+            transition: opacity 0.5s ease-in;
         }
     </style>
 </head>
-<body class="bg-blue-50 text-gray-800">
+<body class="bg-blue-50 text-gray-800 min-h-screen">
 
     <!-- מסך פתיחה -->
     <div id="splash-screen">
-        <div class="splash-branding">
-            <img src="favicon.png?v=3" alt="Logo" class="splash-logo">
-            <h1 class="splash-title">Word Adventure</h1>
-            
-            <!-- שלושת העיגולים מתחת ללוגו והכותרת -->
-            <div class="loading-container">
-                <div class="loader-dot"></div>
-                <div class="loader-dot"></div>
-                <div class="loader-dot"></div>
-            </div>
+        <img src="logo_inner.png" alt="Logo" class="splash-logo-big" onerror="this.src='favicon.png?v=3'">
+        <div class="splash-text">Word Adventure</div>
+        
+        <div class="splash-dots">
+            <div class="dot dot-purple"></div>
+            <div class="dot dot-blue"></div>
+            <div class="dot dot-purple-2"></div>
         </div>
     </div>
 
-    <!-- התוכן הראשי של האפליקציה -->
+    <!-- תוכן האתר (משתמש ב-main.js המקורי שלך) -->
     <div id="main-content">
-        <header class="flex flex-col items-center px-4 py-6 w-full max-w-2xl mx-auto">
-            <div class="w-full flex justify-between items-center mb-6">
-                <button id="toggleNight" class="text-3xl p-2 focus:outline-none transition-transform active:scale-90">☀️</button>
-                <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-black text-yellow-500">Word Adventure</h1>
-                    <img src="favicon.png?v=3" alt="Logo" class="h-10 w-10 rounded-lg">
-                </div>
+        <header class="main-header">
+            <!-- צד ימין: מצב יום/לילה -->
+            <div class="flex justify-start">
+                <button id="toggleNight" class="text-4xl focus:outline-none transition-transform active:scale-90">☀️</button>
+            </div>
+            
+            <!-- מרכז: כותרת ממורכזת -->
+            <div class="text-center">
+                <h1 class="text-3xl md:text-4xl font-black text-yellow-500 tracking-tight whitespace-nowrap">Word Adventure</h1>
+            </div>
+
+            <!-- צד שמאל: לוגו -->
+            <div class="flex justify-end">
+                <img src="favicon.png?v=3" alt="Logo" class="h-12 w-auto object-contain">
             </div>
         </header>
 
-        <main id="app" class="container mx-auto px-4 max-w-2xl">
-            <!-- כאן נכנסים המשחקים והשלבים -->
-        </main>
+        <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center">
+            <!-- התוכן של main.js ייטען כאן -->
+        </div>
     </div>
 
     <script>
-        // לוגיקת טעינה
-        window.addEventListener('load', () => {
-            const splash = document.getElementById('splash-screen');
-            const content = document.getElementById('main-content');
+        // לוגיקת מצב לילה
+        const toggleBtn = document.getElementById('toggleNight');
+        const body = document.body;
 
-            // השהייה קלה כדי להראות את האנימציה הזוהרת
+        function updateTheme(isDark) {
+            if (isDark) {
+                body.classList.add('dark-mode');
+                toggleBtn.textContent = '🌙';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.remove('dark-mode');
+                toggleBtn.textContent = '☀️';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        toggleBtn.addEventListener('click', () => updateTheme(!body.classList.contains('dark-mode')));
+        if (localStorage.getItem('theme') === 'dark') updateTheme(true);
+
+        // ניהול מסך פתיחה והצגת המשחק
+        window.addEventListener('load', () => {
             setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                const content = document.getElementById('main-content');
+                
                 splash.style.opacity = '0';
                 content.style.display = 'block';
                 
                 setTimeout(() => {
                     content.style.opacity = '1';
-                    splash.remove(); // הסרה מה-DOM לשיפור ביצועים
-                }, 500);
-            }, 2500);
+                    splash.remove();
+                }, 800);
+            }, 4500); // זמן מספיק לאנימציית הלוגו ואז הטקסט
         });
-
-        // לוגיקת מצב לילה
-        const toggleBtn = document.getElementById('toggleNight');
-        const updateTheme = (isDark) => {
-            document.body.classList.toggle('dark-mode', isDark);
-            toggleBtn.textContent = isDark ? '🌙' : '☀️';
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        };
-
-        toggleBtn.addEventListener('click', () => updateTheme(!document.body.classList.contains('dark-mode')));
-        if (localStorage.getItem('theme') === 'dark') updateTheme(true);
     </script>
+
+    <!-- טעינת הלוגיקה המקורית של המשחק שלך -->
+    <script src="js/main.js"></script>
 </body>
 </html>

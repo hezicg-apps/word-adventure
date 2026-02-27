@@ -3,45 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>English Learning Adventure</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link rel="stylesheet" href="css/style.css">
-
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="favicon.png">
-    <link rel="icon" type="image/png" href="favicon.png?v=3">
-    <meta name="theme-color" content="#1e293b">
+    <title>Word Adventure</title>
     
+    <!-- קישור לקבצים החיצוניים שלך -->
+    <link rel="stylesheet" href="./css/style.css">
+    
+    <style>
+        /* הגדרות בסיסיות */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            background-color: #f0f7ff;
+        }
+
+        /* מסך פתיחה */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease;
+        }
+
+        .splash-content {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* לוגו גדול ללא זוהר */
+        .splash-logo {
+            width: 85vw;
+            max-width: 420px;
+            height: auto;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        /* שם המשחק */
+        .splash-title {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            font-weight: bold;
+            color: #1e293b;
+            margin: 0 0 40px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* שלושת העיגולים */
+        .dots-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #e2e8f0; /* צבע כבוי */
+            transition: all 0.3s ease;
+        }
+
+        /* אנימציה זוהרת לסירוגין - כחול וסגול */
+        @keyframes glow-sequence {
+            0%, 100% { 
+                background-color: #e2e8f0; 
+                box-shadow: none;
+                transform: scale(1);
+            }
+            33% { 
+                background-color: #38bdf8; /* כחול */
+                box-shadow: 0 0 20px #38bdf8, 0 0 35px rgba(56, 189, 248, 0.4);
+                transform: scale(1.1);
+            }
+            66% { 
+                background-color: #a855f7; /* סגול */
+                box-shadow: 0 0 20px #a855f7, 0 0 35px rgba(168, 85, 247, 0.4);
+                transform: scale(1.1);
+            }
+        }
+
+        /* תזמון האנימציה לכל עיגול */
+        .dot:nth-child(1) { animation: glow-sequence 2.4s infinite 0s; }
+        .dot:nth-child(2) { animation: glow-sequence 2.4s infinite 0.8s; }
+        .dot:nth-child(3) { animation: glow-sequence 2.4s infinite 1.6s; }
+
+        .splash-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
 </head>
-<body class="bg-blue-50 text-gray-800 min-h-screen">
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    <header class="flex flex-col items-center px-4 py-3 w-full max-w-2xl mx-auto">
-        <div class="w-full flex justify-between items-center mb-4">
-            <button id="toggleNight" class="text-3xl bg-transparent border-none cursor-pointer">☀️</button>
+<body>
+
+    <!-- מסך פתיחה -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <!-- הלוגו שלך -->
+            <img src="./logo_inner.png" alt="Word Adventure Logo" class="splash-logo" onerror="this.style.display='none'">
             
-            <div class="flex items-center gap-4 flex-row-reverse">
-                <img src="favicon.png?v=3" alt="Logo" class="game-logo h-14 w-auto object-contain bg-transparent">
-                <h1 class="text-3xl font-black text-yellow-500 eng-text tracking-tight">Word Adventure</h1>
+            <!-- שם המשחק -->
+            <h1 class="splash-title">Word Adventure</h1>
+            
+            <!-- העיגולים הזוהרים -->
+            <div class="dots-container">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
             </div>
-
-            <div class="w-8"></div>
         </div>
-    </header>
+    </div>
 
-    <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center"></div>
+    <!-- מכולת המשחק הראשית (לשם ה-JS מזריק את התוכן) -->
+    <div id="app"></div>
 
-    
-<script src="js/main.js"></script>
+    <!-- סקריפטים -->
+    <script src="./js/data.js"></script>
+    <script src="./js/main.js"></script>
+
+    <script>
+        // לוגיקה להסרת מסך הפתיחה
+        window.addEventListener('load', () => {
+            const splash = document.getElementById('splash-screen');
+            
+            // נחכה 3 שניות כדי שהאנימציה תושלם לפחות פעם אחת בצורה יפה
+            setTimeout(() => {
+                if (splash) {
+                    splash.classList.add('splash-hidden');
+                    // הסרה מלאה מהדף לאחר סיום ה-fade out
+                    setTimeout(() => splash.remove(), 800);
+                }
+            }, 3000);
+        });
+    </script>
 </body>
 </html>

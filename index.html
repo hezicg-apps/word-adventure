@@ -1,8 +1,212 @@
-<!DOCTYPE html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>English Learning Adventure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="icon" type="image/png" href="favicon.png?v=3">
+    <meta name="theme-color" content="#1e293b">
+
+    <style>
+        /* מסך פתיחה */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            background-color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease;
+        }
+
+        .splash-logo-static {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            object-fit: contain;
+            background: transparent;
+        }
+
+        #typing-text {
+            color: #fbbf24;
+            font-size: 2.5rem;
+            font-weight: 900;
+            min-height: 3.5rem;
+            text-align: center;
+            font-family: sans-serif;
+        }
+
+        .dots-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .glow-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+
+        .dot-1 { background: #a855f7; box-shadow: 0 0 15px #a855f7; animation: glow 1.5s infinite; }
+        .dot-2 { background: #3b82f6; box-shadow: 0 0 15px #3b82f6; animation: glow 1.5s infinite 0.5s; }
+        .dot-3 { background: #a855f7; box-shadow: 0 0 15px #a855f7; animation: glow 1.5s infinite 1s; }
+
+        @keyframes glow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+
+        /* מצבי יום/לילה מלאים */
+        body.light-mode {
+            background-color: #f0f9ff !important;
+            color: #1e293b !important;
+        }
+        body.dark-mode {
+            background-color: #0f172a !important;
+            color: #fbbf24 !important;
+        }
+
+        /* מניעת רקעים לאייקונים */
+        img, .game-logo, #toggleNight {
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
+        #main-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        /* תיקון כותרת בנייד */
+        .header-container {
+            display: grid;
+            grid-template-columns: 50px 1fr 50px;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        @media (max-width: 480px) {
+            .eng-text {
+                font-size: 1.5rem;
+                line-height: 1.1;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body class="bg-blue-50 text-gray-800 min-h-screen light-mode">
+
+    <!-- מסך פתיחה -->
+    <div id="splash-screen">
+        <img src="favicon.png?v=3" alt="Logo" class="splash-logo-static">
+        <div id="typing-text"></div>
+        <div class="dots-container">
+            <div class="glow-dot dot-1"></div>
+            <div class="glow-dot dot-2"></div>
+            <div class="glow-dot dot-3"></div>
+        </div>
+    </div>
+
+    <!-- תוכן האפליקציה -->
+    <div id="main-content">
+        <header class="flex flex-col items-center px-4 py-3 w-full max-w-2xl mx-auto">
+            <div class="header-container w-full mb-4">
+                <button id="toggleNight" class="text-3xl border-none cursor-pointer">☀️</button>
+                
+                <div class="flex items-center gap-2 flex-row-reverse justify-center">
+                    <img src="favicon.png?v=3" alt="Logo" class="game-logo h-12 w-auto object-contain">
+                    <h1 class="eng-text font-black text-yellow-500 tracking-tight text-center">
+                        Word Adventure
+                    </h1>
+                </div>
+
+                <div class="w-8"></div> <!-- מאזן את הגריד -->
+            </div>
+        </header>
+
+        <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center"></div>
+    </div>
+
+    <script>
+        const splash = document.getElementById('splash-screen');
+        const content = document.getElementById('main-content');
+        const typingTarget = document.getElementById('typing-text');
+        const fullText = "Word Adventure";
+        const toggleBtn = document.getElementById('toggleNight');
+
+        // אפקט הקלדה
+        function typeWriter(text, i, cb) {
+            if (i < text.length) {
+                typingTarget.innerHTML += text.charAt(i);
+                setTimeout(() => typeWriter(text, i + 1, cb), 100);
+            } else if (cb) {
+                setTimeout(cb, 1000);
+            }
+        }
+
+        // מצב לילה/יום
+        function updateTheme(isDark) {
+            if (isDark) {
+                document.body.classList.remove('light-mode');
+                document.body.classList.add('dark-mode');
+                toggleBtn.textContent = '🌙';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                document.body.classList.add('light-mode');
+                toggleBtn.textContent = '☀️';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            const isDark = document.body.classList.contains('dark-mode');
+            updateTheme(!isDark);
+        });
+
+        // אתחול
+        window.addEventListener('load', () => {
+            // טעינת תמה
+            const savedTheme = localStorage.getItem('theme');
+            updateTheme(savedTheme === 'dark');
+
+            // התחלת אנימציית פתיחה
+            setTimeout(() => {
+                typeWriter(fullText, 0, () => {
+                    splash.style.opacity = '0';
+                    content.style.display = 'block';
+                    setTimeout(() => {
+                        content.style.opacity = '1';
+                        splash.remove();
+                    }, 800);
+                });
+            }, 500);
+        });
+    </script>
+
+    <!-- טעינת המשחק המקורי -->
+    <script src="js/main.js"></script>
+</body>
+</html>
     <title>English Learning Adventure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -178,3 +382,4 @@
     </script>
 </body>
 </html>
+

@@ -11,69 +11,56 @@
         :root {
             --bg-color: #f0f9ff;
             --text-color: #1e293b;
-            --card-bg: #ffffff;
-            --btn-bg: #ffffff;
-            --btn-border: #e2e8f0;
-            --header-height: 80px;
+            --header-bg: transparent;
         }
 
         [data-theme="dark"] {
             --bg-color: #0f172a;
             --text-color: #f8fafc;
-            --card-bg: #1e293b;
-            --btn-bg: #334155;
-            --btn-border: #475569;
         }
 
         body {
             background-color: var(--bg-color) !important;
             color: var(--text-color) !important;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            transition: background-color 0.3s ease;
             margin: 0;
             font-family: system-ui, -apple-system, sans-serif;
             min-height: 100vh;
-            overflow-x: hidden;
         }
 
-        /* הדר מתוקן: שם ולוגו משמאל, כפתור מימין */
+        /* Header - שימוש ב-LTR כדי להבטיח מיקום פיזי מדויק */
         .main-header {
+            direction: ltr; /* כפייה של שמאל לימין לצורך המיקום */
             display: flex;
-            /* ב-RTL: row-reverse יגרום לאלמנט הראשון (הקבוצה) להיות משמאל והשני (הכפתור) מימין */
-            flex-direction: row-reverse;
             justify-content: space-between;
             align-items: center;
-            width: 100%;
+            padding: 15px 25px;
             max-width: 800px;
             margin: 0 auto;
-            padding: 15px 20px;
-            height: var(--header-height);
         }
 
-        .header-left-group {
+        .header-left {
             display: flex;
             align-items: center;
             gap: 12px;
-            /* מבטיח שהלוגו יהיה משמאל לטקסט בתוך הקבוצה השמאלית */
-            flex-direction: row; 
         }
 
         .instruction-bar {
+            direction: rtl;
             text-align: center;
-            font-size: 1rem;
-            font-weight: 500;
-            padding: 10px;
-            background: rgba(59, 130, 246, 0.1);
-            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
-            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 12px;
+            background: rgba(59, 130, 246, 0.15);
+            color: #2563eb;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.1);
         }
-
         [data-theme="dark"] .instruction-bar {
-            background: rgba(59, 130, 246, 0.05);
             color: #60a5fa;
+            background: rgba(59, 130, 246, 0.1);
         }
 
-        /* מסך פתיחה משופר */
+        /* מסך פתיחה */
         #splash-screen {
             position: fixed;
             inset: 0;
@@ -82,75 +69,80 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
-            transition: opacity 0.8s ease-out;
+            z-index: 10000;
         }
 
         .splash-logo {
-            width: 12rem; /* גודל מוגדל משמעותית */
+            width: 280px; /* הגדלה משמעותית */
             height: auto;
-            margin-bottom: 2rem;
-            filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.3));
-            animation: pulse 2s infinite ease-in-out;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.9; }
+            margin-bottom: 30px;
+            background: transparent;
         }
 
         #typing-text {
             color: #fbbf24;
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: 900;
-            letter-spacing: -0.02em;
+            height: 4rem;
         }
 
-        #main-wrapper { 
-            display: none; 
-            opacity: 0; 
-            transition: opacity 0.6s ease; 
+        .dots-row {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
         }
 
-        #toggleNight {
-            font-size: 2rem;
-            cursor: pointer;
-            transition: transform 0.2s;
+        .dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            animation: glow-cycle 1.5s infinite;
         }
 
-        #toggleNight:hover {
-            transform: scale(1.1);
+        .dot-1 { background: #a855f7; box-shadow: 0 0 20px #a855f7; }
+        .dot-2 { background: #3b82f6; box-shadow: 0 0 20px #3b82f6; animation-delay: 0.5s; }
+        .dot-3 { background: #a855f7; box-shadow: 0 0 20px #a855f7; animation-delay: 1s; }
+
+        @keyframes glow-cycle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
         }
+
+        #main-wrapper { display: none; opacity: 0; transition: opacity 0.5s ease; }
     </style>
 </head>
 <body>
 
-    <!-- מסך פתיחה עם לוגו גדול -->
+    <!-- מסך פתיחה -->
     <div id="splash-screen">
         <img src="favicon.png?v=3" alt="Logo" class="splash-logo">
         <div id="typing-text"></div>
+        <div class="dots-row">
+            <div class="dot dot-1"></div>
+            <div class="dot dot-2"></div>
+            <div class="dot dot-3"></div>
+        </div>
     </div>
 
+    <!-- תוכן המשחק -->
     <div id="main-wrapper">
         <header class="main-header">
-            <!-- קבוצת שם ולוגו - תוצמד לשמאל בגלל row-reverse ב-RTL -->
-            <div class="header-left-group">
-                <img src="favicon.png?v=3" alt="Logo" class="h-10 w-auto">
-                <h1 class="text-2xl font-black text-yellow-500 tracking-tight">Word Adventure</h1>
+            <!-- שמאל: לוגו ושם -->
+            <div class="header-left">
+                <img src="favicon.png?v=3" alt="Logo" class="h-12 w-auto bg-transparent">
+                <h1 class="text-2xl font-black text-yellow-500 m-0 p-0">Word Adventure</h1>
             </div>
 
-            <!-- כפתור מצב לילה - יוצמד לימין בגלל row-reverse ב-RTL -->
-            <button id="toggleNight" title="החלף מצב תצוגה">☀️</button>
+            <!-- ימין: כפתור -->
+            <button id="toggleNight" class="text-3xl bg-transparent border-none cursor-pointer p-2">☀️</button>
         </header>
 
-        <!-- הנחיית סיבוב כרטיסייה -->
         <div class="instruction-bar">
-            ✨ לחצו על כרטיסייה כדי לסובב ולראות את התרגום
+            💡 לחצו על כרטיסייה כדי לסובב ולראות את התרגום
         </div>
 
-        <main id="app" class="container mx-auto px-4 py-4 max-w-2xl text-center">
-            <!-- כאן יופיע תוכן המשחק מה-JS -->
-            <div class="mt-20 opacity-50 italic">טוען הרפתקה...</div>
+        <main id="app" class="container mx-auto px-4 py-6 max-w-2xl">
+            <!-- המשחק נטען כאן -->
         </main>
     </div>
 
@@ -159,12 +151,13 @@
         const wrapper = document.getElementById('main-wrapper');
         const typingEl = document.getElementById('typing-text');
         const themeBtn = document.getElementById('toggleNight');
+        const gameTitle = "Word Adventure";
 
-        // פונקציית הקלדה למסך הפתיחה
-        function startTyping(text, i) {
+        // הקלדה
+        function type(text, i) {
             if (i < text.length) {
                 typingEl.textContent += text.charAt(i);
-                setTimeout(() => startTyping(text, i + 1), 80);
+                setTimeout(() => type(text, i + 1), 100);
             } else {
                 setTimeout(() => {
                     splash.style.opacity = '0';
@@ -172,12 +165,12 @@
                     setTimeout(() => {
                         wrapper.style.opacity = '1';
                         splash.remove();
-                    }, 600);
+                    }, 500);
                 }, 1200);
             }
         }
 
-        // ניהול ערכת נושא
+        // ערכת נושא
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             themeBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
@@ -189,13 +182,13 @@
             setTheme(current === 'dark' ? 'light' : 'dark');
         });
 
-        // אתחול
         window.addEventListener('DOMContentLoaded', () => {
             const saved = localStorage.getItem('game-theme') || 'light';
             setTheme(saved);
-            // התחלת האנימציה
-            setTimeout(() => startTyping("Word Adventure", 0), 300);
+            setTimeout(() => type(gameTitle, 0), 500);
         });
     </script>
+
+    <script src="js/main.js"></script>
 </body>
 </html>

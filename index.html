@@ -6,46 +6,25 @@
     <title>English Learning Adventure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
     
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&family=Varela+Round&display=swap" rel="stylesheet">
+    <!-- גופן Varela Round לידידותיות לילדים -->
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="icon" type="image/png" href="favicon.png?v=3">
+    <meta name="theme-color" content="#1e293b">
 
     <style>
         body {
-            font-family: 'Quicksand', 'Varela Round', sans-serif;
-            margin: 0;
-            padding: 0;
-            transition: background-color 0.3s, color 0.3s;
+            font-family: 'Varela Round', sans-serif;
+            transition: background-color 0.4s ease, color 0.4s ease;
         }
 
-        /* הגדרות מצב לילה גלובליות */
-        body.dark-mode {
-            background-color: #0f172a !important; /* slate-900 */
-            color: #fbbf24 !important; /* Yellow-400 */
-        }
-
-        /* תיקון לתיבות טקסט וכרטיסים במצב לילה */
-        body.dark-mode .bg-white, 
-        body.dark-mode .game-card,
-        body.dark-mode .modal-content {
-            background-color: #1e293b !important; /* slate-800 */
-            color: #fbbf24 !important; /* טקסט צהוב */
-            border-color: #334155 !important;
-        }
-
-        /* טקסטים ספציפיים שצריכים להיות צהובים במצב לילה */
-        body.dark-mode h1, 
-        body.dark-mode h2, 
-        body.dark-mode p, 
-        body.dark-mode span,
-        body.dark-mode label {
-            color: #fbbf24 !important;
-        }
-
-        /* כפתורים צריכים להישאר קריאים */
-        body.dark-mode button:not(#toggleNight) {
-            border-color: #fbbf24;
-        }
-
+        /* מסך פתיחה */
         #splash-screen {
             position: fixed;
             inset: 0;
@@ -54,66 +33,132 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 99999;
-            transition: opacity 1s ease-out;
-            padding: 20px;
+            z-index: 10000;
+            transition: opacity 0.8s ease-out;
+        }
+
+        .splash-logo {
+            width: 300px;
+            max-width: 80vw;
+            height: auto;
+            margin-bottom: 2rem;
         }
 
         .splash-title {
-            font-size: clamp(2rem, 10vw, 3.5rem); 
-            font-weight: 700;
-            color: #fbbf24;
-            margin-bottom: 40px;
+            color: #fbbf24; /* צהוב */
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            font-weight: 900;
+            white-space: nowrap;
+            margin-bottom: 3rem;
             text-align: center;
         }
 
-        #main-game-wrapper {
+        /* 3 עיגולים זוהרים לסירוגין */
+        .dots-container {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+
+        .dot-blue { background-color: #3b82f6; box-shadow: 0 0 20px #3b82f6; animation: glow 1.5s infinite; }
+        .dot-purple { background-color: #a855f7; box-shadow: 0 0 20px #a855f7; animation: glow 1.5s infinite 0.5s; }
+        .dot-blue-2 { background-color: #3b82f6; box-shadow: 0 0 20px #3b82f6; animation: glow 1.5s infinite 1s; }
+
+        @keyframes glow {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.4); opacity: 1; }
+        }
+
+        /* מצב לילה - טקסט צהוב על רקע כהה */
+        body.dark-mode {
+            background-color: #0f172a !important; /* Slate 900 */
+            color: #fbbf24 !important; /* Yellow 400 */
+        }
+
+        /* מניעת רקעים לבנים באפליקציה במצב לילה */
+        body.dark-mode #app div, 
+        body.dark-mode .bg-white,
+        body.dark-mode .game-card {
+            background-color: #1e293b !important; /* Slate 800 */
+            color: #fbbf24 !important;
+            border-color: #334155 !important;
+        }
+
+        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode p, body.dark-mode span {
+            color: #fbbf24 !important;
+        }
+
+        /* מבנה ה-Header הממורכז */
+        .main-header {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+        }
+
+        .header-center {
+            text-align: center;
+        }
+
+        #main-content {
             visibility: hidden;
             opacity: 0;
-            transition: opacity 0.8s ease-in;
-            min-height: 100vh;
+            transition: opacity 0.5s ease-in;
         }
     </style>
 </head>
-<body class="bg-blue-50 text-gray-800">
+<body class="bg-blue-50 text-gray-800 min-h-screen">
 
     <!-- מסך פתיחה -->
     <div id="splash-screen">
-        <div class="flex flex-col items-center">
-            <h1 class="splash-title">Word Adventure</h1>
-            <div class="flex gap-4">
-                <div class="w-4 h-4 rounded-full bg-blue-500 animate-bounce"></div>
-                <div class="w-4 h-4 rounded-full bg-purple-500 animate-bounce [animation-delay:0.2s]"></div>
-                <div class="w-4 h-4 rounded-full bg-blue-500 animate-bounce [animation-delay:0.4s]"></div>
-            </div>
+        <img src="logo_inner.png" alt="Logo" class="splash-logo" onerror="this.src='favicon.png?v=3'">
+        <h1 class="splash-title">Word Adventure</h1>
+        <div class="dots-container">
+            <div class="dot dot-blue"></div>
+            <div class="dot dot-purple"></div>
+            <div class="dot dot-blue-2"></div>
         </div>
     </div>
 
-    <!-- תוכן המשחק -->
-    <div id="main-game-wrapper">
-        <header class="flex justify-between items-center px-6 py-4 max-w-4xl mx-auto w-full">
-            <button id="toggleNight" class="text-3xl hover:scale-110 transition-transform focus:outline-none">
-                ☀️
-            </button>
+    <!-- תוכן האתר -->
+    <div id="main-content">
+        <header class="main-header">
+            <!-- צד אחד: כפתור יום/לילה -->
+            <div class="flex justify-start">
+                <button id="toggleNight" class="text-4xl p-2 transition-transform hover:scale-110 focus:outline-none">☀️</button>
+            </div>
             
-            <h1 class="text-2xl font-bold text-yellow-500">Word Adventure</h1>
+            <!-- מרכז: כותרת -->
+            <div class="header-center">
+                <h1 class="text-3xl md:text-4xl font-black text-yellow-500 tracking-tight whitespace-nowrap">Word Adventure</h1>
+            </div>
 
-            <img src="favicon.png?v=3" alt="Logo" class="h-10 w-auto" onerror="this.style.display='none'">
+            <!-- צד שני: לוגו -->
+            <div class="flex justify-end">
+                <img src="favicon.png?v=3" alt="Logo" class="h-12 w-auto object-contain">
+            </div>
         </header>
 
-        <main id="app" class="container mx-auto px-4 flex flex-col items-center">
-            <!-- כאן מוזרק המשחק. דוגמה לכרטיס שיושפע מהתיקון: -->
-            <div class="game-card bg-white p-8 rounded-2xl shadow-xl max-w-md w-full mt-10 text-center border-2 border-transparent">
-                <h2 class="text-2xl mb-4">מוכן להתחיל?</h2>
-                <p class="mb-6">המשחק בטעינה...</p>
-            </div>
-        </main>
+        <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center">
+            <!-- התוכן של main.js ייטען כאן -->
+        </div>
     </div>
 
+    <!-- JavaScript לניהול המצבים -->
     <script>
         const toggleBtn = document.getElementById('toggleNight');
         const body = document.body;
 
+        // פונקציית עדכון מצב לילה
         function updateTheme(isDark) {
             if (isDark) {
                 body.classList.add('dark-mode');
@@ -127,11 +172,10 @@
         }
 
         toggleBtn.addEventListener('click', () => {
-            const isDark = !body.classList.contains('dark-mode');
-            updateTheme(isDark);
+            updateTheme(!body.classList.contains('dark-mode'));
         });
 
-        // טעינת העדפה
+        // טעינת מצב לילה שמור
         if (localStorage.getItem('theme') === 'dark') {
             updateTheme(true);
         }
@@ -140,13 +184,18 @@
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
-                const wrapper = document.getElementById('main-game-wrapper');
+                const content = document.getElementById('main-content');
+                
                 splash.style.opacity = '0';
-                wrapper.style.visibility = 'visible';
-                wrapper.style.opacity = '1';
-                setTimeout(() => splash.remove(), 1000);
-            }, 1500);
+                content.style.visibility = 'visible';
+                content.style.opacity = '1';
+
+                setTimeout(() => splash.remove(), 800);
+            }, 3000);
         });
     </script>
+
+    <!-- טעינת לוגיקת המשחק המקורית -->
+    <script src="js/main.js"></script>
 </body>
 </html>

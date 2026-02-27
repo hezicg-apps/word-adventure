@@ -79,9 +79,9 @@ function renderFlashcards(app) {
         <div class="text-center space-y-4 w-full max-sm px-2 mt-4 relative">
             <h2 class="text-2xl font-black">לימוד מילים (${state.words.filter(w=>w.known).length}/${state.words.length})</h2>
             
-            <div class="bg-blue-100 text-blue-700 py-2 px-4 rounded-full inline-flex items-center gap-2 font-black animate-pulse-soft">
+            <div class="bg-blue-100 text-blue-700 py-2 px-6 rounded-full inline-flex items-center gap-2 font-black animate-pulse-soft border border-blue-200">
                 <span>לחצו על הכרטיסייה לסיבוב</span>
-                <span>🔄</span>
+                <span class="text-xl">🔄</span>
             </div>
 
             <div onclick="this.classList.toggle('card-flipped')" class="relative w-full h-80 perspective-1000 cursor-pointer mt-2">
@@ -113,10 +113,9 @@ function renderQuiz(app) {
                 <div class="grid gap-4">
                     ${state.quizOptions.map((o, idx) => {
                         let statusClass = '';
-                        // כאן הלוגיקה שמראה את התשובה הנכונה
                         if (state.quizFeedback.status) {
-                            if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans'; // תמיד ירוק לנכון
-                            else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans'; // אדום לטעות
+                            if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans';
+                            else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans';
                         }
                         return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" class="py-4 border-2 rounded-2xl font-black text-2xl transition-all ${statusClass}">${o}</button>`;
                     }).join('')}
@@ -128,17 +127,13 @@ function renderQuiz(app) {
 function handleQuizAns(selected, correct, idx) {
     if (state.quizFeedback.status) return;
     const isCorrect = selected === correct;
-    
     state.quizFeedback = { 
         index: idx, 
         status: isCorrect ? 'correct' : 'wrong',
         correctIndex: state.quizOptions.indexOf(correct)
     };
-    
     if (isCorrect) state.correctAnswers++;
     render();
-    
-    // המתנה של 1.5 שניות כדי שיוכלו לראות את התשובה הנכונה (הירוקה)
     setTimeout(() => { 
         state.quizIndex++; 
         state.quizOptions = null; 

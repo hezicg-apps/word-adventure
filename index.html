@@ -15,24 +15,38 @@
     <link rel="icon" type="image/png" href="favicon.png?v=3">
     <meta name="theme-color" content="#1e293b">
     
+    <style>
+        /* אנימציה לעיגולים במסך הפתיחה */
+        .dot { animation: glow 1.5s infinite ease-in-out; }
+        .dot:nth-child(2) { animation-delay: 0.5s; }
+        .dot:nth-child(3) { animation-delay: 1s; }
+        @keyframes glow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+    </style>
 </head>
 <body class="bg-blue-50 text-gray-800 min-h-screen">
     
-    
-    
-    
-    
-    
-    
-    
-    
-    <header class="flex flex-col items-center px-4 py-3 w-full max-w-2xl mx-auto">
-        <div class="w-full flex justify-between items-center mb-4">
-            <button id="toggleNight" class="text-3xl bg-transparent border-none cursor-pointer">☀️</button>
+    <div id="splash-screen" class="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-slate-900 transition-opacity duration-1000">
+        <img src="favicon.png" alt="Logo" class="w-48 h-48 mb-6 animate-pulse">
+        <h2 class="text-4xl font-black text-yellow-500 mb-8 eng-text">Word Adventure</h2>
+        <div class="flex gap-4">
+            <div class="dot w-5 h-5 rounded-full bg-blue-500 shadow-[0_0_15px_#3b82f6]"></div>
+            <div class="dot w-5 h-5 rounded-full bg-purple-500 shadow-[0_0_15px_#a855f7]"></div>
+            <div class="dot w-5 h-5 rounded-full bg-blue-400 shadow-[0_0_15px_#60a5fa]"></div>
+        </div>
+    </div>
+
+    <header class="w-full max-w-2xl mx-auto px-4 py-3">
+        <div class="grid grid-cols-3 items-center w-full">
+            <div class="flex justify-start">
+                <button id="toggleNight" class="text-3xl bg-transparent border-none cursor-pointer">☀️</button>
+            </div>
             
-            <div class="flex items-center gap-4 flex-row-reverse">
-                <img src="favicon.png?v=3" alt="Logo" class="game-logo h-14 w-auto object-contain bg-transparent">
-                <h1 class="text-3xl font-black text-yellow-500 eng-text tracking-tight">Word Adventure</h1>
+            <div class="flex flex-col items-center gap-1">
+                <img src="favicon.png?v=3" alt="Logo" class="h-14 w-auto object-contain">
+                <h1 class="text-xl font-black text-yellow-500 eng-text tracking-tight whitespace-nowrap">Word Adventure</h1>
             </div>
 
             <div class="w-8"></div>
@@ -41,7 +55,16 @@
 
     <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center"></div>
 
-    
-<script src="js/main.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // העלמת מסך הפתיחה לאחר טעינה
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => splash.remove(), 1000);
+            }, 2500);
+        });
+    </script>
 </body>
 </html>

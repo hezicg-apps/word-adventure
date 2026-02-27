@@ -6,177 +6,153 @@
     <title>English Learning Adventure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
     
-    <!-- גופנים ידידותיים לילדים: Varela Round לעברית ו-Quicksand לאנגלית -->
+    <!-- גופנים עגולים של כתב דפוס (לא מחובר) -->
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&family=Varela+Round&display=swap" rel="stylesheet">
 
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="favicon.png">
-    <link rel="icon" type="image/png" href="favicon.png?v=3">
-    <meta name="theme-color" content="#1e293b">
-
     <style>
-        /* הגדרת גופן ברירת מחדל - כתב דפוס עגול ולא מחובר */
+        /* הגדרת גופן כללי */
         body {
             font-family: 'Quicksand', 'Varela Round', sans-serif;
             margin: 0;
             padding: 0;
-            overflow-x: hidden;
+            background-color: #f0f7ff;
         }
 
-        /* מסך פתיחה אינטראקטיבי */
+        /* מסך פתיחה - שחור עם לוגו גדול */
         #splash-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            inset: 0;
+            background-color: #000000;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 10000;
-            transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+            z-index: 99999;
+            transition: opacity 1s ease-out;
         }
 
         .splash-content {
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
         }
 
         .splash-logo {
-            width: 180px;
+            width: 320px; /* לוגו גדול מאוד */
             height: auto;
-            filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.4));
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
+            margin-bottom: 30px;
         }
 
         .splash-title {
             font-size: 3.5rem;
             font-weight: 700;
-            color: #fbbf24; 
-            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            margin-bottom: 10px;
+            color: #fbbf24; /* צהוב */
+            margin-bottom: 50px;
         }
 
-        .splash-subtitle {
-            font-size: 1.5rem;
-            color: #e2e8f0;
-            margin-bottom: 30px;
-        }
-
-        /* כפתור כניסה גדול וידידותי */
-        .start-button {
-            background-color: #fbbf24;
-            color: #1e293b;
-            font-size: 1.8rem;
-            font-weight: 700;
-            padding: 1rem 3rem;
-            border-radius: 50px;
-            border: 4px solid #f59e0b;
-            cursor: pointer;
-            box-shadow: 0 10px 0 #b45309, 0 15px 20px rgba(0,0,0,0.4);
-            transition: all 0.1s;
+        /* עיגולים זוהרים כחול וסגול */
+        .dots-container {
             display: flex;
-            align-items: center;
-            gap: 15px;
+            gap: 20px;
+            justify-content: center;
         }
 
-        .start-button:active {
-            transform: translateY(5px);
-            box-shadow: 0 5px 0 #b45309, 0 10px 15px rgba(0,0,0,0.4);
+        .dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
         }
 
-        /* הסתרת מסך הפתיחה */
-        .hide-splash {
-            transform: translateY(-100%);
+        .dot-blue {
+            background-color: #3b82f6;
+            box-shadow: 0 0 20px #3b82f6, 0 0 40px #3b82f6;
+            animation: pulse-glow 1.5s infinite ease-in-out;
         }
 
-        /* Header עיצוב נקי */
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 800px;
-            padding: 1.5rem;
-            margin: 0 auto;
+        .dot-purple {
+            background-color: #a855f7;
+            box-shadow: 0 0 20px #a855f7, 0 0 40px #a855f7;
+            animation: pulse-glow 1.5s infinite ease-in-out 0.5s;
         }
-        
-        #game-content-root {
+
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.3); opacity: 1; }
+        }
+
+        /* החבאת תוכן המשחק בזמן הטעינה */
+        #main-game-wrapper {
+            visibility: hidden;
             opacity: 0;
-            transition: opacity 0.5s ease-in;
+            transition: opacity 0.8s ease-in;
         }
 
-        .show-content {
-            opacity: 1 !important;
+        /* עיצוב ה-Header הממורכז */
+        .game-header {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            padding: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
         }
     </style>
 </head>
-<body class="bg-blue-50 text-gray-800 min-h-screen">
+<body class="bg-blue-50">
 
-    <!-- מסך פתיחה עם כפתור כניסה -->
+    <!-- מסך פתיחה -->
     <div id="splash-screen">
         <div class="splash-content">
-            <img src="logo_inner.png" alt="Word Adventure Logo" class="splash-logo" onerror="this.src='favicon.png?v=3'">
+            <img src="logo_inner.png" alt="Logo" class="splash-logo" onerror="this.style.display='none'">
             <h1 class="splash-title">Word Adventure</h1>
-            <p class="splash-subtitle">לומדים אנגלית בכיף!</p>
-            
-            <button class="start-button" onclick="startGame()">
-                <span>בואו נתחיל!</span>
-                <span>🚀</span>
-            </button>
+            <div class="dots-container">
+                <div class="dot dot-blue"></div>
+                <div class="dot dot-purple"></div>
+                <div class="dot dot-blue"></div>
+            </div>
         </div>
     </div>
 
-    <!-- תוכן המשחק הראשי -->
-    <div id="game-content-root">
+    <!-- תוכן המשחק -->
+    <div id="main-game-wrapper">
         <header class="game-header">
-            <button id="toggleNight" class="text-3xl p-2 hover:bg-gray-200 rounded-full transition-colors">☀️</button>
-            <h2 class="text-3xl font-bold text-yellow-500">Word Adventure</h2>
-            <img src="favicon.png?v=3" alt="Logo" class="h-10 w-auto">
+            <div class="flex justify-start">
+                <button id="toggleNight" class="text-4xl">☀️</button>
+            </div>
+            
+            <div class="text-center">
+                <h1 class="text-3xl md:text-4xl font-bold text-yellow-500">Word Adventure</h1>
+            </div>
+
+            <div class="flex justify-end">
+                <img src="favicon.png?v=3" alt="Logo" class="h-12 w-auto">
+            </div>
         </header>
 
-        <main id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center">
-            <!-- התוכן של המשחק ייטען כאן דרך ה-JS -->
-            <div class="bg-white p-8 rounded-3xl shadow-xl w-full text-center mt-10">
-                <p class="text-xl">המשחק בטעינה...</p>
-            </div>
+        <main id="app" class="container mx-auto px-4 flex flex-col items-center">
+            <!-- כאן נכנס הקוד מ-main.js -->
         </main>
     </div>
 
+    <script src="js/main.js"></script>
     <script>
-        function startGame() {
-            // הסתרת מסך הפתיחה בהחלקה למעלה
+        window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
-            const content = document.getElementById('game-content-root');
-            
-            splash.classList.add('hide-splash');
-            content.classList.add('show-content');
+            const wrapper = document.getElementById('main-game-wrapper');
 
-            // אפקט קונפטי קטן בכניסה למשחק
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
-
-            // הסרה מה-DOM לאחר האנימציה
+            // מחכים 3 שניות כדי לראות את האנימציה
             setTimeout(() => {
-                splash.style.display = 'none';
-            }, 800);
-        }
+                // מעלימים את מסך הפתיחה
+                splash.style.opacity = '0';
+                
+                // מראים את המשחק
+                wrapper.style.visibility = 'visible';
+                wrapper.style.opacity = '1';
+
+                // מסירים את מסך הפתיחה מהדף
+                setTimeout(() => splash.remove(), 1000);
+            }, 3000);
+        });
     </script>
 </body>
 </html>

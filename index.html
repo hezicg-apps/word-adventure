@@ -14,187 +14,34 @@
     <link rel="apple-touch-icon" href="favicon.png">
     <link rel="icon" type="image/png" href="favicon.png?v=3">
     <meta name="theme-color" content="#1e293b">
-
-    <style>
-        /* הגדרות צבעים גלובליות */
-        :root {
-            --main-bg: #f0f9ff;
-            --main-text: #1e293b;
-        }
-        [data-theme="dark"] {
-            --main-bg: #0f172a;
-            --main-text: #f8fafc;
-        }
-
-        body {
-            background-color: var(--main-bg) !important;
-            color: var(--main-text) !important;
-            transition: all 0.3s ease;
-            margin: 0;
-        }
-
-        /* מסך פתיחה */
-        #splash-screen {
-            position: fixed;
-            inset: 0;
-            background-color: #0f172a;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        }
-
-        .splash-logo-big {
-            width: 200px;
-            height: auto;
-            margin-bottom: 25px;
-        }
-
-        #typing-text {
-            color: #fbbf24;
-            font-size: 2.5rem;
-            font-weight: 900;
-            height: 3.5rem;
-            text-align: center;
-        }
-
-        .dots-container {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .glow-dot {
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            animation: pulse-glow 1.5s infinite;
-        }
-        .dot-1 { background: #a855f7; box-shadow: 0 0 15px #a855f7; animation-delay: 0s; }
-        .dot-2 { background: #3b82f6; box-shadow: 0 0 15px #3b82f6; animation-delay: 0.5s; }
-        .dot-3 { background: #a855f7; box-shadow: 0 0 15px #a855f7; animation-delay: 1s; }
-
-        @keyframes pulse-glow {
-            0%, 100% { transform: scale(1); opacity: 0.4; }
-            50% { transform: scale(1.4); opacity: 1; }
-        }
-
-        /* הדר - מרכוז אבסולוטי */
-        .grid-header {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            width: 100%;
-            padding: 1rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        #main-content {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-
-        /* ביטול רקעים לאייקונים */
-        img, button { background: transparent !important; }
-
-        /* הנחיית סיבוב */
-        .hint-bar {
-            text-align: center;
-            font-size: 0.95rem;
-            font-weight: bold;
-            padding: 8px;
-            background: rgba(59, 130, 246, 0.1);
-            color: #3b82f6;
-            margin-bottom: 15px;
-        }
-        [data-theme="dark"] .hint-bar { color: #60a5fa; }
-    </style>
+    
 </head>
-<body>
-
-    <!-- מסך פתיחה -->
-    <div id="splash-screen">
-        <img src="favicon.png?v=3" alt="Logo" class="splash-logo-big">
-        <div id="typing-text"></div>
-        <div class="dots-container">
-            <div class="glow-dot dot-1"></div>
-            <div class="glow-dot dot-2"></div>
-            <div class="glow-dot dot-3"></div>
-        </div>
-    </div>
-
-    <div id="main-content">
-        <header class="grid-header">
-            <!-- צד ימין (ב-RTL זה יופיע משמאל פיזית או הפוך, תלוי דפדפן, לכן נשתמש ב-grid) -->
-            <div class="flex justify-start">
-                <button id="toggleNight" class="text-3xl cursor-pointer">☀️</button>
-            </div>
+<body class="bg-blue-50 text-gray-800 min-h-screen">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="flex flex-col items-center px-4 py-3 w-full max-w-2xl mx-auto">
+        <div class="w-full flex justify-between items-center mb-4">
+            <button id="toggleNight" class="text-3xl bg-transparent border-none cursor-pointer">☀️</button>
             
-            <!-- מרכז -->
-            <div class="flex items-center gap-3 flex-row-reverse">
-                <img src="favicon.png?v=3" alt="Logo" class="h-12 w-auto object-contain">
-                <h1 class="text-2xl md:text-3xl font-black text-yellow-500 tracking-tight">Word Adventure</h1>
+            <div class="flex items-center gap-4 flex-row-reverse">
+                <img src="favicon.png?v=3" alt="Logo" class="game-logo h-14 w-auto object-contain bg-transparent">
+                <h1 class="text-3xl font-black text-yellow-500 eng-text tracking-tight">Word Adventure</h1>
             </div>
 
-            <!-- צד שמאל מאזן -->
-            <div class="w-12"></div>
-        </header>
-
-        <div class="hint-bar">
-            💡 לחצו על כרטיסייה כדי לסובב ולראות את התרגום
+            <div class="w-8"></div>
         </div>
+    </header>
 
-        <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center"></div>
-    </div>
+    <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center"></div>
 
-    <script>
-        const splash = document.getElementById('splash-screen');
-        const content = document.getElementById('main-content');
-        const typingEl = document.getElementById('typing-text');
-        const themeBtn = document.getElementById('toggleNight');
-        const fullTitle = "Word Adventure";
-
-        // אפקט הקלדה
-        function typeWriter(text, i) {
-            if (i < text.length) {
-                typingEl.textContent += text.charAt(i);
-                setTimeout(() => typeWriter(text, i + 1), 100);
-            } else {
-                setTimeout(startApp, 1000);
-            }
-        }
-
-        function startApp() {
-            splash.style.opacity = '0';
-            content.style.display = 'block';
-            setTimeout(() => {
-                content.style.opacity = '1';
-                splash.remove();
-            }, 500);
-        }
-
-        // מצב לילה/יום
-        function setTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            themeBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
-            localStorage.setItem('pref-theme', theme);
-        }
-
-        themeBtn.addEventListener('click', () => {
-            const current = document.documentElement.getAttribute('data-theme');
-            setTheme(current === 'dark' ? 'light' : 'dark');
-        });
-
-        window.addEventListener('load', () => {
-            const saved = localStorage.getItem('pref-theme') || 'light';
-            setTheme(saved);
-            setTimeout(() => typeWriter(fullTitle, 0), 500);
-        });
-    </script>
-
-    <script src="js/main.js"></script>
+    
+<script src="js/main.js"></script>
 </body>
 </html>

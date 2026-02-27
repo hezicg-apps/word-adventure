@@ -6,31 +6,22 @@
     <title>English Learning Adventure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- קישורים לקבצים חיצוניים - וודא שהם קיימים בתיקייה שלך -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="icon" type="image/png" href="favicon.png?v=3">
+    <meta name="theme-color" content="#1e293b">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
-        
-        body { 
-            font-family: 'Assistant', sans-serif; 
-            touch-action: manipulation; 
-            -webkit-tap-highlight-color: transparent;
+        /* הוספת סגנונות בסיסיים למקרה שקובץ ה-CSS לא נטען */
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
         }
-
-        .night-mode { background-color: #0f172a; color: #f8fafc; }
-        .night-mode .bg-white { background-color: #1e293b; color: #f8fafc; }
-        .night-mode .text-gray-800 { color: #f1f5f9; }
-        
-        /* הבטחת ניראות כפתור חזור במובייל */
-        #back-button-container {
-            display: flex !important;
-            min-height: 50px;
-        }
-
-        .option-btn {
-            transition: transform 0.1s active;
-        }
-        
-        .option-btn:active {
-            transform: scale(0.95);
+        .eng-text {
+            font-family: 'Arial Black', sans-serif;
         }
     </style>
 </head>
@@ -38,154 +29,29 @@
     
     <header class="flex flex-col items-center px-4 py-3 w-full max-w-2xl mx-auto">
         <div class="w-full flex justify-between items-center mb-4">
-            <button id="toggleNight" class="text-3xl p-2" aria-label="מצב לילה">☀️</button>
-            <div class="flex items-center gap-4">
-                <span id="score-display" class="font-bold text-xl bg-blue-100 text-blue-800 px-4 py-1 rounded-full">000</span>
-                <div id="user-avatar" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">U</div>
+            <!-- כפתור מצב לילה בצד ימין (בגלל RTL) -->
+            <button id="toggleNight" class="text-3xl bg-transparent border-none cursor-pointer p-2 hover:opacity-80 transition-opacity">☀️</button>
+            
+            <!-- אזור הכותרת והלוגו - מיושר כפי שביקשת -->
+            <div class="flex items-center gap-4 flex-row-reverse">
+                <img src="favicon.png?v=3" alt="Logo" class="game-logo h-14 w-auto object-contain bg-transparent" onerror="this.style.display='none'">
+                <h1 class="text-3xl font-black text-yellow-500 eng-text tracking-tight">Word Adventure</h1>
             </div>
-        </div>
-        
-        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-            <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+
+            <!-- מרווח לאיזון צד שמאל -->
+            <div class="w-8"></div>
         </div>
     </header>
 
-    <main class="max-w-md mx-auto px-4 py-6">
-        <div id="game-container" class="bg-white rounded-3xl p-8 shadow-xl text-center min-h-[350px] flex flex-col justify-center relative">
-            <div id="question-content">
-                <p class="text-sm text-gray-500 mb-2">תרגם את המילה:</p>
-                <h2 id="word-display" class="text-4xl font-bold mb-8 text-blue-600 tracking-wide">English</h2>
-                <div id="options-container" class="grid grid-cols-1 gap-4">
-                    <!-- כפתורי אפשרויות -->
-                </div>
-            </div>
+    <!-- כאן נטען תוכן המשחק על ידי ה-JS -->
+    <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center">
+        <!-- תוכן זמני למקרה שה-JS לא נטען מיד -->
+        <div class="mt-20 text-center text-gray-400">
+            טוען את ההרפתקה...
         </div>
+    </div>
 
-        <!-- הודעת "לא עברת" - משופרת למובייל -->
-        <div id="retry-message" class="hidden mt-6 p-4 bg-orange-100 border-2 border-orange-300 text-orange-900 rounded-2xl text-center font-bold shadow-md animate-bounce">
-            ⚠️ נראה שלא עברת את השלב... כדאי לחזור אחורה ולתרגל שוב!
-        </div>
-
-        <!-- כפתור חזור - תמיד נגיש כשיש להיסטוריה תוכן -->
-        <div id="back-button-container" class="mt-8 flex justify-center opacity-0 transition-opacity duration-300">
-            <button id="back-btn" class="flex items-center gap-2 bg-gray-500 text-white px-8 py-4 rounded-2xl font-bold shadow-lg active:bg-gray-700">
-                <span>🔙</span>
-                <span>חזור למילה הקודמת</span>
-            </button>
-        </div>
-    </main>
-
-    <script>
-        // אוסף מילים מורחב
-        const words = [
-            { en: "Believe", he: "להאמין" },
-            { en: "Challenge", he: "אתגר" },
-            { en: "Success", he: "הצלחה" },
-            { en: "Future", he: "עתיד" },
-            { en: "Knowledge", he: "ידע" },
-            { en: "Journey", he: "מסע" },
-            { en: "Experience", he: "ניסיון" }
-        ];
-
-        let currentIndex = 0;
-        let score = 0;
-        let gameHistory = [];
-
-        const wordDisplay = document.getElementById('word-display');
-        const optionsContainer = document.getElementById('options-container');
-        const scoreDisplay = document.getElementById('score-display');
-        const progressBar = document.getElementById('progress-bar');
-        const backBtnContainer = document.getElementById('back-button-container');
-        const retryMessage = document.getElementById('retry-message');
-
-        function loadQuestion() {
-            const currentWord = words[currentIndex];
-            wordDisplay.textContent = currentWord.en;
-            optionsContainer.innerHTML = '';
-
-            // יצירת אפשרויות
-            let options = [currentWord.he];
-            while(options.length < 3) {
-                const random = words[Math.floor(Math.random() * words.length)].he;
-                if(!options.includes(random)) options.push(random);
-            }
-            options.sort(() => Math.random() - 0.5);
-
-            options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = "option-btn w-full py-4 px-6 text-xl font-bold rounded-2xl border-2 border-blue-100 bg-white hover:border-blue-500 transition-all shadow-sm";
-                btn.textContent = opt;
-                // שימוש ב-pointerdown למובייל לתגובה מהירה יותר
-                btn.onpointerdown = () => checkAnswer(opt);
-                optionsContainer.appendChild(btn);
-            });
-
-            updateProgress();
-        }
-
-        function checkAnswer(selected) {
-            const correct = words[currentIndex].he;
-            
-            if(selected === correct) {
-                score += 10;
-                gameHistory.push(currentIndex);
-                currentIndex++;
-                
-                if(currentIndex >= words.length) {
-                    confetti();
-                    currentIndex = 0; // איפוס לצורך הדגמה
-                }
-                
-                retryMessage.classList.add('hidden');
-                loadQuestion();
-            } else {
-                // הצגת הודעת כישלון/חזרה
-                retryMessage.classList.remove('hidden');
-                // גלילה אוטומטית במובייל כדי לוודא שרואים את ההודעה
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-            }
-            
-            updateUI();
-        }
-
-        function updateUI() {
-            scoreDisplay.textContent = score.toString().padStart(3, '0');
-            
-            // הצגת כפתור חזור אם יש היסטוריה
-            if(gameHistory.length > 0) {
-                backBtnContainer.style.opacity = "1";
-                backBtnContainer.style.pointerEvents = "auto";
-            } else {
-                backBtnContainer.style.opacity = "0";
-                backBtnContainer.style.pointerEvents = "none";
-            }
-        }
-
-        function updateProgress() {
-            const percent = (currentIndex / words.length) * 100;
-            progressBar.style.width = percent + "%";
-        }
-
-        document.getElementById('back-btn').onclick = () => {
-            if(gameHistory.length > 0) {
-                currentIndex = gameHistory.pop();
-                score = Math.max(0, score - 5);
-                retryMessage.classList.add('hidden');
-                loadQuestion();
-                updateUI();
-            }
-        };
-
-        document.getElementById('toggleNight').onclick = () => {
-            document.body.classList.toggle('night-mode');
-            document.getElementById('toggleNight').textContent = 
-                document.body.classList.contains('night-mode') ? '🌙' : '☀️';
-        };
-
-        // התחלה
-        loadQuestion();
-        updateUI();
-
-    </script>
+    <!-- טעינת הלוגיקה של המשחק -->
+    <script src="js/main.js"></script>
 </body>
 </html>

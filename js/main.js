@@ -1,7 +1,7 @@
 let state = {
     screen: 'welcome', inputText: '', words: [],
     nightMode: false, masteryScore: 0, quizIndex: 0, correctAnswers: 0,
-    quizFeedback: { index: -1, status: null },
+    quizFeedback: { index: -1, status: null, correctIndex: -1 },
     memoryGame: { cards: [], flipped: [], pairs: 0, steps: 0, isProcessing: false },
     connect4: { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: null, canDrop: false, isAnswering: false, showQuestionPrompt: true, fallingToken: null },
     wordQuest: { 
@@ -76,8 +76,14 @@ function renderFlashcards(app) {
     if (unknown.length === 0) { state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render(); return; }
     const cur = unknown[0];
     app.innerHTML = `
-        <div class="text-center space-y-6 w-full max-sm px-2 mt-4">
+        <div class="text-center space-y-6 w-full max-sm px-2 mt-4 relative">
             <h2 class="text-2xl font-black">לימוד מילים (${state.words.filter(w=>w.known).length}/${state.words.length})</h2>
+            
+            <div class="flex items-center justify-center gap-2 text-blue-500 font-bold animate-bounce-slow">
+                <span>לחצו כדי לסובב</span>
+                <span class="text-2xl">🔄</span>
+            </div>
+
             <div onclick="this.classList.toggle('card-flipped')" class="relative w-full h-80 perspective-1000 cursor-pointer">
                 <div class="card-inner">
                     <div class="card-front bg-white border-4 border-blue-200 flex-col"><span class="text-5xl font-black text-blue-600 eng-text mb-6">${cur.eng}</span><button onclick="event.stopPropagation(); speak('${cur.eng}')" class="text-5xl">🔊</button></div>
@@ -105,7 +111,11 @@ function renderQuiz(app) {
                 <div class="text-4xl font-black mb-8 eng-text">${cur.eng}</div>
                 <div class="grid gap-4">
                     ${state.quizOptions.map((o, idx) => {
-                        let statusClass = state.quizFeedback.index === idx ? (state.quizFeedback.status === 'correct' ? 'correct-ans' : 'wrong-ans') : '';
+                        let statusClass = '';
+                        if (state.quizFeedback.status) {
+                            if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans';
+                            else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans';
+                        }
                         return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" class="py-4 border-2 rounded-2xl font-black text-2xl transition-all ${statusClass}">${o}</button>`;
                     }).join('')}
                 </div>
@@ -116,10 +126,19 @@ function renderQuiz(app) {
 function handleQuizAns(selected, correct, idx) {
     if (state.quizFeedback.status) return;
     const isCorrect = selected === correct;
-    state.quizFeedback = { index: idx, status: isCorrect ? 'correct' : 'wrong' };
+    state.quizFeedback = { 
+        index: idx, 
+        status: isCorrect ? 'correct' : 'wrong',
+        correctIndex: state.quizOptions.indexOf(correct)
+    };
     if (isCorrect) state.correctAnswers++;
     render();
-    setTimeout(() => { state.quizIndex++; state.quizOptions = null; state.quizFeedback = { index: -1, status: null }; render(); }, 600);
+    setTimeout(() => { 
+        state.quizIndex++; 
+        state.quizOptions = null; 
+        state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; 
+        render(); 
+    }, 1200);
 }
 
 function renderMenu(app) {
@@ -129,13 +148,11 @@ function renderMenu(app) {
             <div class="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-blue-100 welcome-card">
                 <h2 class="text-3xl font-black text-blue-600 mb-2">הציון שלך: ${state.masteryScore.toFixed(0)}%</h2>
                 <p class="font-black text-gray-500">${isLocked ? 'צריך 70% כדי לפתוח משחקים' : 'המשחקים פתוחים!'}</p>
-                
                 <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" 
                         class="mt-4 bg-orange-500 text-white px-6 py-2 rounded-full font-black shadow-md hover:bg-orange-600 transition-colors">
                     🔄 תרגול חוזר (שיפור ציון)
                 </button>
             </div>
-
             <div class="grid gap-4">
                 <button onclick="${isLocked?'':'startMemory()'}" class="p-6 bg-purple-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50 cursor-not-allowed':''}">
                     ${isLocked ? '🔒 ' : ''}משחק זיכרון 🧠
@@ -147,11 +164,11 @@ function renderMenu(app) {
                     ${isLocked ? '🔒 ' : ''}הקוד הסודי 🔐
                 </button>
             </div>
-            
             <button onclick="resetAllData()" class="text-red-500 font-black underline mt-6">הזנת רשימה חדשה</button>
         </div>`;
 }
 
+// שאר הפונקציות (זיכרון, 4 בשורה וכו') נשארות כרגיל
 function startMemory() {
     state.screen = 'memory'; state.winner = null;
     const pairsCount = Math.min(state.words.length, 8);

@@ -6,27 +6,19 @@
     <title>Word Adventure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link rel="stylesheet" href="css/style.css">
-
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="favicon.png">
-    <link rel="icon" type="image/png" href="favicon.png?v=3">
     
     <style>
-        /* הגדרת משתני עיצוב לכל המשחק */
         :root {
-            --bg-color: #f0f9ff; /* תכלת בהיר מאוד */
+            --bg-color: #f0f9ff;
             --text-color: #1e293b;
             --card-bg: #ffffff;
             --btn-bg: #ffffff;
             --btn-border: #e2e8f0;
-            --header-height: 70px;
+            --header-height: 80px;
         }
 
         [data-theme="dark"] {
-            --bg-color: #0f172a; /* כחול כהה עמוק */
+            --bg-color: #0f172a;
             --text-color: #f8fafc;
             --card-bg: #1e293b;
             --btn-bg: #334155;
@@ -40,64 +32,48 @@
             margin: 0;
             font-family: system-ui, -apple-system, sans-serif;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* פריסת ה-Header במבנה 3 עמודות למרכוז אבסולוטי */
+        /* הדר מתוקן: שם ולוגו משמאל, כפתור מימין */
         .main-header {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
+            display: flex;
+            /* ב-RTL: row-reverse יגרום לאלמנט הראשון (הקבוצה) להיות משמאל והשני (הכפתור) מימין */
+            flex-direction: row-reverse;
+            justify-content: space-between;
             align-items: center;
             width: 100%;
             max-width: 800px;
             margin: 0 auto;
-            padding: 10px 20px;
+            padding: 15px 20px;
             height: var(--header-height);
         }
 
-        .header-center {
+        .header-left-group {
             display: flex;
             align-items: center;
             gap: 12px;
-            justify-content: center;
+            /* מבטיח שהלוגו יהיה משמאל לטקסט בתוך הקבוצה השמאלית */
+            flex-direction: row; 
         }
 
-        .header-side-right {
-            display: flex;
-            justify-content: flex-start;
+        .instruction-bar {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 10px;
+            background: rgba(59, 130, 246, 0.1);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            margin-bottom: 20px;
         }
 
-        .header-side-left {
-            display: flex;
-            justify-content: flex-end;
+        [data-theme="dark"] .instruction-bar {
+            background: rgba(59, 130, 246, 0.05);
+            color: #60a5fa;
         }
 
-        /* עיצוב כפתורי המשחק - מבטיח נראות בכל מצב */
-        .game-option-btn, .choice-btn, button[class*="choice"] {
-            background-color: var(--btn-bg) !important;
-            color: var(--text-color) !important;
-            border: 2px solid var(--btn-border) !important;
-            padding: 12px 20px;
-            border-radius: 12px;
-            transition: all 0.2s;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        /* חיווי תשובות - דריסה חזקה */
-        .answer-correct, .bg-green-500 {
-            background-color: #22c55e !important; /* ירוק */
-            color: white !important;
-            border-color: #16a34a !important;
-            transform: scale(1.05);
-        }
-
-        .answer-wrong, .bg-red-500 {
-            background-color: #ef4444 !important; /* אדום */
-            color: white !important;
-            border-color: #dc2626 !important;
-        }
-
-        /* מסך פתיחה */
+        /* מסך פתיחה משופר */
         #splash-screen {
             position: fixed;
             inset: 0;
@@ -107,64 +83,74 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
+            transition: opacity 0.8s ease-out;
         }
 
-        .splash-logo { width: 90px; height: auto; margin-bottom: 20px; }
+        .splash-logo {
+            width: 12rem; /* גודל מוגדל משמעותית */
+            height: auto;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.3));
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+
         #typing-text {
             color: #fbbf24;
-            font-size: 2.2rem;
+            font-size: 2.5rem;
             font-weight: 900;
-            height: 3rem;
-            text-align: center;
+            letter-spacing: -0.02em;
         }
 
-        .dots-row { display: flex; gap: 12px; margin-top: 25px; }
-        .dot { width: 14px; height: 14px; border-radius: 50%; animation: pulse-glow 1.5s infinite; }
-        .dot-purple { background: #a855f7; box-shadow: 0 0 15px #a855f7; animation-delay: 0s; }
-        .dot-blue { background: #3b82f6; box-shadow: 0 0 15px #3b82f6; animation-delay: 0.5s; }
-        .dot-glow { background: #8b5cf6; box-shadow: 0 0 15px #8b5cf6; animation-delay: 1s; }
-
-        @keyframes pulse-glow {
-            0%, 100% { transform: scale(1); opacity: 0.3; filter: blur(1px); }
-            50% { transform: scale(1.4); opacity: 1; filter: blur(0px); }
+        #main-wrapper { 
+            display: none; 
+            opacity: 0; 
+            transition: opacity 0.6s ease; 
         }
 
-        #main-wrapper { display: none; opacity: 0; transition: opacity 0.5s ease; }
+        #toggleNight {
+            font-size: 2rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #toggleNight:hover {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
 
-    <!-- מסך פתיחה -->
+    <!-- מסך פתיחה עם לוגו גדול -->
     <div id="splash-screen">
         <img src="favicon.png?v=3" alt="Logo" class="splash-logo">
         <div id="typing-text"></div>
-        <div class="dots-row">
-            <div class="dot dot-purple"></div>
-            <div class="dot dot-blue"></div>
-            <div class="dot dot-glow"></div>
-        </div>
     </div>
 
-    <!-- תוכן המשחק -->
     <div id="main-wrapper">
         <header class="main-header">
-            <!-- צד ימין: כפתור לילה -->
-            <div class="header-side-right">
-                <button id="toggleNight" class="text-3xl hover:scale-110 transition-transform focus:outline-none bg-transparent border-none">☀️</button>
-            </div>
-            
-            <!-- מרכז: לוגו ושם המשחק (ממורכז אבסולוטית) -->
-            <div class="header-center">
-                <h1 class="text-2xl md:text-3xl font-black text-yellow-500 tracking-tight">Word Adventure</h1>
+            <!-- קבוצת שם ולוגו - תוצמד לשמאל בגלל row-reverse ב-RTL -->
+            <div class="header-left-group">
                 <img src="favicon.png?v=3" alt="Logo" class="h-10 w-auto">
+                <h1 class="text-2xl font-black text-yellow-500 tracking-tight">Word Adventure</h1>
             </div>
 
-            <!-- צד שמאל: ריק לאיזון הפריסה -->
-            <div class="header-side-left"></div>
+            <!-- כפתור מצב לילה - יוצמד לימין בגלל row-reverse ב-RTL -->
+            <button id="toggleNight" title="החלף מצב תצוגה">☀️</button>
         </header>
 
-        <main id="app" class="container mx-auto px-4 py-6 max-w-2xl">
-            <!-- תוכן המשחק יוזרק כאן על ידי main.js -->
+        <!-- הנחיית סיבוב כרטיסייה -->
+        <div class="instruction-bar">
+            ✨ לחצו על כרטיסייה כדי לסובב ולראות את התרגום
+        </div>
+
+        <main id="app" class="container mx-auto px-4 py-4 max-w-2xl text-center">
+            <!-- כאן יופיע תוכן המשחק מה-JS -->
+            <div class="mt-20 opacity-50 italic">טוען הרפתקה...</div>
         </main>
     </div>
 
@@ -173,26 +159,22 @@
         const wrapper = document.getElementById('main-wrapper');
         const typingEl = document.getElementById('typing-text');
         const themeBtn = document.getElementById('toggleNight');
-        const gameTitle = "Word Adventure";
 
-        // פונקציית הקלדה
+        // פונקציית הקלדה למסך הפתיחה
         function startTyping(text, i) {
             if (i < text.length) {
                 typingEl.textContent += text.charAt(i);
-                setTimeout(() => startTyping(text, i + 1), 100);
+                setTimeout(() => startTyping(text, i + 1), 80);
             } else {
-                setTimeout(finishSplash, 1000);
+                setTimeout(() => {
+                    splash.style.opacity = '0';
+                    wrapper.style.display = 'block';
+                    setTimeout(() => {
+                        wrapper.style.opacity = '1';
+                        splash.remove();
+                    }, 600);
+                }, 1200);
             }
-        }
-
-        function finishSplash() {
-            splash.style.opacity = '0';
-            splash.style.transition = 'opacity 0.5s ease';
-            wrapper.style.display = 'block';
-            setTimeout(() => {
-                wrapper.style.opacity = '1';
-                splash.remove();
-            }, 50);
         }
 
         // ניהול ערכת נושא
@@ -207,15 +189,13 @@
             setTheme(current === 'dark' ? 'light' : 'dark');
         });
 
-        // הפעלה ראשונית
+        // אתחול
         window.addEventListener('DOMContentLoaded', () => {
             const saved = localStorage.getItem('game-theme') || 'light';
             setTheme(saved);
-            setTimeout(() => startTyping(gameTitle, 0), 300);
+            // התחלת האנימציה
+            setTimeout(() => startTyping("Word Adventure", 0), 300);
         });
     </script>
-
-    <!-- טעינת לוגיקת המשחק -->
-    <script src="js/main.js"></script>
 </body>
 </html>

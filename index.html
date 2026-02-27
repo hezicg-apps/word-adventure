@@ -16,20 +16,20 @@
     <meta name="theme-color" content="#1e293b">
 
     <style>
-        /* סגנונות למסך הפתיחה */
+        /* סגנונות למסך הפתיחה - רקע שחור */
         #splash-screen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #f0f7ff; /* תואם ל-bg-blue-50 */
+            background-color: #000000; /* רקע שחור */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 10000;
-            transition: opacity 0.8s ease, visibility 0.8s;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
         }
 
         .splash-content {
@@ -37,50 +37,67 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: 100%;
         }
 
+        /* לוגו גדול יותר */
         .splash-logo {
-            width: 180px;
+            width: 280px; /* הגדלה משמעותית */
             height: auto;
-            margin-bottom: 24px;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+            margin-bottom: 40px;
+            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.15));
         }
 
         .splash-title {
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: 900;
-            color: #eab308; /* תואם ל-yellow-500 */
-            margin-bottom: 32px;
-            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #ffffff;
+            margin-bottom: 48px;
+            letter-spacing: -0.05em;
+            font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
         }
 
         .dots-container {
             display: flex;
-            gap: 12px;
+            gap: 20px;
         }
 
+        /* עיגולים כחול-סגול זוהרים */
         .dot {
-            width: 14px;
-            height: 14px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            background-color: #cbd5e1;
         }
 
-        @keyframes splash-pulse {
-            0%, 100% { background-color: #cbd5e1; transform: scale(1); }
-            50% { background-color: #eab308; transform: scale(1.2); box-shadow: 0 0 15px rgba(234, 179, 8, 0.4); }
+        .dot-blue {
+            background-color: #3b82f6;
+            box-shadow: 0 0 15px #3b82f6, 0 0 30px #3b82f6;
+            animation: pulse-glow 1.5s infinite ease-in-out;
         }
 
-        .dot:nth-child(1) { animation: splash-pulse 1.5s infinite 0s; }
-        .dot:nth-child(2) { animation: splash-pulse 1.5s infinite 0.3s; }
-        .dot:nth-child(3) { animation: splash-pulse 1.5s infinite 0.6s; }
+        .dot-purple {
+            background-color: #a855f7;
+            box-shadow: 0 0 15px #a855f7, 0 0 30px #a855f7;
+            animation: pulse-glow 1.5s infinite ease-in-out 0.4s;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 1;
+                filter: brightness(1.2);
+            }
+        }
 
         .splash-fade-out {
             opacity: 0;
             visibility: hidden;
         }
 
-        /* מניעת גלילה בזמן מסך פתיחה */
         body.loading {
             overflow: hidden;
         }
@@ -88,21 +105,20 @@
 </head>
 <body class="bg-blue-50 text-gray-800 min-h-screen loading">
 
-    <!-- מסך פתיחה חדש -->
+    <!-- מסך פתיחה שחור עם לוגו גדול וזוהר -->
     <div id="splash-screen">
         <div class="splash-content">
-            <!-- שימוש בלוגו הפנימי שהגדרת קודם -->
-            <img src="logo_inner.png" alt="Logo" class="splash-logo" onerror="this.src='favicon.png?v=3'">
+            <img src="logo_inner.png" alt="Word Adventure Logo" class="splash-logo" onerror="this.src='favicon.png?v=3'">
             <div class="splash-title">Word Adventure</div>
             <div class="dots-container">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
+                <div class="dot dot-blue"></div>
+                <div class="dot dot-purple"></div>
+                <div class="dot dot-blue"></div>
             </div>
         </div>
     </div>
 
-    <!-- תוכן המשחק המקורי שלך -->
+    <!-- תוכן המשחק המקורי -->
     <div id="game-content-root">
         <header class="flex flex-col items-center px-4 py-3 w-full max-w-2xl mx-auto">
             <div class="w-full flex justify-between items-center mb-4">
@@ -127,16 +143,18 @@
             const splash = document.getElementById('splash-screen');
             const body = document.body;
 
-            // טיימר להעלמת מסך הפתיחה
+            // המתן 3 שניות ואז העלם את המסך
             setTimeout(() => {
                 splash.classList.add('splash-fade-out');
                 body.classList.remove('loading');
                 
-                // הסרה סופית מה-DOM כדי לא להפריע ללחיצות
+                // הסרה מה-DOM לאחר האנימציה
                 setTimeout(() => {
-                    splash.remove();
+                    if (splash.parentNode) {
+                        splash.parentNode.removeChild(splash);
+                    }
                 }, 800);
-            }, 3000); // 3 שניות המתנה
+            }, 3000);
         });
     </script>
 </body>

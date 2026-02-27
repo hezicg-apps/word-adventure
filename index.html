@@ -26,30 +26,30 @@
         #splash-screen {
             position: fixed;
             inset: 0;
-            background-color: #0f172a; /* כהה מאוד */
+            background-color: #0f172a;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 10000;
-            transition: opacity 0.8s ease-out;
         }
 
         .splash-logo-big {
-            width: 180px;
+            width: 150px;
             height: auto;
             opacity: 0;
-            transform: scale(0.8);
             animation: fadeInOut 2.5s forwards ease-in-out;
         }
 
         .splash-text {
             color: #fbbf24;
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-weight: 900;
             opacity: 0;
+            text-align: center;
             position: absolute;
             animation: fadeInText 2s forwards ease-in-out 2s;
+            line-height: 1.1;
         }
 
         @keyframes fadeInOut {
@@ -64,60 +64,76 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* 3 עיגולים זוהרים מתחת להכל */
         .splash-dots {
             position: absolute;
-            bottom: 20%;
+            bottom: 15%;
             display: flex;
-            gap: 20px;
+            gap: 15px;
         }
 
-        .dot {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            opacity: 0.3;
-        }
+        .dot { width: 15px; height: 15px; border-radius: 50%; opacity: 0.3; }
+        .dot-purple { background: #a855f7; box-shadow: 0 0 10px #a855f7; animation: dotGlow 1.5s infinite; }
+        .dot-blue { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; animation: dotGlow 1.5s infinite 0.5s; }
+        .dot-purple-2 { background: #a855f7; box-shadow: 0 0 10px #a855f7; animation: dotGlow 1.5s infinite 1s; }
 
-        .dot-purple { background-color: #a855f7; box-shadow: 0 0 15px #a855f7; animation: dotGlow 1.5s infinite; }
-        .dot-blue { background-color: #3b82f6; box-shadow: 0 0 15px #3b82f6; animation: dotGlow 1.5s infinite 0.5s; }
-        .dot-purple-2 { background-color: #a855f7; box-shadow: 0 0 15px #a855f7; animation: dotGlow 1.5s infinite 1s; }
+        @keyframes dotGlow { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
-        @keyframes dotGlow {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.3); }
-        }
-
-        /* מצב לילה מלא */
+        /* תיקונים למצב לילה */
         body.dark-mode {
             background-color: #0f172a !important;
-            color: #fbbf24 !important;
-        }
-        body.dark-mode #app * {
-            background-color: transparent !important;
-            color: #fbbf24 !important;
-            border-color: #334155 !important;
-        }
-        body.dark-mode .bg-white, body.dark-mode .game-card {
-            background-color: #1e293b !important;
+            color: #f8fafc !important;
         }
 
-        /* Header Layout - מרכוז ומרווחים שווים */
+        /* הבטחת נראות כפתורי "המשך" וכרטיסיות במצב לילה */
+        body.dark-mode .game-card, 
+        body.dark-mode .bg-white {
+            background-color: #1e293b !important;
+            border: 2px solid #334155 !important;
+            color: white !important;
+        }
+
+        body.dark-mode button:not(#toggleNight) {
+            background-color: #3b82f6 !important;
+            color: white !important;
+            border: 2px solid #2563eb !important;
+            box-shadow: 0 4px 0 #1d4ed8 !important;
+        }
+
+        /* Header Layout */
         .main-header {
             display: grid;
-            grid-template-columns: 80px 1fr 80px;
+            grid-template-columns: 60px 1fr 60px;
             align-items: center;
             width: 100%;
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
-            padding: 1.5rem 1rem;
+            padding: 1rem;
+            gap: 10px;
         }
 
-        #main-content {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.5s ease-in;
+        .header-title {
+            font-size: 1.75rem;
+            line-height: 1.1;
+            text-align: center;
+            font-weight: 900;
+            color: #fbbf24;
         }
+
+        @media (min-width: 640px) {
+            .header-title { font-size: 2.25rem; white-space: nowrap; }
+            .main-header { grid-template-columns: 80px 1fr 80px; }
+        }
+
+        /* טקסט הפוך לכרטיסיות */
+        .upside-down-hint {
+            transform: rotate(180deg);
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-top: 10px;
+            pointer-events: none;
+        }
+
+        #main-content { display: none; opacity: 0; transition: opacity 0.5s ease-in; }
     </style>
 </head>
 <body class="bg-blue-50 text-gray-800 min-h-screen">
@@ -125,7 +141,7 @@
     <!-- מסך פתיחה -->
     <div id="splash-screen">
         <img src="logo_inner.png" alt="Logo" class="splash-logo-big" onerror="this.src='favicon.png?v=3'">
-        <div class="splash-text">Word Adventure</div>
+        <div class="splash-text">Word<br>Adventure</div>
         
         <div class="splash-dots">
             <div class="dot dot-purple"></div>
@@ -134,32 +150,29 @@
         </div>
     </div>
 
-    <!-- תוכן האתר (משתמש ב-main.js המקורי שלך) -->
+    <!-- תוכן האתר -->
     <div id="main-content">
         <header class="main-header">
-            <!-- צד ימין: מצב יום/לילה -->
             <div class="flex justify-start">
-                <button id="toggleNight" class="text-4xl focus:outline-none transition-transform active:scale-90">☀️</button>
+                <button id="toggleNight" class="text-3xl focus:outline-none">☀️</button>
             </div>
             
-            <!-- מרכז: כותרת ממורכזת -->
-            <div class="text-center">
-                <h1 class="text-3xl md:text-4xl font-black text-yellow-500 tracking-tight whitespace-nowrap">Word Adventure</h1>
+            <div class="header-title">
+                Word Adventure
             </div>
 
-            <!-- צד שמאל: לוגו -->
             <div class="flex justify-end">
-                <img src="favicon.png?v=3" alt="Logo" class="h-12 w-auto object-contain">
+                <img src="favicon.png?v=3" alt="Logo" class="h-10 w-auto object-contain">
             </div>
         </header>
 
         <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center">
-            <!-- התוכן של main.js ייטען כאן -->
+            <!-- כאן main.js מזריק את המשחק -->
         </div>
     </div>
 
     <script>
-        // לוגיקת מצב לילה
+        // ניהול ערכת נושא
         const toggleBtn = document.getElementById('toggleNight');
         const body = document.body;
 
@@ -178,24 +191,30 @@
         toggleBtn.addEventListener('click', () => updateTheme(!body.classList.contains('dark-mode')));
         if (localStorage.getItem('theme') === 'dark') updateTheme(true);
 
-        // ניהול מסך פתיחה והצגת המשחק
+        // מסך פתיחה
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 const content = document.getElementById('main-content');
-                
                 splash.style.opacity = '0';
+                splash.style.transition = 'opacity 0.8s';
                 content.style.display = 'block';
-                
                 setTimeout(() => {
                     content.style.opacity = '1';
                     splash.remove();
-                }, 800);
-            }, 4500); // זמן מספיק לאנימציית הלוגו ואז הטקסט
+                }, 500);
+            }, 4200);
         });
+
+        // פונקציית עזר להוספת טקסט הפוך (ניתן לקרוא לה מה-main.js שלך אם תרצה)
+        function addFlipHint(container) {
+            const hint = document.createElement('div');
+            hint.className = 'upside-down-hint';
+            hint.textContent = 'Word Adventure';
+            container.appendChild(hint);
+        }
     </script>
 
-    <!-- טעינת הלוגיקה המקורית של המשחק שלך -->
     <script src="js/main.js"></script>
 </body>
 </html>

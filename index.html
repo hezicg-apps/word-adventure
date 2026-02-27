@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="favicon.png">
     <link rel="icon" type="image/png" href="favicon.png?v=3">
-    <meta name="theme-color" content="#3b82f6">
+    <meta name="theme-color" content="#1e293b">
 
     <style>
         body {
@@ -21,12 +21,7 @@
             transition: background-color 0.4s ease;
             margin: 0;
             overflow-x: hidden;
-        }
-
-        /* מצב יום */
-        body:not(.dark-mode) {
-            background-color: #f0f9ff; /* Sky 50 */
-            color: #1e293b;
+            background-color: #f0f9ff;
         }
 
         /* מצב לילה */
@@ -35,127 +30,67 @@
             color: #fbbf24 !important;
         }
 
-        /* מסך פתיחה משודרג */
+        /* מסך פתיחה מסונכרן */
         #splash-screen {
             position: fixed;
             inset: 0;
             background-color: #1e293b;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
             z-index: 10000;
-            transition: opacity 0.8s ease-out;
+            transition: opacity 0.6s ease-out;
+            padding-top: 1.25rem; /* תואם ל-padding של ה-header */
         }
 
-        /* קונטיינר האנימציה של הלוגו */
-        .logo-loader-container {
-            position: relative;
-            width: 180px;
-            height: 180px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
+        /* לוגו בגודל ומיקום זהה לאפליקציה */
         .splash-logo {
-            width: 120px;
-            height: 120px;
-            border-radius: 25%;
-            z-index: 10;
-            position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.3);
-        }
-
-        /* העיגולים החושבים */
-        .orbit-circle {
-            position: absolute;
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            filter: blur(2px);
-            animation: orbit 3s infinite linear;
-        }
-
-        .circle-blue {
-            background: #3b82f6;
-            box-shadow: 0 0 15px #3b82f6;
-            animation-delay: 0s;
-        }
-
-        .circle-purple {
-            background: #a855f7;
-            box-shadow: 0 0 15px #a855f7;
-            animation-delay: -1.5s;
-        }
-
-        @keyframes orbit {
-            0% { transform: rotate(0deg) translateX(85px) rotate(0deg); }
-            100% { transform: rotate(360deg) translateX(85px) rotate(-360deg); }
+            width: 40px; /* זהה ל-h-10 של Tailwind */
+            height: 40px;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
         }
 
         .splash-title {
             color: #fbbf24;
-            font-size: 2.5rem;
+            font-size: 1.5rem; /* זהה ל-text-2xl */
             font-weight: 900;
-            text-align: center;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            margin-bottom: 2rem;
         }
 
-        /* עיצוב כרטיסי המילים */
-        .word-card-front, .flashcard-front {
-            background-color: white;
-            border: 2px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
-
-        body.dark-mode .word-card-front, 
-        body.dark-mode .flashcard-front {
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
-
-        .word-card-back, .flashcard-back {
-            background-color: #3b82f6;
-            color: white;
-        }
-
-        body.dark-mode .word-card-back,
-        body.dark-mode .flashcard-back {
-            background-color: #2563eb !important;
-            color: #fbbf24 !important;
-        }
-
-        /* חץ הדרכה */
-        .flip-instruction {
+        /* אנימציית 3 עיגולים זוהרים לסירוגין */
+        .loader-dots {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 1.5rem;
-            color: #3b82f6;
-            font-weight: bold;
-            animation: bounce 2s infinite;
+            gap: 12px;
+            margin-top: 10px;
         }
 
-        body.dark-mode .flip-instruction {
-            color: #fbbf24;
+        .dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            opacity: 0.3;
+            filter: blur(1px);
+            animation: glow-pulse 1.5s infinite ease-in-out;
         }
 
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-            40% {transform: translateY(-10px);}
-            60% {transform: translateY(-5px);}
+        .dot-1 { background-color: #a855f7; box-shadow: 0 0 10px #a855f7; animation-delay: 0s; }
+        .dot-2 { background-color: #3b82f6; box-shadow: 0 0 10px #3b82f6; animation-delay: 0.5s; }
+        .dot-3 { background-color: #a855f7; box-shadow: 0 0 10px #a855f7; animation-delay: 1s; }
+
+        @keyframes glow-pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
         }
 
         #main-content {
-            visibility: hidden;
+            display: none;
             opacity: 0;
             transition: opacity 0.5s ease-in;
         }
 
-        .main-header {
+        /* התאמת ה-Header באפליקציה */
+        .app-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -168,34 +103,28 @@
 </head>
 <body>
 
-    <!-- מסך פתיחה עם עיגולים חושבים -->
+    <!-- מסך פתיחה משופר -->
     <div id="splash-screen">
-        <div class="logo-loader-container">
-            <div class="orbit-circle circle-blue"></div>
-            <div class="orbit-circle circle-purple"></div>
-            <img src="favicon.png?v=3" alt="Logo" class="splash-logo">
-        </div>
+        <img src="favicon.png?v=3" alt="Logo" class="splash-logo">
         <h1 class="splash-title">Word Adventure</h1>
+        
+        <div class="loader-dots">
+            <div class="dot dot-1"></div>
+            <div class="dot dot-2"></div>
+            <div class="dot dot-3"></div>
+        </div>
     </div>
 
     <div id="main-content">
-        <header class="main-header">
-            <button id="toggleNight" class="text-4xl p-2 focus:outline-none">☀️</button>
+        <header class="app-header">
+            <button id="toggleNight" class="text-3xl p-2 focus:outline-none">☀️</button>
             <h1 class="text-2xl font-black text-yellow-500">Word Adventure</h1>
             <img src="favicon.png?v=3" alt="Logo" class="h-10 w-auto">
         </header>
 
         <main id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center">
-            <!-- Content Injected by JS -->
+            <!-- התוכן ייטען כאן מה-JS המקורי -->
         </main>
-
-        <div id="flip-guide" class="flip-instruction hidden">
-            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
-                <polyline points="21 3 21 8 16 8"></polyline>
-            </svg>
-            <span class="mt-2">לחץ כדי להפוך</span>
-        </div>
     </div>
 
     <script>
@@ -218,23 +147,22 @@
         if (localStorage.getItem('theme') === 'dark') updateTheme(true);
 
         window.addEventListener('load', () => {
+            // טעינה קצרה כדי לאפשר למשתמש לראות את האנימציה
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 const content = document.getElementById('main-content');
+                
                 splash.style.opacity = '0';
-                content.style.visibility = 'visible';
-                content.style.opacity = '1';
-                setTimeout(() => splash.remove(), 800);
-            }, 2500);
+                content.style.display = 'block';
+                
+                setTimeout(() => {
+                    content.style.opacity = '1';
+                    splash.remove();
+                }, 600);
+            }, 2000);
         });
-
-        // ניהול הצגת מדריך ההיפוך
-        setInterval(() => {
-            const guide = document.getElementById('flip-guide');
-            const hasCard = !!document.querySelector('.word-card, .flashcard');
-            guide.classList.toggle('hidden', !hasCard);
-        }, 500);
     </script>
+    <!-- קישור לקובץ ה-JS הקיים שלך -->
     <script src="js/main.js"></script>
 </body>
 </html>

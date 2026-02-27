@@ -6,92 +6,28 @@
     <title>English Learning Adventure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
-
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="favicon.png">
     <link rel="icon" type="image/png" href="favicon.png?v=3">
-    <meta name="theme-color" content="#1e293b">
-
+    
     <style>
         body {
             font-family: 'Varela Round', sans-serif;
-            transition: background-color 0.4s ease, color 0.4s ease;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* מסך פתיחה */
-        #splash-screen {
-            position: fixed;
-            inset: 0;
-            background-color: #0f172a;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
+        /* הגדרות מצב יום (ברירת מחדל) */
+        body:not(.dark-mode) {
+            background-color: #eff6ff !important; /* bg-blue-50 */
+            color: #1e293b !important;
         }
 
-        .splash-logo-big {
-            width: 150px;
-            height: auto;
-            opacity: 0;
-            animation: fadeInOut 2.5s forwards ease-in-out;
-        }
-
-        .splash-text {
-            color: #fbbf24;
-            font-size: 2.5rem;
-            font-weight: 900;
-            opacity: 0;
-            text-align: center;
-            position: absolute;
-            animation: fadeInText 2s forwards ease-in-out 2s;
-            line-height: 1.1;
-        }
-
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: scale(0.8); }
-            40% { opacity: 1; transform: scale(1); }
-            70% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(1.1); visibility: hidden; }
-        }
-
-        @keyframes fadeInText {
-            0% { opacity: 0; transform: translateY(10px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        .splash-dots {
-            position: absolute;
-            bottom: 15%;
-            display: flex;
-            gap: 15px;
-        }
-
-        .dot { width: 15px; height: 15px; border-radius: 50%; opacity: 0.3; }
-        .dot-purple { background: #a855f7; box-shadow: 0 0 10px #a855f7; animation: dotGlow 1.5s infinite; }
-        .dot-blue { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; animation: dotGlow 1.5s infinite 0.5s; }
-        .dot-purple-2 { background: #a855f7; box-shadow: 0 0 10px #a855f7; animation: dotGlow 1.5s infinite 1s; }
-
-        @keyframes dotGlow { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-
-        /* תיקונים למצב לילה */
+        /* הגדרות מצב לילה */
         body.dark-mode {
             background-color: #0f172a !important;
             color: #f8fafc !important;
         }
 
-        /* הבטחת נראות כפתורי "המשך" וכרטיסיות במצב לילה */
-        body.dark-mode .game-card, 
-        body.dark-mode .bg-white {
-            background-color: #1e293b !important;
-            border: 2px solid #334155 !important;
-            color: white !important;
-        }
-
+        /* תיקון כפתורים במצב לילה */
         body.dark-mode button:not(#toggleNight) {
             background-color: #3b82f6 !important;
             color: white !important;
@@ -99,10 +35,18 @@
             box-shadow: 0 4px 0 #1d4ed8 !important;
         }
 
-        /* Header Layout */
+        /* אחידות כפתורי תשובות - מוודא שכולם באותו גובה ורוחב במכולה */
+        .answers-container button {
+            flex: 1 1 0px;
+            min-width: 0;
+            text-align: center;
+            justify-content: center;
+        }
+
+        /* מבנה כותרת גמיש */
         .main-header {
             display: grid;
-            grid-template-columns: 60px 1fr 60px;
+            grid-template-columns: 50px 1fr 50px;
             align-items: center;
             width: 100%;
             max-width: 600px;
@@ -112,63 +56,82 @@
         }
 
         .header-title {
-            font-size: 1.75rem;
-            line-height: 1.1;
+            font-size: 1.5rem;
+            line-height: 1.2;
             text-align: center;
             font-weight: 900;
             color: #fbbf24;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         @media (min-width: 640px) {
-            .header-title { font-size: 2.25rem; white-space: nowrap; }
-            .main-header { grid-template-columns: 80px 1fr 80px; }
+            .header-title { font-size: 2rem; flex-direction: row; gap: 8px; }
         }
 
-        /* טקסט הפוך לכרטיסיות */
-        .upside-down-hint {
+        /* כרטיסייה והנחיית סיבוב */
+        .flip-instruction {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: #64748b;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+        
+        body.dark-mode .flip-instruction { color: #94a3b8; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* כיתוב הפוך בתוך כרטיס */
+        .upside-down-text {
             transform: rotate(180deg);
-            font-size: 0.75rem;
-            opacity: 0.6;
-            margin-top: 10px;
+            font-size: 0.7rem;
+            opacity: 0.4;
+            margin-top: auto;
             pointer-events: none;
         }
 
-        #main-content { display: none; opacity: 0; transition: opacity 0.5s ease-in; }
+        #main-content { display: none; }
     </style>
 </head>
-<body class="bg-blue-50 text-gray-800 min-h-screen">
+<body class="min-h-screen">
 
-    <!-- מסך פתיחה -->
-    <div id="splash-screen">
-        <img src="logo_inner.png" alt="Logo" class="splash-logo-big" onerror="this.src='favicon.png?v=3'">
-        <div class="splash-text">Word<br>Adventure</div>
-        
-        <div class="splash-dots">
-            <div class="dot dot-purple"></div>
-            <div class="dot dot-blue"></div>
-            <div class="dot dot-purple-2"></div>
+    <!-- מסך פתיחה (Splash) -->
+    <div id="splash-screen" class="fixed inset-0 bg-slate-900 flex flex-col justify-center items-center z-[10000]">
+        <img src="favicon.png?v=3" alt="Logo" class="w-24 h-24 mb-6 animate-bounce">
+        <div class="text-amber-400 text-4xl font-black text-center leading-none">
+            WORD<br>ADVENTURE
         </div>
     </div>
 
-    <!-- תוכן האתר -->
     <div id="main-content">
         <header class="main-header">
-            <div class="flex justify-start">
-                <button id="toggleNight" class="text-3xl focus:outline-none">☀️</button>
-            </div>
+            <button id="toggleNight" class="text-3xl focus:outline-none transition-transform active:scale-90">☀️</button>
             
-            <div class="header-title">
-                Word Adventure
-            </div>
+            <h1 class="header-title">
+                <span>Word</span>
+                <span>Adventure</span>
+            </h1>
 
             <div class="flex justify-end">
-                <img src="favicon.png?v=3" alt="Logo" class="h-10 w-auto object-contain">
+                <img src="favicon.png?v=3" alt="Logo" class="h-10 w-10 object-contain">
             </div>
         </header>
 
-        <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center">
-            <!-- כאן main.js מזריק את המשחק -->
-        </div>
+        <main id="app" class="container mx-auto px-4 pb-10 max-w-2xl">
+            <!-- הנחיית סיבוב שמופיעה כשמוצגות כרטיסיות -->
+            <div id="game-hint" class="flip-instruction hidden">
+                👆 לחצו על הכרטיסייה כדי לסובב
+            </div>
+            
+            <div id="game-container">
+                <!-- כאן main.js יזריק את התוכן -->
+            </div>
+        </main>
     </div>
 
     <script>
@@ -189,32 +152,29 @@
         }
 
         toggleBtn.addEventListener('click', () => updateTheme(!body.classList.contains('dark-mode')));
-        if (localStorage.getItem('theme') === 'dark') updateTheme(true);
+        
+        // טעינת העדפה שמורה
+        if (localStorage.getItem('theme') === 'dark') {
+            updateTheme(true);
+        } else {
+            updateTheme(false);
+        }
 
-        // מסך פתיחה
+        // סיום מסך פתיחה
         window.addEventListener('load', () => {
             setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                const content = document.getElementById('main-content');
-                splash.style.opacity = '0';
-                splash.style.transition = 'opacity 0.8s';
-                content.style.display = 'block';
-                setTimeout(() => {
-                    content.style.opacity = '1';
-                    splash.remove();
-                }, 500);
-            }, 4200);
+                document.getElementById('splash-screen').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+            }, 3000);
         });
 
-        // פונקציית עזר להוספת טקסט הפוך (ניתן לקרוא לה מה-main.js שלך אם תרצה)
-        function addFlipHint(container) {
-            const hint = document.createElement('div');
-            hint.className = 'upside-down-hint';
-            hint.textContent = 'Word Adventure';
-            container.appendChild(hint);
-        }
+        /* הערה ל-main.js:
+           כדי שהכפתורים יהיו שווים, וודאו שהמכולה שלהם משתמשת ב-class "flex" או "grid".
+           דוגמה למבנה ב-JS:
+           const div = document.createElement('div');
+           div.className = 'answers-container flex gap-2 w-full';
+           // הכפתורים בפנים כבר יקבלו את ה-flex: 1 מה-CSS למעלה.
+        */
     </script>
-
-    <script src="js/main.js"></script>
 </body>
 </html>

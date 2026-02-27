@@ -76,15 +76,15 @@ function renderFlashcards(app) {
     if (unknown.length === 0) { state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render(); return; }
     const cur = unknown[0];
     app.innerHTML = `
-        <div class="text-center space-y-6 w-full max-sm px-2 mt-4 relative">
+        <div class="text-center space-y-4 w-full max-sm px-2 mt-4 relative">
             <h2 class="text-2xl font-black">לימוד מילים (${state.words.filter(w=>w.known).length}/${state.words.length})</h2>
             
-            <div class="flex items-center justify-center gap-2 text-blue-500 font-bold animate-bounce-slow">
-                <span>לחצו כדי לסובב</span>
-                <span class="text-2xl">🔄</span>
+            <div class="bg-blue-100 text-blue-700 py-2 px-4 rounded-full inline-flex items-center gap-2 font-black animate-pulse-soft">
+                <span>לחצו על הכרטיסייה לסיבוב</span>
+                <span>🔄</span>
             </div>
 
-            <div onclick="this.classList.toggle('card-flipped')" class="relative w-full h-80 perspective-1000 cursor-pointer">
+            <div onclick="this.classList.toggle('card-flipped')" class="relative w-full h-80 perspective-1000 cursor-pointer mt-2">
                 <div class="card-inner">
                     <div class="card-front bg-white border-4 border-blue-200 flex-col"><span class="text-5xl font-black text-blue-600 eng-text mb-6">${cur.eng}</span><button onclick="event.stopPropagation(); speak('${cur.eng}')" class="text-5xl">🔊</button></div>
                     <div class="card-back bg-blue-500 border-4 border-blue-600 text-white"><span class="text-4xl font-black px-4 text-center">${cur.heb}</span></div>
@@ -104,6 +104,7 @@ function renderQuiz(app) {
     }
     const cur = state.words[state.quizIndex];
     if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
+    
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4">
             <h2 class="text-xl font-black text-blue-600">מבחן: ${state.quizIndex + 1}/${state.words.length}</h2>
@@ -112,9 +113,10 @@ function renderQuiz(app) {
                 <div class="grid gap-4">
                     ${state.quizOptions.map((o, idx) => {
                         let statusClass = '';
+                        // כאן הלוגיקה שמראה את התשובה הנכונה
                         if (state.quizFeedback.status) {
-                            if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans';
-                            else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans';
+                            if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans'; // תמיד ירוק לנכון
+                            else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans'; // אדום לטעות
                         }
                         return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" class="py-4 border-2 rounded-2xl font-black text-2xl transition-all ${statusClass}">${o}</button>`;
                     }).join('')}
@@ -126,19 +128,23 @@ function renderQuiz(app) {
 function handleQuizAns(selected, correct, idx) {
     if (state.quizFeedback.status) return;
     const isCorrect = selected === correct;
+    
     state.quizFeedback = { 
         index: idx, 
         status: isCorrect ? 'correct' : 'wrong',
         correctIndex: state.quizOptions.indexOf(correct)
     };
+    
     if (isCorrect) state.correctAnswers++;
     render();
+    
+    // המתנה של 1.5 שניות כדי שיוכלו לראות את התשובה הנכונה (הירוקה)
     setTimeout(() => { 
         state.quizIndex++; 
         state.quizOptions = null; 
         state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; 
         render(); 
-    }, 1200);
+    }, 1500);
 }
 
 function renderMenu(app) {
@@ -168,7 +174,6 @@ function renderMenu(app) {
         </div>`;
 }
 
-// שאר הפונקציות (זיכרון, 4 בשורה וכו') נשארות כרגיל
 function startMemory() {
     state.screen = 'memory'; state.winner = null;
     const pairsCount = Math.min(state.words.length, 8);

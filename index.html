@@ -15,7 +15,16 @@
     <meta name="theme-color" content="#1e293b">
     
     <style>
-        /* CSS הכרחי לסיבוב הכרטיסיות */
+        /* כותרת גמישה בשורה אחת */
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 1rem;
+        }
+
+        /* הגדרות סיבוב כרטיסיות */
         .card-container {
             perspective: 1000px;
         }
@@ -24,13 +33,12 @@
             position: relative;
             width: 100%;
             height: 100%;
-            text-align: center;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             transform-style: preserve-3d;
             cursor: pointer;
         }
         
-        /* כשהכרטיסייה עם קלאס flipped, היא תסתובב */
+        /* הקלאס שמפעיל את הסיבוב */
         .card-inner.flipped {
             transform: rotateY(180deg);
         }
@@ -45,7 +53,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
         
         .card-back {
@@ -53,10 +61,11 @@
         }
 
         .eng-text {
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'Arial Black', 'Arial', sans-serif;
+            white-space: nowrap;
         }
 
-        /* מצב לילה בסיסי */
+        /* מצב לילה */
         body.dark-mode {
             background-color: #0f172a;
             color: #f8fafc;
@@ -68,34 +77,47 @@
 </head>
 <body class="bg-blue-50 text-gray-800 min-h-screen transition-colors duration-300">
     
-    <header class="flex flex-col items-center px-4 py-3 w-full max-w-2xl mx-auto">
-        <div class="w-full flex justify-between items-center mb-4">
-            <button id="toggleNight" class="text-3xl bg-transparent border-none cursor-pointer p-2 focus:outline-none">☀️</button>
+    <header class="px-4 py-4 w-full max-w-2xl mx-auto">
+        <div class="header-container">
+            <!-- כפתור מצב לילה -->
+            <button id="toggleNight" class="text-2xl bg-white/80 dark:bg-slate-800 p-2 rounded-full shadow-sm hover:scale-110 transition-transform">
+                ☀️
+            </button>
             
-            <div class="flex items-center gap-4 flex-row-reverse">
-                <img src="favicon.png?v=3" alt="Logo" class="game-logo h-14 w-auto object-contain bg-transparent" onerror="this.style.display='none'">
-                <h1 class="text-3xl font-black text-yellow-500 eng-text tracking-tight">Word Adventure</h1>
+            <!-- לוגו וכותרת בשורה אחת -->
+            <div class="flex items-center gap-3 flex-row-reverse">
+                <img src="favicon.png?v=3" alt="Logo" class="h-10 w-auto object-contain" onerror="this.style.display='none'">
+                <h1 class="text-2xl md:text-3xl font-black text-yellow-500 eng-text tracking-tight uppercase">
+                    Word Adventure
+                </h1>
             </div>
 
-            <div class="w-8"></div>
+            <!-- אלמנט ריק לאיזון הפלקס (או מקום לניקוד/סטטיסטיקה בעתיד) -->
+            <div class="w-10"></div>
         </div>
     </header>
 
     <main id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center">
-        <!-- אם main.js לא טעון, נראה הודעת טעינה -->
-        <p class="mt-20 text-gray-500 italic">טוען את המילים...</p>
+        <!-- תוכן נטען על ידי main.js -->
+        <div class="mt-20 flex flex-col items-center gap-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+            <p class="text-gray-500 italic">מכינים את ההרפתקה...</p>
+        </div>
     </main>
 
-    <!-- שים לב: הקובץ js/main.js חייב להכיל את הלוגיקה שמוסיפה/מסירה את הקלאס 'flipped' בלחיצה -->
+    <!-- קבצי לוגיקה -->
     <script src="js/main.js"></script>
     
     <script>
-        // לוגיקה פשוטה למצב לילה (אם לא קיימת ב-main.js)
+        // ניהול מצב לילה
         const nightBtn = document.getElementById('toggleNight');
-        nightBtn.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            nightBtn.textContent = document.body.classList.contains('dark-mode') ? '🌙' : '☀️';
-        });
+        if (nightBtn) {
+            nightBtn.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                nightBtn.textContent = isDark ? '🌙' : '☀️';
+            });
+        }
     </script>
 </body>
 </html>

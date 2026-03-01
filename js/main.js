@@ -128,10 +128,21 @@ function renderQuiz(app) {
 function handleQuizAns(selected, correct, idx) {
     if (state.quizFeedback.status) return;
     const isCorrect = selected === correct;
-    state.quizFeedback = { index: idx, status: isCorrect ? 'correct' : 'wrong', correctIndex: state.quizOptions.indexOf(correct) };
+    state.quizFeedback = { 
+        index: idx, 
+        status: isCorrect ? 'correct' : 'wrong', 
+        correctIndex: state.quizOptions.indexOf(correct) 
+    };
     if (isCorrect) state.correctAnswers++;
     render();
-    setTimeout(() => { state.quizIndex++; state.quizOptions = null; state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; render(); }, 1500);
+    
+    // קיצרנו את הדיליי מ-1500 ל-800 מילי-שניות
+    setTimeout(() => { 
+        state.quizIndex++; 
+        state.quizOptions = null; 
+        state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; 
+        render(); 
+    }, 800); 
 }
 
 function renderMenu(app) {
@@ -386,5 +397,6 @@ window.addEventListener('keydown', (e) => {
     }
 });
 render();
+
 
 

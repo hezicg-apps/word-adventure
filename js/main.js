@@ -3,7 +3,7 @@ let state = {
     nightMode: false, masteryScore: 0, quizIndex: 0, correctAnswers: 0,
     quizFeedback: { index: -1, status: null, correctIndex: -1 },
     memoryGame: { cards: [], flipped: [], pairs: 0, steps: 0, isProcessing: false },
-    connect4: { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: null, canDrop: false, isAnswering: false, showQuestionPrompt: true, fallingToken: null, isAiTurn: false },
+    connect4: { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: null, canDrop: false, isAnswering: false, showQuestionPrompt: true, fallingToken: null, isAiTurn: false, isPvP: true },
     wordQuest: { 
         target: '', hint: '', guesses: [], currentGuess: '', maxAttempts: 5, 
         isGameOver: false, keyStates: {}, showTutorial: true, 
@@ -31,6 +31,7 @@ function render() {
         case 'quiz': renderQuiz(app); break;
         case 'menu': renderMenu(app); break;
         case 'memory': renderMemory(app); break;
+        case 'c4_menu': renderC4Menu(app); break;
         case 'connect4': renderConnect4(app); break;
         case 'wordquest': renderWordQuest(app); break;
     }
@@ -144,7 +145,7 @@ function renderMenu(app) {
             </div>
             <div class="grid gap-4">
                 <button onclick="${isLocked?'':'startMemory()'}" class="p-6 bg-purple-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">משחק זיכרון 🧠</button>
-                <button onclick="${isLocked?'':'startC4()'}" class="p-6 bg-blue-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">4 בשורה 🔴🟡</button>
+                <button onclick="${isLocked?'':'state.screen=\'c4_menu\'; render()'}" class="p-6 bg-blue-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">4 בשורה 🔴🟡</button>
                 <button onclick="${isLocked?'':'startWordQuest()'}" class="p-6 bg-emerald-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">הקוד הסודי 🔐</button>
             </div>
             <button onclick="resetAllData()" class="text-red-500 font-black underline mt-6">הזנת רשימה חדשה</button>
@@ -197,9 +198,23 @@ function flipM(id) {
     }
 }
 
-function startC4() {
+function renderC4Menu(app) {
+    app.innerHTML = `
+        <div class="text-center space-y-6 w-full max-w-sm px-2 mt-8 animate-fade-in">
+            <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl welcome-card">
+                <h2 class="text-3xl font-black text-blue-600 mb-6">4 בשורה 🔴🟡</h2>
+                <div class="grid gap-4">
+                    <button onclick="startC4(true)" class="p-6 bg-blue-500 text-white rounded-2xl text-xl font-black shadow-md active:scale-95 transition-transform">בואו נשחק יחד! 👥</button>
+                    <button onclick="startC4(false)" class="p-6 bg-orange-500 text-white rounded-2xl text-xl font-black shadow-md active:scale-95 transition-transform">נגד המחשב 🤖</button>
+                </div>
+                <button onclick="state.screen='menu'; render()" class="mt-6 text-gray-500 font-bold underline">חזרה</button>
+            </div>
+        </div>`;
+}
+
+function startC4(isPvP) {
     state.screen = 'connect4'; state.winner = null;
-    state.connect4 = { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: genC4Q(), canDrop: false, isAnswering: false, showQuestionPrompt: true, fallingToken: null, isAiTurn: false };
+    state.connect4 = { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: genC4Q(), canDrop: false, isAnswering: false, showQuestionPrompt: true, fallingToken: null, isAiTurn: false, isPvP: isPvP };
     render();
 }
 
@@ -228,7 +243,7 @@ function renderConnect4(app) {
         </div>`;
 }
 
-function ansC4(o) { const c = state.connect4; if (o === c.q.correct) { c.canDrop = true; c.isAnswering = false; render(); } else { c.turn = c.turn === 1 ? 2 : 1; c.showQuestionPrompt = true; c.isAnswering = false; c.q = genC4Q(); render(); if(c.turn===2) runAiTurn(); } }
+function ansC4(o) { const c = state.connect4; if (o === c.q.correct) { c.canDrop = true; c.isAnswering = false; render(); } else { c.turn = c.turn === 1 ? 2 : 1; c.showQuestionPrompt = true; c.isAnswering = false; c.q = genC4Q(); render(); if(!c.isPvP && c.turn===2) runAiTurn(); } }
 
 function dropC4(col) {
     const c = state.connect4; if (!c.canDrop && !c.isAiTurn) return;
@@ -240,7 +255,7 @@ function dropC4(col) {
         if (currentRow === targetRow) { 
             clearInterval(dropInterval); c.board[targetRow][col] = dropColor; c.fallingToken = null;
             if (checkWin(c.board)) { triggerConfetti(); setTimeout(() => { state.winner = { type: 'c4', msg: dropColor===1?"אדום ניצח!":"צהוב ניצח!", glowClass: dropColor===1?'win-glow-red':'win-glow-yellow' }; render(); }, 400); }
-            else { c.turn = c.turn === 1 ? 2 : 1; c.showQuestionPrompt = true; c.q = genC4Q(); c.isAiTurn = false; render(); if(c.turn===2) runAiTurn(); }
+            else { c.turn = c.turn === 1 ? 2 : 1; c.showQuestionPrompt = true; c.q = genC4Q(); c.isAiTurn = false; render(); if(!c.isPvP && c.turn===2) runAiTurn(); }
         } currentRow++;
     }, 80);
 }
@@ -346,7 +361,7 @@ function renderWinScreen(app) {
                 <h2 class="text-4xl font-black mb-6 text-blue-600">${win.msg}</h2>
                 <p class="text-xl font-black mb-10 text-gray-700">${win.subMsg || ''}</p>
                 <div class="space-y-4">
-                    <button onclick="state.winner=null; if(state.screen==='memory')startMemory();else if(state.screen==='connect4')startC4();else startWordQuest();" class="bg-blue-600 text-white py-5 rounded-2xl text-2xl font-black w-full shadow-lg">שחק שוב 🔄</button>
+                    <button onclick="state.winner=null; if(state.screen==='memory')startMemory();else if(state.screen==='connect4')startC4(state.connect4.isPvP);else startWordQuest();" class="bg-blue-600 text-white py-5 rounded-2xl text-2xl font-black w-full shadow-lg">שחק שוב 🔄</button>
                     <button onclick="state.winner=null; state.screen='menu'; render()" class="bg-gray-100 text-gray-700 py-4 rounded-2xl text-xl font-black w-full shadow">חזרה לתפריט 🏠</button>
                 </div>
             </div>

@@ -3,7 +3,7 @@ let state = {
     nightMode: false, masteryScore: 0, quizIndex: 0, correctAnswers: 0,
     quizFeedback: { index: -1, status: null, correctIndex: -1 },
     memoryGame: { cards: [], flipped: [], pairs: 0, steps: 0, isProcessing: false },
-    connect4: { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: null, canDrop: false, isAnswering: false, showQuestionPrompt: true, fallingToken: null },
+    connect4: { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: null, canDrop: false, isAnswering: false, showQuestionPrompt: true, fallingToken: null, isAiTurn: false },
     wordQuest: { 
         target: '', hint: '', guesses: [], currentGuess: '', maxAttempts: 5, 
         isGameOver: false, keyStates: {}, showTutorial: true, 
@@ -78,12 +78,10 @@ function renderFlashcards(app) {
     app.innerHTML = `
         <div class="text-center space-y-4 w-full max-sm px-2 mt-4 relative">
             <h2 class="text-2xl font-black">לימוד מילים (${state.words.filter(w=>w.known).length}/${state.words.length})</h2>
-            
             <div class="bg-blue-100 text-blue-700 py-2 px-6 rounded-full inline-flex items-center gap-2 font-black animate-pulse-soft border border-blue-200">
                 <span>לחצו על הכרטיסייה לסיבוב</span>
                 <span class="text-xl">🔄</span>
             </div>
-
             <div onclick="this.classList.toggle('card-flipped')" class="relative w-full h-80 perspective-1000 cursor-pointer mt-2">
                 <div class="card-inner">
                     <div class="card-front bg-white border-4 border-blue-200 flex-col"><span class="text-5xl font-black text-blue-600 eng-text mb-6">${cur.eng}</span><button onclick="event.stopPropagation(); speak('${cur.eng}')" class="text-5xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div>
@@ -104,7 +102,6 @@ function renderQuiz(app) {
     }
     const cur = state.words[state.quizIndex];
     if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
-    
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4">
             <h2 class="text-xl font-black text-blue-600">מבחן: ${state.quizIndex + 1}/${state.words.length}</h2>
@@ -130,19 +127,10 @@ function renderQuiz(app) {
 function handleQuizAns(selected, correct, idx) {
     if (state.quizFeedback.status) return;
     const isCorrect = selected === correct;
-    state.quizFeedback = { 
-        index: idx, 
-        status: isCorrect ? 'correct' : 'wrong',
-        correctIndex: state.quizOptions.indexOf(correct)
-    };
+    state.quizFeedback = { index: idx, status: isCorrect ? 'correct' : 'wrong', correctIndex: state.quizOptions.indexOf(correct) };
     if (isCorrect) state.correctAnswers++;
     render();
-    setTimeout(() => { 
-        state.quizIndex++; 
-        state.quizOptions = null; 
-        state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; 
-        render(); 
-    }, 1500);
+    setTimeout(() => { state.quizIndex++; state.quizOptions = null; state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; render(); }, 1500);
 }
 
 function renderMenu(app) {
@@ -152,21 +140,12 @@ function renderMenu(app) {
             <div class="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-blue-100 welcome-card">
                 <h2 class="text-3xl font-black text-blue-600 mb-2">הציון שלך: ${state.masteryScore.toFixed(0)}%</h2>
                 <p class="font-black text-gray-500">${isLocked ? 'צריך 70% כדי לפתוח משחקים' : 'המשחקים פתוחים!'}</p>
-                <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" 
-                        class="mt-4 bg-orange-500 text-white px-6 py-2 rounded-full font-black shadow-md hover:bg-orange-600 transition-colors">
-                    🔄 תרגול חוזר (שיפור ציון)
-                </button>
+                <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="mt-4 bg-orange-500 text-white px-6 py-2 rounded-full font-black shadow-md hover:bg-orange-600 transition-colors">🔄 תרגול חוזר</button>
             </div>
             <div class="grid gap-4">
-                <button onclick="${isLocked?'':'startMemory()'}" class="p-6 bg-purple-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50 cursor-not-allowed':''}">
-                    ${isLocked ? '🔒 ' : ''}משחק זיכרון 🧠
-                </button>
-                <button onclick="${isLocked?'':'startC4()'}" class="p-6 bg-blue-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50 cursor-not-allowed':''}">
-                    ${isLocked ? '🔒 ' : ''}4 בשורה 🔴🟡
-                </button>
-                <button onclick="${isLocked?'':'startWordQuest()'}" class="p-6 bg-emerald-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50 cursor-not-allowed':''}">
-                    ${isLocked ? '🔒 ' : ''}הקוד הסודי 🔐
-                </button>
+                <button onclick="${isLocked?'':'startMemory()'}" class="p-6 bg-purple-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">משחק זיכרון 🧠</button>
+                <button onclick="${isLocked?'':'startC4()'}" class="p-6 bg-blue-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">4 בשורה 🔴🟡</button>
+                <button onclick="${isLocked?'':'startWordQuest()'}" class="p-6 bg-emerald-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">הקוד הסודי 🔐</button>
             </div>
             <button onclick="resetAllData()" class="text-red-500 font-black underline mt-6">הזנת רשימה חדשה</button>
         </div>`;
@@ -220,7 +199,7 @@ function flipM(id) {
 
 function startC4() {
     state.screen = 'connect4'; state.winner = null;
-    state.connect4 = { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: genC4Q(), canDrop: false, isAnswering: false, showQuestionPrompt: true, fallingToken: null };
+    state.connect4 = { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: genC4Q(), canDrop: false, isAnswering: false, showQuestionPrompt: true, fallingToken: null, isAiTurn: false };
     render();
 }
 
@@ -236,33 +215,53 @@ function renderConnect4(app) {
         <div class="flex flex-col items-center w-full px-2 mt-4">
             <div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card">
                 <button onclick="state.screen='menu'; render()" class="text-red-500 font-black">יציאה</button>
-                <div class="font-black text-lg">תור: ${c.turn===1?'אדום 🔴':'צהוב 🟡'}</div>
+                <div class="font-black text-lg">תור: ${c.turn===1?'אדום 🔴':'צהוב 🟡'} ${c.isAiTurn ? '(חושב...)' : ''}</div>
             </div>
             <div class="h-16 mb-2">
-                ${c.showQuestionPrompt ? `<button onclick="state.connect4.showQuestionPrompt=false;state.connect4.isAnswering=true;render();" class="bg-blue-600 text-white px-8 py-3 rounded-full text-xl font-black shadow-lg">שאלה לאסימון</button>` : `<div class="text-blue-600 font-black text-2xl animate-pulse">בחר עמודה 👇</div>`}
+                ${c.showQuestionPrompt && !c.isAiTurn ? `<button onclick="state.connect4.showQuestionPrompt=false;state.connect4.isAnswering=true;render();" class="bg-blue-600 text-white px-8 py-3 rounded-full text-xl font-black shadow-lg">שאלה לאסימון</button>` : `<div class="text-blue-600 font-black text-2xl animate-pulse">${c.isAiTurn ? 'המחשב חושב...' : 'בחר עמודה 👇'}</div>`}
             </div>
             <div class="c4-container">
-                <div class="arrows-row">${[0,1,2,3,4,5,6].map(i => `<button onclick="dropC4(${i})" class="flex flex-col items-center ${!c.canDrop || c.board[0][i] ? 'opacity-20 pointer-events-none' : 'text-white'}"><span class="text-lg font-black">${i+1}</span><div class="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-white mt-1"></div></button>`).join('')}</div>
+                <div class="arrows-row">${[0,1,2,3,4,5,6].map(i => `<button onclick="dropC4(${i})" class="flex flex-col items-center ${!c.canDrop || c.board[0][i] || c.isAiTurn ? 'opacity-20 pointer-events-none' : 'text-white'}"><span class="text-lg font-black">${i+1}</span><div class="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-white mt-1"></div></button>`).join('')}</div>
                 <div class="c4-board">${c.board.map((row, r) => row.map((cell, col) => `<div class="c4-slot">${cell ? `<div class="token-fixed ${cell===1?'token-red':'token-yellow'}"></div>` : ''}${c.fallingToken && c.fallingToken.row === r && c.fallingToken.col === col ? `<div class="token-fixed ${c.fallingToken.color === 1 ? 'token-red' : 'token-yellow'}"></div>` : ''}</div>`).join('')).join('')}</div>
             </div>
             ${c.isAnswering ? `<div class="fixed inset-0 bg-black/80 flex items-center justify-center z-[200] px-4"><div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center welcome-card"><h3 class="text-4xl font-black mb-8 text-blue-600 eng-text flex items-center justify-center gap-4">${c.q.prompt}<button onclick="speak('${c.q.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button></h3><div class="grid gap-4">${c.q.opts.map(o => `<button onclick="ansC4('${o}')" class="p-4 border-2 rounded-xl font-black text-black text-2xl hover:bg-blue-50">${o}</button>`).join('')}</div></div></div>` : ''}
         </div>`;
 }
 
-function ansC4(o) { const c = state.connect4; if (o === c.q.correct) { c.canDrop = true; c.isAnswering = false; render(); } else { c.turn = c.turn === 1 ? 2 : 1; c.showQuestionPrompt = true; c.isAnswering = false; c.q = genC4Q(); render(); } }
+function ansC4(o) { const c = state.connect4; if (o === c.q.correct) { c.canDrop = true; c.isAnswering = false; render(); } else { c.turn = c.turn === 1 ? 2 : 1; c.showQuestionPrompt = true; c.isAnswering = false; c.q = genC4Q(); render(); if(c.turn===2) runAiTurn(); } }
 
 function dropC4(col) {
-    const c = state.connect4; if (!c.canDrop) return;
+    const c = state.connect4; if (!c.canDrop && !c.isAiTurn) return;
     let targetRow = -1; for (let r=5; r>=0; r--) { if (!c.board[r][col]) { targetRow = r; break; } }
     if (targetRow === -1) return;
     c.canDrop = false; let currentRow = 0; const dropColor = c.turn;
     const dropInterval = setInterval(() => {
         c.fallingToken = { row: currentRow, col: col, color: dropColor }; render();
-        if (currentRow === targetRow) { clearInterval(dropInterval); c.board[targetRow][col] = dropColor; c.fallingToken = null;
+        if (currentRow === targetRow) { 
+            clearInterval(dropInterval); c.board[targetRow][col] = dropColor; c.fallingToken = null;
             if (checkWin(c.board)) { triggerConfetti(); setTimeout(() => { state.winner = { type: 'c4', msg: dropColor===1?"אדום ניצח!":"צהוב ניצח!", glowClass: dropColor===1?'win-glow-red':'win-glow-yellow' }; render(); }, 400); }
-            else { c.turn = c.turn === 1 ? 2 : 1; c.showQuestionPrompt = true; c.q = genC4Q(); render(); }
+            else { c.turn = c.turn === 1 ? 2 : 1; c.showQuestionPrompt = true; c.q = genC4Q(); c.isAiTurn = false; render(); if(c.turn===2) runAiTurn(); }
         } currentRow++;
     }, 80);
+}
+
+function runAiTurn() {
+    state.connect4.isAiTurn = true;
+    setTimeout(() => {
+        const board = state.connect4.board;
+        let col = -1;
+        for (let c=0; c<7; c++) { if (canWinAt(board, c, 2)) { col = c; break; } }
+        if (col === -1) { for (let c=0; c<7; c++) { if (canWinAt(board, c, 1)) { col = c; break; } } }
+        if (col === -1) { const valid = [0,1,2,3,4,5,6].filter(c => !board[0][c]); col = valid[Math.floor(Math.random()*valid.length)]; }
+        dropC4(col);
+    }, 1000);
+}
+
+function canWinAt(b, col, color) {
+    if (b[0][col]) return false;
+    let r = 5; while (r >= 0 && b[r][col]) r--;
+    const temp = b.map(row => [...row]); temp[r][col] = color;
+    return checkWin(temp);
 }
 
 function checkWin(b) {

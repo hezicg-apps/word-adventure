@@ -15,6 +15,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://hezicg-apps.github.io/word-adventure/logo.png">
+    <link rel="manifest" href="manifest.json">
 
     <link rel="icon" type="image/png" href="logo.png">
 
@@ -22,21 +23,27 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <link rel="stylesheet" href="style.css">
-    
-    <style>
-        /* תיקון קטן למנוע בחירת טקסט בזמן משחק בנייד */
+    <link rel="stylesheet" href="css/style.css"> <style>
         body {
             -webkit-tap-highlight-color: transparent;
             user-select: none;
+        }
+        /* הגדרה למצב לילה כדי שהכפתור יהיה שקוף */
+        #toggleNight {
+            background: transparent;
+            border: none;
+            cursor: pointer;
         }
     </style>
 </head>
 <body class="bg-blue-50 transition-colors duration-500 min-h-screen flex flex-col">
 
-    <button id="toggleNight" class="fixed top-4 left-4 z-50 p-3 bg-white/80 backdrop-blur rounded-full shadow-lg text-2xl hover:scale-110 transition-transform">
+    <button id="toggleNight" class="fixed top-4 left-4 z-50 p-2 text-3xl hover:scale-110 transition-transform focus:outline-none">
         ☀️
     </button>
+
+    <header id="main-header" class="w-full flex flex-col items-center pt-8 pb-4">
+        </header>
 
     <main id="app" class="flex-grow flex flex-col items-center justify-start p-4 w-full max-w-4xl mx-auto">
         </main>

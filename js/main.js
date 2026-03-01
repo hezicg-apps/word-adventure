@@ -204,10 +204,17 @@ function renderC4Menu(app) {
             <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl welcome-card">
                 <h2 class="text-3xl font-black text-blue-600 mb-6">4 בשורה 🔴🟡</h2>
                 <div class="grid gap-4">
-                    <button onclick="startC4(true)" class="p-6 bg-blue-500 text-white rounded-2xl text-xl font-black shadow-md active:scale-95 transition-transform">בואו נשחק יחד! 👥</button>
-                    <button onclick="startC4(false)" class="p-6 bg-orange-500 text-white rounded-2xl text-xl font-black shadow-md active:scale-95 transition-transform">נגד המחשב 🤖</button>
+                    <button onclick="startC4(true)" class="p-6 bg-blue-700 text-white rounded-2xl text-xl font-black shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-3">
+                        <span class="text-2xl">👥</span> 
+                        משחק זוגי (אותו מכשיר)
+                    </button>
+                    
+                    <button onclick="startC4(false)" class="p-6 bg-orange-600 text-white rounded-2xl text-xl font-black shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-3">
+                        <span class="text-2xl">🤖</span> 
+                        נגד המחשב
+                    </button>
                 </div>
-                <button onclick="state.screen='menu'; render()" class="mt-6 text-gray-500 font-bold underline">חזרה</button>
+                <button onclick="state.screen='menu'; render()" class="mt-8 text-gray-500 font-bold underline hover:text-blue-600 transition-colors">חזרה לתפריט הראשי</button>
             </div>
         </div>`;
 }
@@ -376,3 +383,4 @@ window.addEventListener('keydown', (e) => {
     }
 });
 render();
+

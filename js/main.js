@@ -3,7 +3,7 @@ let state = {
     nightMode: false, masteryScore: 0, quizIndex: 0, correctAnswers: 0,
     quizFeedback: { index: -1, status: null, correctIndex: -1 },
     memoryGame: { cards: [], flipped: [], pairs: 0, steps: 0, isProcessing: false },
-    connect4: { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: null, canDrop: false, isAnswering: false, showQuestionPrompt: true, fallingToken: null, isAiTurn: false, isPvP: true },
+    connect4: { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: null, canDrop: false, isAnswering: false, showQuestionPrompt: true, fallingToken: null, isAiTurn: false, isPvP: true, feedback: { status: null, selectedIdx: -1 } },
     wordQuest: { 
         target: '', hint: '', guesses: [], currentGuess: '', maxAttempts: 5, 
         isGameOver: false, keyStates: {}, showTutorial: true, 
@@ -128,21 +128,10 @@ function renderQuiz(app) {
 function handleQuizAns(selected, correct, idx) {
     if (state.quizFeedback.status) return;
     const isCorrect = selected === correct;
-    state.quizFeedback = { 
-        index: idx, 
-        status: isCorrect ? 'correct' : 'wrong', 
-        correctIndex: state.quizOptions.indexOf(correct) 
-    };
+    state.quizFeedback = { index: idx, status: isCorrect ? 'correct' : 'wrong', correctIndex: state.quizOptions.indexOf(correct) };
     if (isCorrect) state.correctAnswers++;
     render();
-    
-    // קיצרנו את הדיליי מ-1500 ל-800 מילי-שניות
-    setTimeout(() => { 
-        state.quizIndex++; 
-        state.quizOptions = null; 
-        state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; 
-        render(); 
-    }, 800); 
+    setTimeout(() => { state.quizIndex++; state.quizOptions = null; state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; render(); }, 800);
 }
 
 function renderMenu(app) {
@@ -222,7 +211,6 @@ function renderC4Menu(app) {
                             <span class="text-sm font-bold opacity-90">(אותו מכשיר)</span>
                         </div>
                     </button>
-                    
                     <button onclick="startC4(false)" class="p-6 bg-orange-600 text-white rounded-2xl text-xl font-black shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-4 text-right">
                         <span class="text-3xl">🤖</span> 
                         <span>נגד המחשב</span>
@@ -235,7 +223,7 @@ function renderC4Menu(app) {
 
 function startC4(isPvP) {
     state.screen = 'connect4'; state.winner = null;
-    state.connect4 = { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: genC4Q(), canDrop: false, isAnswering: false, showQuestionPrompt: true, fallingToken: null, isAiTurn: false, isPvP: isPvP };
+    state.connect4 = { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: genC4Q(), canDrop: false, isAnswering: false, showQuestionPrompt: true, fallingToken: null, isAiTurn: false, isPvP: isPvP, feedback: { status: null, selectedIdx: -1 } };
     render();
 }
 
@@ -260,11 +248,39 @@ function renderConnect4(app) {
                 <div class="arrows-row">${[0,1,2,3,4,5,6].map(i => `<button onclick="dropC4(${i})" class="flex flex-col items-center ${!c.canDrop || c.board[0][i] || c.isAiTurn ? 'opacity-20 pointer-events-none' : 'text-white'}"><span class="text-lg font-black">${i+1}</span><div class="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-white mt-1"></div></button>`).join('')}</div>
                 <div class="c4-board">${c.board.map((row, r) => row.map((cell, col) => `<div class="c4-slot">${cell ? `<div class="token-fixed ${cell===1?'token-red':'token-yellow'}"></div>` : ''}${c.fallingToken && c.fallingToken.row === r && c.fallingToken.col === col ? `<div class="token-fixed ${c.fallingToken.color === 1 ? 'token-red' : 'token-yellow'}"></div>` : ''}</div>`).join('')).join('')}</div>
             </div>
-            ${c.isAnswering ? `<div class="fixed inset-0 bg-black/80 flex items-center justify-center z-[200] px-4"><div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center welcome-card"><h3 class="text-4xl font-black mb-8 text-blue-600 eng-text flex items-center justify-center gap-4">${c.q.prompt}<button onclick="speak('${c.q.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button></h3><div class="grid gap-4">${c.q.opts.map(o => `<button onclick="ansC4('${o}')" class="p-4 border-2 rounded-xl font-black text-black text-2xl hover:bg-blue-50">${o}</button>`).join('')}</div></div></div>` : ''}
+            ${c.isAnswering ? `<div class="fixed inset-0 bg-black/80 flex items-center justify-center z-[200] px-4"><div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center welcome-card"><h3 class="text-4xl font-black mb-8 text-blue-600 eng-text flex items-center justify-center gap-4">${c.q.prompt}<button onclick="speak('${c.q.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button></h3><div class="grid gap-4">${c.q.opts.map((o, idx) => {
+                let sClass = '';
+                if (c.feedback.status) {
+                    if (o === c.q.correct) sClass = 'correct-ans';
+                    else if (idx === c.feedback.selectedIdx && c.feedback.status === 'wrong') sClass = 'wrong-ans';
+                }
+                return `<button onclick="ansC4('${o}', ${idx})" class="p-4 border-2 rounded-xl font-black text-black text-2xl hover:bg-blue-50 transition-all ${sClass}">${o}</button>`;
+            }).join('')}</div></div></div>` : ''}
         </div>`;
 }
 
-function ansC4(o) { const c = state.connect4; if (o === c.q.correct) { c.canDrop = true; c.isAnswering = false; render(); } else { c.turn = c.turn === 1 ? 2 : 1; c.showQuestionPrompt = true; c.isAnswering = false; c.q = genC4Q(); render(); if(!c.isPvP && c.turn===2) runAiTurn(); } }
+function ansC4(o, idx) { 
+    const c = state.connect4; 
+    if (c.feedback.status) return; 
+    const isCorrect = o === c.q.correct;
+    c.feedback = { status: isCorrect ? 'correct' : 'wrong', selectedIdx: idx };
+    render();
+
+    setTimeout(() => {
+        c.feedback = { status: null, selectedIdx: -1 };
+        if (isCorrect) { 
+            c.canDrop = true; 
+            c.isAnswering = false; 
+        } else { 
+            c.turn = c.turn === 1 ? 2 : 1; 
+            c.showQuestionPrompt = true; 
+            c.isAnswering = false; 
+            c.q = genC4Q(); 
+            if(!c.isPvP && c.turn===2) runAiTurn();
+        }
+        render();
+    }, 800);
+}
 
 function dropC4(col) {
     const c = state.connect4; if (!c.canDrop && !c.isAiTurn) return;
@@ -397,6 +413,3 @@ window.addEventListener('keydown', (e) => {
     }
 });
 render();
-
-
-

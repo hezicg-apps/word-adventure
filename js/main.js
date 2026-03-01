@@ -65,49 +65,45 @@ function triggerConfetti() { confetti({ particleCount: 150, spread: 70, origin: 
 function speak(text) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.8; window.speechSynthesis.speak(u); }
 function shuffle(a) { return [...a].sort(() => Math.random() - 0.5); }
 
-// פונקציית הרינדור המעודכנת למניעת קפיצות
+// פונקציית הרינדור הראשית המעודכנת
 function render() {
+    // עדכון מצב לילה
     document.body.classList.toggle('night-mode', state.nightMode);
-    document.getElementById('toggleNight').innerText = state.nightMode ? '🌙' : '☀️';
-    const app = document.getElementById('app'); 
+    const nightBtn = document.getElementById('toggleNight');
+    if (nightBtn) nightBtn.innerText = state.nightMode ? '🌙' : '☀️';
+
+    // עדכון כותרת ולוגו ב-Header
+    const titleEl = document.getElementById('header-title');
+    const logoContainer = document.getElementById('header-logo-container');
     
+    if (titleEl && logoContainer) {
+        if (['welcome', 'input'].includes(state.screen)) {
+            titleEl.innerText = "Word Adventure";
+            titleEl.className = "text-2xl font-black text-blue-600 drop-shadow-sm transition-colors duration-500";
+            logoContainer.innerHTML = '';
+        } else {
+            titleEl.innerText = state.listName;
+            titleEl.className = "text-xl font-black text-blue-500 bg-white/80 py-2 px-6 rounded-full inline-block shadow-sm border-2 border-blue-100 transition-all";
+            logoContainer.innerHTML = `<img src="logo.png" class="w-10 h-10 rounded-lg shadow-sm border border-white/50">`;
+        }
+    }
+
+    const app = document.getElementById('app'); 
+    if (!app) return;
+
     if (state.winner) { 
         app.innerHTML = ''; 
         renderWinScreen(app); 
         return; 
     }
 
-    // ניהול הכותרת - מוודאים שהיא לא נבנית מחדש בכל רגע
-    let header = document.getElementById('list-header');
+    // ניקוי ורינדור התוכן המשתנה
+    app.innerHTML = '';
+    const contentArea = document.createElement('div');
+    contentArea.id = 'content-area';
+    contentArea.className = "w-full flex flex-col items-center";
+    app.appendChild(contentArea);
     
-    if (['welcome', 'input'].includes(state.screen)) {
-        if (header) header.remove();
-        app.innerHTML = ''; 
-    } else {
-        if (!header) {
-            app.innerHTML = ''; // ניקוי ראשוני רק אם הכותרת חסרה
-            header = document.createElement('div');
-            header.id = 'list-header';
-            header.className = "text-center mb-4";
-            app.appendChild(header);
-        }
-        
-        const headerHtml = `<h1 class="text-xl font-black text-blue-500 bg-white/80 py-2 px-6 rounded-full inline-block shadow-sm border-2 border-blue-100">${state.listName}</h1>`;
-        if (header.innerHTML !== headerHtml) header.innerHTML = headerHtml;
-    }
-
-    // ניהול אזור התוכן (המשחק עצמו)
-    let contentArea = document.getElementById('content-area');
-    if (!contentArea || ['welcome', 'input'].includes(state.screen)) {
-        if (!contentArea) {
-            contentArea = document.createElement('div');
-            contentArea.id = 'content-area';
-            contentArea.className = "w-full flex flex-col items-center";
-            app.appendChild(contentArea);
-        }
-    }
-    
-    contentArea.innerHTML = ''; // מנקים רק את התוכן המשתנה
     renderScreenContent(contentArea);
 }
 
@@ -132,7 +128,7 @@ function renderWelcome(app) {
         <div class="text-center space-y-6 w-full max-w-md animate-fade-in mt-6">
             <div class="bg-white p-6 rounded-[2.5rem] border-4 border-blue-400 shadow-xl welcome-card">
                 <p class="text-4xl font-black text-blue-600 mb-6 border-b-2 pb-4">ברוכים הבאים! 👋</p>
-                <div class="space-y-4 text-right font-bold">
+                <div class="space-y-4 text-right font-bold text-black">
                     <div class="bg-blue-50 p-4 rounded-2xl border-r-8 border-blue-500 step-blue"><p class="text-xl font-black text-blue-900 mb-1">📝 שלב 1: הזנה</p><p class="text-lg">מדביקים רשימת מילים.</p></div>
                     <div class="bg-green-50 p-4 rounded-2xl border-r-8 border-green-500 step-green"><p class="text-xl font-black text-green-900 mb-1">🎴 שלב 2: תרגול</p><p class="text-lg">לומדים ובודקים ידע.</p></div>
                     <div class="bg-purple-50 p-4 rounded-2xl border-r-8 border-purple-500 step-purple"><p class="text-xl font-black text-purple-900 mb-1">🎮 שלב 3: משחקים</p><p class="text-lg">משחקים באנגלית!</p></div>
@@ -172,7 +168,7 @@ function renderFlashcards(app) {
     const cur = unknown[0];
     app.innerHTML = `
         <div class="text-center space-y-4 w-full max-sm px-2 mt-2 relative">
-            <h2 class="text-2xl font-black">שלב הלימוד (${state.words.filter(w=>w.known).length}/${state.words.length})</h2>
+            <h2 class="text-2xl font-black text-gray-700">שלב הלימוד (${state.words.filter(w=>w.known).length}/${state.words.length})</h2>
             <div onclick="this.classList.toggle('card-flipped')" class="relative w-full h-80 perspective-1000 cursor-pointer mt-2">
                 <div class="card-inner">
                     <div class="card-front bg-white border-4 border-blue-200 flex-col"><span class="text-5xl font-black text-blue-600 eng-text mb-6">${cur.eng}</span><button onclick="event.stopPropagation(); speak('${cur.eng}')" class="text-5xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div>
@@ -196,7 +192,7 @@ function renderQuiz(app) {
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-sm px-2 mt-2">
             <h2 class="text-xl font-black text-blue-600">מבחן: ${state.quizIndex + 1}/${state.words.length}</h2>
-            <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl welcome-card relative">
+            <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl welcome-card relative text-black">
                 <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4">${cur.eng}<button onclick="speak('${cur.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div>
                 <div class="grid gap-4">
                     ${state.quizOptions.map((o, idx) => {
@@ -241,8 +237,6 @@ function renderMenu(app) {
         </div>`;
 }
 
-// (שאר המשחקים והפונקציות נשארים זהים לקוד הקודם...)
-
 function startMemory() {
     state.screen = 'memory'; state.winner = null;
     const pairsCount = Math.min(state.words.length, 8);
@@ -260,7 +254,7 @@ function renderMemory(app) {
         <div class="flex flex-col items-center w-full max-w-sm px-2 mt-2">
             <div class="flex justify-between items-center w-full mb-4 bg-white p-4 rounded-2xl shadow-md welcome-card">
                 <button onclick="state.screen='menu'; render()" class="text-red-500 font-black">יציאה</button>
-                <span class="text-lg font-black">צעדים: ${g.steps} | זוגות: ${g.pairs} / ${g.cards.length / 2}</span>
+                <span class="text-lg font-black text-black">צעדים: ${g.steps} | זוגות: ${g.pairs} / ${g.cards.length / 2}</span>
             </div>
             <div class="grid grid-cols-4 gap-2 w-full">
                 ${g.cards.map(c => `
@@ -268,7 +262,7 @@ function renderMemory(app) {
                         <div class="card-inner">
                             <div class="card-front bg-purple-600 text-white text-3xl font-black">?</div>
                             <div class="card-back bg-white border-2 ${c.ok?'border-green-400 bg-green-50':'border-purple-200'}">
-                                <div class="font-black text-[10px] sm:text-xs text-center leading-tight ${c.isEng ? 'eng-text' : ''}">${c.t}</div>
+                                <div class="font-black text-black text-[10px] sm:text-xs text-center leading-tight ${c.isEng ? 'eng-text' : ''}">${c.t}</div>
                             </div>
                         </div>
                     </div>`).join('')}
@@ -329,7 +323,7 @@ function renderConnect4(app) {
     const c = state.connect4;
     app.innerHTML = `
         <div class="flex flex-col items-center w-full px-2 mt-2">
-            <div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card">
+            <div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card text-black">
                 <button onclick="state.screen='menu'; render()" class="text-red-500 font-black">יציאה</button>
                 <div class="font-black text-lg">תור: ${c.turn===1?'אדום 🔴':'צהוב 🟡'}</div>
             </div>
@@ -340,23 +334,11 @@ function renderConnect4(app) {
                 <div class="arrows-row">${[0,1,2,3,4,5,6].map(i => `<button onclick="dropC4(${i})" class="flex flex-col items-center ${!c.canDrop || c.board[0][i] || c.isAiTurn ? 'opacity-20 pointer-events-none' : 'text-white'}"><div class="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-white mt-1"></div></button>`).join('')}</div>
                 <div class="c4-board">${c.board.map((row, r) => row.map((cell, col) => `<div class="c4-slot">${cell ? `<div class="token-fixed ${cell===1?'token-red':'token-yellow'}"></div>` : ''}${c.fallingToken && c.fallingToken.row === r && c.fallingToken.col === col ? `<div class="token-fixed ${c.fallingToken.color === 1 ? 'token-red' : 'token-yellow'}"></div>` : ''}</div>`).join('')).join('')}</div>
             </div>
-            ${c.isAnswering ? `<div class="fixed inset-0 bg-black/80 flex items-center justify-center z-[200] px-4"><div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center welcome-card"><h3 class="text-4xl font-black mb-8 text-blue-600 eng-text flex items-center justify-center gap-4">${c.q.prompt}<button onclick="speak('${c.q.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button></h3><div class="grid gap-4">${c.q.opts.map((o, idx) => {
+            ${c.isAnswering ? `<div class="fixed inset-0 bg-black/80 flex items-center justify-center z-[200] px-4"><div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center welcome-card text-black"><h3 class="text-4xl font-black mb-8 text-blue-600 eng-text flex items-center justify-center gap-4">${c.q.prompt}<button onclick="speak('${c.q.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button></h3><div class="grid gap-4">${c.q.opts.map((o, idx) => {
                 let sClass = ''; if (c.feedback.status) { if (o === c.q.correct) sClass = 'correct-ans'; else if (idx === c.feedback.selectedIdx && c.feedback.status === 'wrong') sClass = 'wrong-ans'; }
                 return `<button onclick="ansC4('${o}', ${idx})" class="p-4 border-2 rounded-xl font-black text-black text-2xl ${sClass}">${o}</button>`;
             }).join('')}</div></div></div>` : ''}
         </div>`;
-}
-
-function ansC4(o, idx) { 
-    const c = state.connect4; if (c.feedback.status) return; 
-    const isCorrect = o === c.q.correct;
-    c.feedback = { status: isCorrect ? 'correct' : 'wrong', selectedIdx: idx }; render();
-    setTimeout(() => {
-        c.feedback = { status: null, selectedIdx: -1 };
-        if (isCorrect) { c.canDrop = true; c.isAnswering = false; } 
-        else { c.turn = c.turn === 1 ? 2 : 1; c.showQuestionPrompt = true; c.isAnswering = false; c.q = genC4Q(); if(!c.isPvP && c.turn===2) runAiTurn(); }
-        render();
-    }, 800);
 }
 
 function dropC4(col) {
@@ -372,6 +354,18 @@ function dropC4(col) {
             else { c.turn = c.turn === 1 ? 2 : 1; c.showQuestionPrompt = true; c.q = genC4Q(); c.isAiTurn = false; render(); if(!c.isPvP && c.turn===2) runAiTurn(); }
         } currentRow++;
     }, 80);
+}
+
+function ansC4(o, idx) { 
+    const c = state.connect4; if (c.feedback.status) return; 
+    const isCorrect = o === c.q.correct;
+    c.feedback = { status: isCorrect ? 'correct' : 'wrong', selectedIdx: idx }; render();
+    setTimeout(() => {
+        c.feedback = { status: null, selectedIdx: -1 };
+        if (isCorrect) { c.canDrop = true; c.isAnswering = false; } 
+        else { c.turn = c.turn === 1 ? 2 : 1; c.showQuestionPrompt = true; c.isAnswering = false; c.q = genC4Q(); if(!c.isPvP && c.turn===2) runAiTurn(); }
+        render();
+    }, 800);
 }
 
 function runAiTurn() {
@@ -411,7 +405,7 @@ function startWordQuest() {
 function renderWordQuest(app) {
     const w = state.wordQuest;
     if (w.showTutorial) {
-        app.innerHTML = `<div class="text-center space-y-6 w-full max-w-md animate-fade-in mt-2"><div class="bg-white p-8 rounded-[2.5rem] border-4 border-emerald-400 shadow-xl welcome-card"><h2 class="text-3xl font-black text-emerald-600 mb-6">איך משחקים? 🔐</h2><div class="space-y-4 text-right"><p class="text-lg font-bold">נחשו את המילה לפי הרמז.</p></div><button onclick="state.wordQuest.showTutorial=false; render();" class="mt-8 bg-emerald-600 text-white px-8 py-4 rounded-full text-xl font-black w-full shadow-lg">בואו נתחיל!</button></div></div>`;
+        app.innerHTML = `<div class="text-center space-y-6 w-full max-w-md animate-fade-in mt-2"><div class="bg-white p-8 rounded-[2.5rem] border-4 border-emerald-400 shadow-xl welcome-card text-black"><h2 class="text-3xl font-black text-emerald-600 mb-6">איך משחקים? 🔐</h2><div class="space-y-4 text-right"><p class="text-lg font-bold">נחשו את המילה לפי הרמז.</p></div><button onclick="state.wordQuest.showTutorial=false; render();" class="mt-8 bg-emerald-600 text-white px-8 py-4 rounded-full text-xl font-black w-full shadow-lg">בואו נתחיל!</button></div></div>`;
         return;
     }
     const wordLen = w.target.length;
@@ -420,12 +414,12 @@ function renderWordQuest(app) {
         const g = w.guesses[i];
         for (let j = 0; j < wordLen; j++) {
             if (g) gridHtml += `<div class="word-cell ${getLetterStatus(g.text, j, w.target)}">${g.text[j]}</div>`;
-            else if (i === w.guesses.length && !w.isGameOver) gridHtml += `<div class="word-cell border-blue-400">${w.currentGuess[j] || ''}</div>`;
+            else if (i === w.guesses.length && !w.isGameOver) gridHtml += `<div class="word-cell border-blue-400 text-black">${w.currentGuess[j] || ''}</div>`;
             else gridHtml += `<div class="word-cell opacity-40"></div>`;
         }
     }
     gridHtml += `</div>`;
-    app.innerHTML = `<div class="flex flex-col items-center w-full px-2 mt-2 word-quest-container"><div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card" style="direction:rtl"><button onclick="state.screen='menu'; render()" class="text-red-500 font-black">יציאה</button><div class="flex flex-col items-end"><div class="font-black text-lg text-emerald-600 flex items-center gap-2">רמז: ${w.hint} <button onclick="speak('${w.target}')" class="text-2xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div></div></div>${gridHtml}<div class="w-full max-w-md mt-6">${renderQwerty()}</div></div>`;
+    app.innerHTML = `<div class="flex flex-col items-center w-full px-2 mt-2 word-quest-container"><div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card text-black" style="direction:rtl"><button onclick="state.screen='menu'; render()" class="text-red-500 font-black">יציאה</button><div class="flex flex-col items-end"><div class="font-black text-lg text-emerald-600 flex items-center gap-2">רמז: ${w.hint} <button onclick="speak('${w.target}')" class="text-2xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div></div></div>${gridHtml}<div class="w-full max-w-md mt-6">${renderQwerty()}</div></div>`;
 }
 
 function getLetterStatus(guess, idx, target) { if (guess[idx] === target[idx]) return 'correct'; if (target.includes(guess[idx])) return 'present'; return 'absent'; }
@@ -463,8 +457,8 @@ function submitGuess() {
 function renderWinScreen(app) {
     const win = state.winner;
     app.innerHTML = `
-        <div class="fixed inset-0 flex items-center justify-center bg-black z-[300] px-4">
-            <div class="text-center p-10 rounded-[3rem] max-w-sm w-full animate-fade-in win-card-base ${win.glowClass || ''}">
+        <div class="fixed inset-0 flex items-center justify-center bg-black/90 z-[300] px-4">
+            <div class="text-center p-10 rounded-[3rem] max-w-sm w-full animate-fade-in bg-white shadow-2xl ${win.glowClass || ''}">
                 <h2 class="text-4xl font-black mb-6 text-blue-600">${win.msg}</h2>
                 <p class="text-xl font-black mb-10 text-gray-700">${win.subMsg || ''}</p>
                 <div class="space-y-4">

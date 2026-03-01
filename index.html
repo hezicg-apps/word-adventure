@@ -8,18 +8,23 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="style.css">
     <style>
-        body { -webkit-tap-highlight-color: transparent; user-select: none; transition: background-color 0.5s; }
-        .night-mode { background-color: #1a202c !important; color: white; }
+        body { -webkit-tap-highlight-color: transparent; user-select: none; transition: all 0.5s ease; }
+        /* תיקון מצב לילה */
+        body.night-mode { background-color: #1a202c !important; color: white !important; }
+        body.night-mode .welcome-card, body.night-mode #list-header-container { background-color: #2d3748 !important; color: white !important; border-color: #4a5568 !important; }
+        body.night-mode textarea, body.night-mode input { background-color: #2d3748 !important; color: white !important; }
     </style>
 </head>
 <body class="bg-blue-50 min-h-screen flex flex-col font-sans">
 
-    <header class="w-full p-4 flex justify-between items-center max-w-4xl mx-auto">
-        <div id="header-logo-container" class="w-12 h-12 flex items-center justify-center"></div>
-        <div id="header-title-container" class="flex-grow text-center">
-            <h1 id="header-title" class="text-3xl font-black transition-all drop-shadow-md">Word Adventure</h1>
-        </div>
-        <button id="toggleNight" class="p-3 bg-white/80 backdrop-blur rounded-full shadow-lg text-2xl active:scale-90 transition-all">
+    <header class="w-full p-4 flex justify-between items-center max-w-4xl mx-auto z-50">
+        <div id="header-logo" class="w-12 h-12 flex items-center justify-center">
+            </div>
+        
+        <div id="header-title-area" class="flex-grow text-center">
+            </div>
+
+        <button id="toggleNight" class="p-3 bg-white/90 backdrop-blur rounded-full shadow-lg text-2xl active:scale-90 transition-all border border-blue-100">
             ☀️
         </button>
     </header>

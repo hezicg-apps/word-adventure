@@ -12,6 +12,29 @@ let state = {
     winner: null
 };
 
+// פונקציות עזר לשמירה ושיתוף
+function saveToLocal() { localStorage.setItem('wm_words', JSON.stringify(state.words)); localStorage.setItem('wm_input', state.inputText); }
+function loadFromLocal() {
+    const params = new URLSearchParams(window.location.search);
+    const sharedWords = params.get('w');
+    if (sharedWords) {
+        state.inputText = decodeURIComponent(sharedWords);
+        processInput(false); // טעינה מקישור ללא מעבר אוטומטי לכרטיסיות
+        return;
+    }
+    const savedWords = localStorage.getItem('wm_words');
+    const savedInput = localStorage.getItem('wm_input');
+    if (savedWords) { state.words = JSON.parse(savedWords); state.inputText = savedInput || ''; state.screen = 'menu'; state.masteryScore = 100; }
+}
+
+function shareList() {
+    const baseUrl = window.location.href.split('?')[0];
+    const shareUrl = `${baseUrl}?w=${encodeURIComponent(state.inputText)}`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        alert('הקישור הועתק! שלחו אותו לתלמידים בוואטסאפ או במייל.');
+    });
+}
+
 function triggerConfetti() { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); }
 function speak(text) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.8; window.speechSynthesis.speak(u); }
 function shuffle(a) { return [...a].sort(() => Math.random() - 0.5); }
@@ -19,11 +42,8 @@ function shuffle(a) { return [...a].sort(() => Math.random() - 0.5); }
 function render() {
     document.body.classList.toggle('night-mode', state.nightMode);
     document.getElementById('toggleNight').innerText = state.nightMode ? '🌙' : '☀️';
-    const app = document.getElementById('app');
-    app.innerHTML = '';
-    
+    const app = document.getElementById('app'); app.innerHTML = '';
     if (state.winner) { renderWinScreen(app); return; }
-    
     switch(state.screen) {
         case 'welcome': renderWelcome(app); break;
         case 'input': renderInput(app); break;
@@ -57,19 +77,20 @@ function renderInput(app) {
         <div class="text-center space-y-4 w-full px-2 mt-4 animate-fade-in">
             <p class="text-2xl font-black text-blue-600">הזינו מילים (מילה - תרגום)</p>
             <textarea id="wordInput" class="w-full h-64 p-6 rounded-[2rem] border-4 border-blue-200 outline-none text-right text-black bg-white shadow-inner text-xl font-bold focus:border-blue-400" placeholder="apple - תפוח">${state.inputText}</textarea>
-            <button onclick="processInput()" class="bg-blue-600 text-white px-8 py-5 rounded-full text-2xl font-black w-full shadow-lg active:scale-95 transition-transform">המשך לכרטיסיות 🌟</button>
+            <button onclick="processInput(true)" class="bg-blue-600 text-white px-8 py-5 rounded-full text-2xl font-black w-full shadow-lg active:scale-95 transition-transform">המשך לכרטיסיות 🌟</button>
         </div>`;
     const area = document.getElementById('wordInput'); area.oninput = (e) => state.inputText = e.target.value; area.focus();
 }
 
-function processInput() {
+function processInput(shouldNavigate = true) {
     const lines = state.inputText.split('\n').filter(l => l.includes('-'));
     state.words = lines.map(l => {
         const parts = l.split('-');
         return { eng: parts[0].trim(), heb: parts.slice(1).join('-').trim(), known: false, id: crypto.randomUUID() };
     });
     if (state.words.length < 2) return;
-    state.screen = 'flashcards'; render();
+    saveToLocal();
+    if (shouldNavigate) { state.screen = 'flashcards'; render(); }
 }
 
 function renderFlashcards(app) {
@@ -79,9 +100,8 @@ function renderFlashcards(app) {
     app.innerHTML = `
         <div class="text-center space-y-4 w-full max-sm px-2 mt-4 relative">
             <h2 class="text-2xl font-black">לימוד מילים (${state.words.filter(w=>w.known).length}/${state.words.length})</h2>
-            <div class="bg-blue-100 text-blue-700 py-2 px-6 rounded-full inline-flex items-center gap-2 font-black animate-pulse-soft border border-blue-200">
-                <span>לחצו על הכרטיסייה לסיבוב</span>
-                <span class="text-xl">🔄</span>
+            <div class="bg-blue-100 text-blue-700 py-2 px-6 rounded-full inline-flex items-center gap-2 font-black border border-blue-200">
+                <span>לחצו על הכרטיסייה לסיבוב</span><span class="text-xl">🔄</span>
             </div>
             <div onclick="this.classList.toggle('card-flipped')" class="relative w-full h-80 perspective-1000 cursor-pointer mt-2">
                 <div class="card-inner">
@@ -90,7 +110,7 @@ function renderFlashcards(app) {
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
-                 <button onclick="state.words.find(w=>w.id === '${cur.id}').known=true; render()" class="bg-green-500 text-white py-5 rounded-2xl font-black text-2xl shadow-md">יודע ✅</button>
+                 <button onclick="state.words.find(w=>w.id === '${cur.id}').known=true; saveToLocal(); render()" class="bg-green-500 text-white py-5 rounded-2xl font-black text-2xl shadow-md">יודע ✅</button>
                  <button onclick="state.words = shuffle(state.words); render()" class="bg-orange-500 text-white py-5 rounded-2xl font-black text-2xl shadow-md">עוד לא ⏳</button>
             </div>
         </div>`;
@@ -107,10 +127,7 @@ function renderQuiz(app) {
         <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4">
             <h2 class="text-xl font-black text-blue-600">מבחן: ${state.quizIndex + 1}/${state.words.length}</h2>
             <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl welcome-card relative">
-                <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4">
-                    ${cur.eng}
-                    <button onclick="speak('${cur.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button>
-                </div>
+                <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4">${cur.eng}<button onclick="speak('${cur.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div>
                 <div class="grid gap-4">
                     ${state.quizOptions.map((o, idx) => {
                         let statusClass = '';
@@ -138,20 +155,24 @@ function renderMenu(app) {
     const isLocked = state.masteryScore < 70;
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-md px-2 mt-6">
-            <div class="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-blue-100 welcome-card">
-                <h2 class="text-3xl font-black text-blue-600 mb-2">הציון שלך: ${state.masteryScore.toFixed(0)}%</h2>
-                <p class="font-black text-gray-500">${isLocked ? 'צריך 70% כדי לפתוח משחקים' : 'המשחקים פתוחים!'}</p>
-                <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="mt-4 bg-orange-500 text-white px-6 py-2 rounded-full font-black shadow-md hover:bg-orange-600 transition-colors">🔄 תרגול חוזר</button>
+            <div class="bg-white p-6 rounded-[2rem] shadow-xl border-4 border-blue-100 welcome-card">
+                <h2 class="text-2xl font-black text-blue-600 mb-2">אוצר המילים שלי</h2>
+                <div class="flex flex-wrap justify-center gap-2 mb-4">
+                    <button onclick="shareList()" class="bg-blue-100 text-blue-700 px-4 py-2 rounded-full font-black text-sm flex items-center gap-2">🔗 שתף רשימה</button>
+                    <button onclick="resetAllData()" class="bg-red-100 text-red-600 px-4 py-2 rounded-full font-black text-sm flex items-center gap-2">🗑️ ניקוי רשימה</button>
+                </div>
+                <p class="font-black text-gray-500 text-sm">${isLocked ? 'צריך 70% במבחן כדי לפתוח משחקים' : 'המשחקים פתוחים!'}</p>
+                <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="mt-4 bg-orange-500 text-white px-6 py-2 rounded-full font-black shadow-md">🔄 תרגול/מבחן חוזר</button>
             </div>
             <div class="grid gap-4">
                 <button onclick="${isLocked?'':'startMemory()'}" class="p-6 bg-purple-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">משחק זיכרון 🧠</button>
                 <button onclick="${isLocked?'':'state.screen=\'c4_menu\'; render()'}" class="p-6 bg-blue-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">4 בשורה 🔴🟡</button>
                 <button onclick="${isLocked?'':'startWordQuest()'}" class="p-6 bg-emerald-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">הקוד הסודי 🔐</button>
             </div>
-            <button onclick="resetAllData()" class="text-red-500 font-black underline mt-6">הזנת רשימה חדשה</button>
         </div>`;
 }
 
+// שאר פונקציות המשחקים נשארות זהות
 function startMemory() {
     state.screen = 'memory'; state.winner = null;
     const pairsCount = Math.min(state.words.length, 8);
@@ -212,8 +233,7 @@ function renderC4Menu(app) {
                         </div>
                     </button>
                     <button onclick="startC4(false)" class="p-6 bg-orange-600 text-white rounded-2xl text-xl font-black shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-4 text-right">
-                        <span class="text-3xl">🤖</span> 
-                        <span>נגד המחשב</span>
+                        <span class="text-3xl">🤖</span> <span>נגד המחשב</span>
                     </button>
                 </div>
                 <button onclick="state.screen='menu'; render()" class="mt-8 text-gray-500 font-bold underline hover:text-blue-600 transition-colors">חזרה לתפריט הראשי</button>
@@ -239,45 +259,30 @@ function renderConnect4(app) {
         <div class="flex flex-col items-center w-full px-2 mt-4">
             <div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card">
                 <button onclick="state.screen='menu'; render()" class="text-red-500 font-black">יציאה</button>
-                <div class="font-black text-lg">תור: ${c.turn===1?'אדום 🔴':'צהוב 🟡'} ${c.isAiTurn ? '(חושב...)' : ''}</div>
+                <div class="font-black text-lg">תור: ${c.turn===1?'אדום 🔴':'צהוב 🟡'}</div>
             </div>
             <div class="h-16 mb-2">
-                ${c.showQuestionPrompt && !c.isAiTurn ? `<button onclick="state.connect4.showQuestionPrompt=false;state.connect4.isAnswering=true;render();" class="bg-blue-600 text-white px-8 py-3 rounded-full text-xl font-black shadow-lg">שאלה לאסימון</button>` : `<div class="text-blue-600 font-black text-2xl animate-pulse">${c.isAiTurn ? 'המחשב חושב...' : 'בחר עמודה 👇'}</div>`}
+                ${c.showQuestionPrompt && !c.isAiTurn ? `<button onclick="state.connect4.showQuestionPrompt=false;state.connect4.isAnswering=true;render();" class="bg-blue-600 text-white px-8 py-3 rounded-full text-xl font-black shadow-lg">שאלה לאסימון</button>` : `<div class="text-blue-600 font-black text-2xl animate-pulse">בחר עמודה 👇</div>`}
             </div>
             <div class="c4-container">
-                <div class="arrows-row">${[0,1,2,3,4,5,6].map(i => `<button onclick="dropC4(${i})" class="flex flex-col items-center ${!c.canDrop || c.board[0][i] || c.isAiTurn ? 'opacity-20 pointer-events-none' : 'text-white'}"><span class="text-lg font-black">${i+1}</span><div class="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-white mt-1"></div></button>`).join('')}</div>
+                <div class="arrows-row">${[0,1,2,3,4,5,6].map(i => `<button onclick="dropC4(${i})" class="flex flex-col items-center ${!c.canDrop || c.board[0][i] ? 'opacity-20 pointer-events-none' : 'text-white'}"><span class="text-lg font-black">${i+1}</span><div class="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-white mt-1"></div></button>`).join('')}</div>
                 <div class="c4-board">${c.board.map((row, r) => row.map((cell, col) => `<div class="c4-slot">${cell ? `<div class="token-fixed ${cell===1?'token-red':'token-yellow'}"></div>` : ''}${c.fallingToken && c.fallingToken.row === r && c.fallingToken.col === col ? `<div class="token-fixed ${c.fallingToken.color === 1 ? 'token-red' : 'token-yellow'}"></div>` : ''}</div>`).join('')).join('')}</div>
             </div>
             ${c.isAnswering ? `<div class="fixed inset-0 bg-black/80 flex items-center justify-center z-[200] px-4"><div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center welcome-card"><h3 class="text-4xl font-black mb-8 text-blue-600 eng-text flex items-center justify-center gap-4">${c.q.prompt}<button onclick="speak('${c.q.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button></h3><div class="grid gap-4">${c.q.opts.map((o, idx) => {
-                let sClass = '';
-                if (c.feedback.status) {
-                    if (o === c.q.correct) sClass = 'correct-ans';
-                    else if (idx === c.feedback.selectedIdx && c.feedback.status === 'wrong') sClass = 'wrong-ans';
-                }
+                let sClass = ''; if (c.feedback.status) { if (o === c.q.correct) sClass = 'correct-ans'; else if (idx === c.feedback.selectedIdx && c.feedback.status === 'wrong') sClass = 'wrong-ans'; }
                 return `<button onclick="ansC4('${o}', ${idx})" class="p-4 border-2 rounded-xl font-black text-black text-2xl hover:bg-blue-50 transition-all ${sClass}">${o}</button>`;
             }).join('')}</div></div></div>` : ''}
         </div>`;
 }
 
 function ansC4(o, idx) { 
-    const c = state.connect4; 
-    if (c.feedback.status) return; 
+    const c = state.connect4; if (c.feedback.status) return; 
     const isCorrect = o === c.q.correct;
-    c.feedback = { status: isCorrect ? 'correct' : 'wrong', selectedIdx: idx };
-    render();
-
+    c.feedback = { status: isCorrect ? 'correct' : 'wrong', selectedIdx: idx }; render();
     setTimeout(() => {
         c.feedback = { status: null, selectedIdx: -1 };
-        if (isCorrect) { 
-            c.canDrop = true; 
-            c.isAnswering = false; 
-        } else { 
-            c.turn = c.turn === 1 ? 2 : 1; 
-            c.showQuestionPrompt = true; 
-            c.isAnswering = false; 
-            c.q = genC4Q(); 
-            if(!c.isPvP && c.turn===2) runAiTurn();
-        }
+        if (isCorrect) { c.canDrop = true; c.isAnswering = false; } 
+        else { c.turn = c.turn === 1 ? 2 : 1; c.showQuestionPrompt = true; c.isAnswering = false; c.q = genC4Q(); if(!c.isPvP && c.turn===2) runAiTurn(); }
         render();
     }, 800);
 }
@@ -300,8 +305,7 @@ function dropC4(col) {
 function runAiTurn() {
     state.connect4.isAiTurn = true;
     setTimeout(() => {
-        const board = state.connect4.board;
-        let col = -1;
+        const board = state.connect4.board; let col = -1;
         for (let c=0; c<7; c++) { if (canWinAt(board, c, 2)) { col = c; break; } }
         if (col === -1) { for (let c=0; c<7; c++) { if (canWinAt(board, c, 1)) { col = c; break; } } }
         if (col === -1) { const valid = [0,1,2,3,4,5,6].filter(c => !board[0][c]); col = valid[Math.floor(Math.random()*valid.length)]; }
@@ -352,11 +356,7 @@ function renderWordQuest(app) {
     app.innerHTML = `<div class="flex flex-col items-center w-full px-2 mt-2 word-quest-container"><div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card" style="direction:rtl"><button onclick="state.screen='menu'; render()" class="text-red-500 font-black">יציאה</button><div class="flex flex-col items-end"><div class="font-black text-lg text-emerald-600 flex items-center gap-2">רמז: ${w.hint} <button onclick="speak('${w.target}')" class="text-2xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div><div class="text-xs font-bold text-gray-400">${w.roundIndex+1}/${w.pool.length} | ניסיון ${w.guesses.length+1}/${w.maxAttempts}</div></div></div>${gridHtml}<div class="w-full max-w-md mt-6">${renderQwerty()}</div></div>`;
 }
 
-function getLetterStatus(guess, idx, target) {
-    if (guess[idx] === target[idx]) return 'correct';
-    if (target.includes(guess[idx])) return 'present';
-    return 'absent';
-}
+function getLetterStatus(guess, idx, target) { if (guess[idx] === target[idx]) return 'correct'; if (target.includes(guess[idx])) return 'present'; return 'absent'; }
 
 function renderQwerty() {
     const rows = [['q','w','e','r','t','y','u','i','o','p'], ['a','s','d','f','g','h','j','k','l', '⌫'], ['z','x','c','v','b','n','m', 'ENTER']];
@@ -373,9 +373,7 @@ function handleKey(k) {
 
 function submitGuess() {
     const w = state.wordQuest; const g = w.currentGuess; w.guesses.push({ text: g });
-    for (let i = 0; i < g.length; i++) {
-        const s = getLetterStatus(g, i, w.target); if (w.keyStates[g[i]] !== 'correct') w.keyStates[g[i]] = s;
-    }
+    for (let i = 0; i < g.length; i++) { const s = getLetterStatus(g, i, w.target); if (w.keyStates[g[i]] !== 'correct') w.keyStates[g[i]] = s; }
     if (g === w.target) {
         w.isGameOver = true; w.completedCount++; triggerConfetti();
         setTimeout(() => { 
@@ -405,11 +403,21 @@ function renderWinScreen(app) {
         </div>`;
 }
 
-function resetAllData() { state.inputText = ''; state.words = []; state.masteryScore = 0; state.screen = 'input'; render(); }
+function resetAllData() { 
+    if(confirm('האם אתם בטוחים שברצונכם למחוק את הרשימה הנוכחית?')) {
+        localStorage.clear(); 
+        state.inputText = ''; state.words = []; state.masteryScore = 0; state.screen = 'input'; 
+        window.history.replaceState({}, '', window.location.pathname); // ניקוי ה-URL
+        render(); 
+    }
+}
+
 document.getElementById('toggleNight').onclick = () => { state.nightMode = !state.nightMode; render(); };
 window.addEventListener('keydown', (e) => {
     if (state.screen === 'wordquest' && !state.wordQuest.showTutorial) {
         if (e.key === 'Enter') handleKey('ENTER'); else if (e.key === 'Backspace') handleKey('⌫'); else if (/^[a-z]$/i.test(e.key)) handleKey(e.key.toLowerCase());
     }
 });
+
+loadFromLocal();
 render();

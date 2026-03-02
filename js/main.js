@@ -144,10 +144,14 @@ function renderFlashcards(app) {
     const unknown = state.words.filter(w => !w.known);
     if (unknown.length === 0) { state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render(); return; }
     const cur = unknown[0];
+    
+    // בועת הנחיה צבעונית במצב יום
+    const tutorialColor = state.nightMode ? 'bg-white text-black' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+
     app.innerHTML = `
         <div class="text-center space-y-4 w-full max-sm px-2 mt-4 relative">
             ${renderHeader(`לימוד מילים (${state.words.filter(w=>w.known).length}/${state.words.length})`)}
-            <div class="bg-white text-black py-2 px-6 rounded-full inline-flex items-center gap-2 font-black border border-blue-200 mb-2 shadow-sm">
+            <div class="${tutorialColor} py-2 px-6 rounded-full inline-flex items-center gap-2 font-black border mb-2 shadow-sm transition-colors">
                 <span>לחצו על הכרטיסייה לסיבוב</span>
                 <span class="text-xl">🔄</span>
             </div>
@@ -204,6 +208,11 @@ function handleQuizAns(selected, correct, idx) {
 
 function renderMenu(app) {
     const isLocked = state.masteryScore < 70;
+    // צבע כפתור השיתוף במצב יום
+    const shareBtnStyle = state.nightMode 
+        ? 'bg-white text-black border-gray-200' 
+        : 'bg-blue-50 text-blue-700 border-blue-200';
+
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-md px-2 mt-6">
             <div class="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-blue-100 welcome-card">
@@ -211,7 +220,7 @@ function renderMenu(app) {
                 <p class="text-xl font-bold text-gray-700 mb-4">הציון הנוכחי: ${state.masteryScore.toFixed(0)}%</p>
                 <div class="flex gap-2 justify-center">
                     <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="bg-orange-600 text-white px-6 py-2 rounded-full font-black shadow-md">🔄 תרגול חוזר</button>
-                    <button onclick="shareList()" class="bg-white text-black border border-gray-200 px-6 py-2 rounded-full font-black shadow-sm">🔗 שתפו רשימה</button>
+                    <button onclick="shareList()" class="${shareBtnStyle} border px-6 py-2 rounded-full font-black shadow-sm transition-colors flex items-center gap-2">🔗 שתפו רשימה</button>
                 </div>
             </div>
             <div class="grid gap-4">

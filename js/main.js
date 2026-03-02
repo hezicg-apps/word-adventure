@@ -1,6 +1,12 @@
 let state = {
-    screen: 'welcome', inputText: '', words: [],
-    nightMode: false, masteryScore: 0, quizIndex: 0, correctAnswers: 0,
+    screen: 'welcome', 
+    inputText: '', 
+    words: [],
+    listName: 'אוצר המילים שלי',
+    nightMode: false, 
+    masteryScore: 0, 
+    quizIndex: 0, 
+    correctAnswers: 0,
     quizFeedback: { index: -1, status: null, correctIndex: -1 },
     memoryGame: { cards: [], flipped: [], pairs: 0, steps: 0, isProcessing: false },
     connect4: { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: null, canDrop: false, isAnswering: false, showQuestionPrompt: true, fallingToken: null, isAiTurn: false, isPvP: true, feedback: { status: null, selectedIdx: -1 } },
@@ -12,10 +18,67 @@ let state = {
     winner: null
 };
 
+// --- עזרים ---
 function triggerConfetti() { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); }
 function speak(text) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.8; window.speechSynthesis.speak(u); }
 function shuffle(a) { return [...a].sort(() => Math.random() - 0.5); }
 
+// --- ניהול נתונים (זיכרון ושיתוף) ---
+function saveToLocal() {
+    localStorage.setItem('wm_words', JSON.stringify(state.words));
+    localStorage.setItem('wm_input', state.inputText);
+    localStorage.setItem('wm_mastery', state.masteryScore);
+    localStorage.setItem('wm_listName', state.listName);
+}
+
+function loadFromLocal() {
+    const params = new URLSearchParams(window.location.search);
+    const sharedData = params.get('w');
+    
+    if (sharedData) {
+        try {
+            const decoded = decodeURIComponent(escape(atob(sharedData)));
+            state.inputText = decoded;
+            processInput(false); 
+            state.screen = 'welcome';
+            window.history.replaceState({}, document.title, window.location.pathname);
+            return;
+        } catch(e) { console.error("Error decoding share link"); }
+    }
+
+    const savedWords = localStorage.getItem('wm_words');
+    if (savedWords) {
+        state.words = JSON.parse(savedWords);
+        state.inputText = localStorage.getItem('wm_input') || '';
+        state.masteryScore = parseFloat(localStorage.getItem('wm_mastery')) || 0;
+        state.listName = localStorage.getItem('wm_listName') || 'אוצר המילים שלי';
+        state.screen = 'menu';
+    }
+}
+
+function shareList() {
+    if (!state.inputText) return;
+    try {
+        const encodedData = btoa(unescape(encodeURIComponent(state.inputText)));
+        const shareUrl = `${window.location.origin}${window.location.pathname}?w=${encodedData}`;
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            alert("הקישור הועתק! עכשיו אפשר לשלוח אותו בוואטסאפ. 🚀");
+        });
+    } catch(e) { alert("שגיאה ביצירת הקישור."); }
+}
+
+function resetAllData() { 
+    if(confirm("בטוח שרוצים למחוק הכל ולהזין רשימה חדשה?")) {
+        localStorage.clear();
+        state.inputText = ''; 
+        state.words = []; 
+        state.masteryScore = 0; 
+        state.screen = 'input'; 
+        render(); 
+    }
+}
+
+// --- ליבת המערכת ---
 function render() {
     document.body.classList.toggle('night-mode', state.nightMode);
     document.getElementById('toggleNight').innerText = state.nightMode ? '🌙' : '☀️';
@@ -56,20 +119,27 @@ function renderInput(app) {
     app.innerHTML = `
         <div class="text-center space-y-4 w-full px-2 mt-4 animate-fade-in">
             <p class="text-2xl font-black text-blue-600">הזינו מילים (מילה - תרגום)</p>
-            <textarea id="wordInput" class="w-full h-64 p-6 rounded-[2rem] border-4 border-blue-200 outline-none text-right text-black bg-white shadow-inner text-xl font-bold focus:border-blue-400" placeholder="apple - תפוח">${state.inputText}</textarea>
-            <button onclick="processInput()" class="bg-blue-600 text-white px-8 py-5 rounded-full text-2xl font-black w-full shadow-lg active:scale-95 transition-transform">המשך לכרטיסיות 🌟</button>
+            <textarea id="wordInput" class="w-full h-64 p-6 rounded-[2rem] border-4 border-blue-200 outline-none text-right text-black bg-white shadow-inner text-xl font-bold focus:border-blue-400" placeholder="כותרת הרשימה\napple - תפוח\nbanana - בננה">${state.inputText}</textarea>
+            <button onclick="processInput(true)" class="bg-blue-600 text-white px-8 py-5 rounded-full text-2xl font-black w-full shadow-lg active:scale-95 transition-transform">המשך לכרטיסיות 🌟</button>
         </div>`;
     const area = document.getElementById('wordInput'); area.oninput = (e) => state.inputText = e.target.value; area.focus();
 }
 
-function processInput() {
+function processInput(shouldRender = true) {
     const lines = state.inputText.split('\n').filter(l => l.includes('-'));
+    if (lines.length === 0) return;
+
+    const firstLine = state.inputText.split('\n')[0];
+    state.listName = firstLine.includes('-') ? 'אוצר המילים שלי' : firstLine;
+
     state.words = lines.map(l => {
         const parts = l.split('-');
         return { eng: parts[0].trim(), heb: parts.slice(1).join('-').trim(), known: false, id: crypto.randomUUID() };
     });
+
     if (state.words.length < 2) return;
-    state.screen = 'flashcards'; render();
+    saveToLocal();
+    if (shouldRender) { state.screen = 'flashcards'; render(); }
 }
 
 function renderFlashcards(app) {
@@ -99,6 +169,7 @@ function renderFlashcards(app) {
 function renderQuiz(app) {
     if (state.quizIndex >= state.words.length) {
         state.masteryScore = (state.correctAnswers / state.words.length) * 100;
+        saveToLocal();
         triggerConfetti(); state.screen = 'menu'; render(); return;
     }
     const cur = state.words[state.quizIndex];
@@ -139,9 +210,13 @@ function renderMenu(app) {
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-md px-2 mt-6">
             <div class="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-blue-100 welcome-card">
-                <h2 class="text-3xl font-black text-blue-600 mb-2">הציון שלך: ${state.masteryScore.toFixed(0)}%</h2>
-                <p class="font-black text-gray-500">${isLocked ? 'צריך 70% כדי לפתוח משחקים' : 'המשחקים פתוחים!'}</p>
-                <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="mt-4 bg-orange-500 text-white px-6 py-2 rounded-full font-black shadow-md hover:bg-orange-600 transition-colors">🔄 תרגול חוזר</button>
+                <h2 class="text-3xl font-black text-blue-600 mb-2">${state.listName}</h2>
+                <p class="text-xl font-bold text-gray-700 mb-2">ציון: ${state.masteryScore.toFixed(0)}%</p>
+                <p class="font-black text-gray-500 mb-4">${isLocked ? 'צריך 70% כדי לפתוח משחקים' : 'המשחקים פתוחים!'}</p>
+                <div class="flex gap-2 justify-center">
+                    <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="bg-orange-500 text-white px-6 py-2 rounded-full font-black shadow-md hover:bg-orange-600">🔄 תרגול חוזר</button>
+                    <button onclick="shareList()" class="bg-blue-100 text-blue-600 px-6 py-2 rounded-full font-black shadow-sm hover:bg-blue-200">🔗 שתף רשימה</button>
+                </div>
             </div>
             <div class="grid gap-4">
                 <button onclick="${isLocked?'':'startMemory()'}" class="p-6 bg-purple-500 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">משחק זיכרון 🧠</button>
@@ -152,6 +227,7 @@ function renderMenu(app) {
         </div>`;
 }
 
+// --- משחק זיכרון ---
 function startMemory() {
     state.screen = 'memory'; state.winner = null;
     const pairsCount = Math.min(state.words.length, 8);
@@ -198,25 +274,26 @@ function flipM(id) {
     }
 }
 
+// --- 4 בשורה ---
 function renderC4Menu(app) {
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-sm px-2 mt-8 animate-fade-in">
             <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl welcome-card">
                 <h2 class="text-3xl font-black text-blue-600 mb-6">4 בשורה 🔴🟡</h2>
                 <div class="grid gap-4">
-                    <button onclick="startC4(true)" class="p-6 bg-blue-700 text-white rounded-2xl shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-4">
-                        <span class="text-4xl filter drop-shadow-sm" style="background: linear-gradient(to bottom, #fef08a, #fb923c); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">👥</span>
+                    <button onclick="startC4(true)" class="p-6 bg-blue-700 text-white rounded-2xl shadow-lg flex items-center justify-center gap-4">
+                        <span class="text-4xl">👥</span>
                         <div class="flex flex-col items-start leading-tight">
                             <span class="text-xl font-black">משחק זוגי</span>
                             <span class="text-sm font-bold opacity-90">(אותו מכשיר)</span>
                         </div>
                     </button>
-                    <button onclick="startC4(false)" class="p-6 bg-orange-600 text-white rounded-2xl text-xl font-black shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-4 text-right">
+                    <button onclick="startC4(false)" class="p-6 bg-orange-600 text-white rounded-2xl text-xl font-black shadow-lg flex items-center justify-center gap-4">
                         <span class="text-3xl">🤖</span> 
                         <span>נגד המחשב</span>
                     </button>
                 </div>
-                <button onclick="state.screen='menu'; render()" class="mt-8 text-gray-500 font-bold underline hover:text-blue-600 transition-colors">חזרה לתפריט הראשי</button>
+                <button onclick="state.screen='menu'; render()" class="mt-8 text-gray-500 font-bold underline">חזרה לתפריט</button>
             </div>
         </div>`;
 }
@@ -239,7 +316,7 @@ function renderConnect4(app) {
         <div class="flex flex-col items-center w-full px-2 mt-4">
             <div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card">
                 <button onclick="state.screen='menu'; render()" class="text-red-500 font-black">יציאה</button>
-                <div class="font-black text-lg">תור: ${c.turn===1?'אדום 🔴':'צהוב 🟡'} ${c.isAiTurn ? '(חושב...)' : ''}</div>
+                <div class="font-black text-lg">תור: ${c.turn===1?'אדום 🔴':'צהוב 🟡'}</div>
             </div>
             <div class="h-16 mb-2">
                 ${c.showQuestionPrompt && !c.isAiTurn ? `<button onclick="state.connect4.showQuestionPrompt=false;state.connect4.isAnswering=true;render();" class="bg-blue-600 text-white px-8 py-3 rounded-full text-xl font-black shadow-lg">שאלה לאסימון</button>` : `<div class="text-blue-600 font-black text-2xl animate-pulse">${c.isAiTurn ? 'המחשב חושב...' : 'בחר עמודה 👇'}</div>`}
@@ -325,6 +402,7 @@ function checkWin(b) {
     } return false;
 }
 
+// --- הקוד הסודי (WordQuest) ---
 function startWordQuest() {
     const pool = shuffle(state.words.filter(w => w.eng.length >= 2 && !w.eng.includes(' ')));
     state.screen = 'wordquest'; state.winner = null;
@@ -390,6 +468,7 @@ function submitGuess() {
     w.currentGuess = ''; render();
 }
 
+// --- מסכי סיום ---
 function renderWinScreen(app) {
     const win = state.winner;
     app.innerHTML = `
@@ -405,11 +484,13 @@ function renderWinScreen(app) {
         </div>`;
 }
 
-function resetAllData() { state.inputText = ''; state.words = []; state.masteryScore = 0; state.screen = 'input'; render(); }
+// --- אתחול והאזנה ---
 document.getElementById('toggleNight').onclick = () => { state.nightMode = !state.nightMode; render(); };
 window.addEventListener('keydown', (e) => {
     if (state.screen === 'wordquest' && !state.wordQuest.showTutorial) {
         if (e.key === 'Enter') handleKey('ENTER'); else if (e.key === 'Backspace') handleKey('⌫'); else if (/^[a-z]$/i.test(e.key)) handleKey(e.key.toLowerCase());
     }
 });
+
+loadFromLocal();
 render();

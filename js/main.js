@@ -102,17 +102,37 @@ function renderHeader(subtext) {
 }
 
 function renderWelcome(app) {
+    const isDark = state.nightMode;
+    // הגדרות עיצוב מותאמות למצב לילה/יום
+    const cardClass = isDark ? 'bg-transparent border-gray-700 shadow-none' : 'bg-white border-blue-400 shadow-xl';
+    const titleColor = isDark ? 'text-yellow-500' : 'text-blue-600';
+    const stepBoxBase = isDark ? 'bg-transparent border-gray-700' : 'p-4 rounded-2xl border-r-8 shadow-sm';
+    const stepTextColor = isDark ? 'text-yellow-500' : '';
+
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-md animate-fade-in mt-6">
-            <div class="bg-white p-6 rounded-[2.5rem] border-4 border-blue-400 shadow-xl welcome-card">
-                <p class="text-4xl font-black text-blue-600 mb-6 border-b-2 pb-4">ברוכים הבאים! 👋</p>
+            <div class="${cardClass} p-6 rounded-[2.5rem] border-4 welcome-card">
+                <p class="text-4xl font-black ${titleColor} mb-6 border-b-2 pb-4">ברוכים הבאים! 👋</p>
                 <div class="space-y-4 text-right font-bold">
-                    <div class="bg-blue-50 p-4 rounded-2xl border-r-8 border-blue-500"><p class="text-xl font-black text-blue-900 mb-1">📝 שלב 1: הזנה</p><p class="text-lg">מדביקים רשימת מילים.</p></div>
-                    <div class="bg-green-50 p-4 rounded-2xl border-r-8 border-green-500"><p class="text-xl font-black text-green-900 mb-1">🎴 שלב 2: תרגול</p><p class="text-lg">לומדים ובודקים ידע.</p></div>
-                    <div class="bg-purple-50 p-4 rounded-2xl border-r-8 border-purple-500"><p class="text-xl font-black text-purple-900 mb-1">🎮 שלב 3: משחקים</p><p class="text-lg">משחקים באנגלית!</p></div>
+                    
+                    <div class="${stepBoxBase} ${isDark ? '' : 'bg-blue-50 border-blue-500'}">
+                        <p class="text-xl font-black ${isDark ? 'text-yellow-500' : 'text-blue-900'} mb-1">📝 שלב 1: הזנה</p>
+                        <p class="text-lg ${isDark ? 'text-yellow-400/90' : 'text-gray-800'}">מדביקים רשימת מילים.</p>
+                    </div>
+
+                    <div class="${stepBoxBase} ${isDark ? '' : 'bg-green-50 border-green-500'}">
+                        <p class="text-xl font-black ${isDark ? 'text-yellow-500' : 'text-green-900'} mb-1">🎴 שלב 2: תרגול</p>
+                        <p class="text-lg ${isDark ? 'text-yellow-400/90' : 'text-gray-800'}">לומדים ובודקים ידע.</p>
+                    </div>
+
+                    <div class="${stepBoxBase} ${isDark ? '' : 'bg-purple-50 border-purple-500'}">
+                        <p class="text-xl font-black ${isDark ? 'text-yellow-500' : 'text-purple-900'} mb-1">🎮 שלב 3: משחקים</p>
+                        <p class="text-lg ${isDark ? 'text-yellow-400/90' : 'text-gray-800'}">משחקים באנגלית!</p>
+                    </div>
+
                 </div>
             </div>
-            <button onclick="state.screen='input'; render()" class="bg-blue-600 text-white px-8 py-5 rounded-full text-2xl font-black w-full shadow-lg active:scale-95 transition-transform">בואו נתחיל! 🚀</button>
+            <button onclick="state.screen='input'; render()" class="bg-blue-600 text-white px-8 py-5 rounded-full text-2xl font-black w-full shadow-lg active:scale-95 transition-transform">בואו נתחיל!</button>
         </div>`;
 }
 
@@ -371,12 +391,12 @@ function renderWordQuest(app) {
     }
 
     const wordLen = w.target.length;
-    // התאמה למילים קצרות: ריבועים גדולים יותר ($62px$ במקום $55px$)
+    // התאמה למילים קצרות: ריבועים גדולים יותר (62px במקום 55px)
     const baseBoxSize = wordLen <= 5 ? 62 : Math.min(Math.floor((window.innerWidth * 0.9) / wordLen), 55);
     const gapSize = wordLen > 10 ? 2 : 5;
     
     let fontSizeClass = 'text-2xl';
-    // הגדלת הפונט למילים קצרות ($text-3xl$)
+    // הגדלת הפונט למילים קצרות (text-3xl)
     if (wordLen <= 5) fontSizeClass = 'text-3xl';
     else if (baseBoxSize < 30) fontSizeClass = 'text-[10px]';
     else if (baseBoxSize < 40) fontSizeClass = 'text-sm';

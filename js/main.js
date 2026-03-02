@@ -144,8 +144,6 @@ function renderFlashcards(app) {
     const unknown = state.words.filter(w => !w.known);
     if (unknown.length === 0) { state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render(); return; }
     const cur = unknown[0];
-    
-    // בועת הנחיה צבעונית במצב יום
     const tutorialColor = state.nightMode ? 'bg-white text-black' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
 
     app.innerHTML = `
@@ -208,10 +206,7 @@ function handleQuizAns(selected, correct, idx) {
 
 function renderMenu(app) {
     const isLocked = state.masteryScore < 70;
-    // צבע כפתור השיתוף במצב יום
-    const shareBtnStyle = state.nightMode 
-        ? 'bg-white text-black border-gray-200' 
-        : 'bg-blue-50 text-blue-700 border-blue-200';
+    const shareBtnStyle = state.nightMode ? 'bg-white text-black border-gray-200' : 'bg-blue-50 text-blue-700 border-blue-200';
 
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-md px-2 mt-6">
@@ -376,21 +371,23 @@ function renderWordQuest(app) {
     }
 
     const wordLen = w.target.length;
-    const containerWidth = Math.min(window.innerWidth * 0.9, 450);
-    const gapSize = wordLen > 10 ? 2 : wordLen > 7 ? 3 : 5;
-    const calcCellSize = Math.floor((containerWidth - ((wordLen - 1) * gapSize)) / wordLen);
-    const finalSize = Math.min(calcCellSize, 55); 
+    // התאמה למילים קצרות: ריבועים גדולים יותר ($62px$ במקום $55px$)
+    const baseBoxSize = wordLen <= 5 ? 62 : Math.min(Math.floor((window.innerWidth * 0.9) / wordLen), 55);
+    const gapSize = wordLen > 10 ? 2 : 5;
     
     let fontSizeClass = 'text-2xl';
-    if (finalSize < 30) fontSizeClass = 'text-[10px]';
-    else if (finalSize < 40) fontSizeClass = 'text-sm';
-    else if (finalSize < 50) fontSizeClass = 'text-lg';
+    // הגדלת הפונט למילים קצרות ($text-3xl$)
+    if (wordLen <= 5) fontSizeClass = 'text-3xl';
+    else if (baseBoxSize < 30) fontSizeClass = 'text-[10px]';
+    else if (baseBoxSize < 40) fontSizeClass = 'text-sm';
+    else if (baseBoxSize < 50) fontSizeClass = 'text-lg';
 
-    let gridHtml = `<div class="word-grid" style="grid-template-columns: repeat(${wordLen}, 1fr); width: ${containerWidth}px; gap: ${gapSize}px; margin: 0 auto; display: grid;">`;
+    // שימוש ב-fit-content למניעת מריחת רווחים
+    let gridHtml = `<div class="word-grid" style="grid-template-columns: repeat(${wordLen}, 1fr); width: fit-content; max-width: 100%; gap: ${gapSize}px; margin: 0 auto; display: grid;">`;
     for (let i = 0; i < w.maxAttempts; i++) {
         const g = w.guesses[i];
         for (let j = 0; j < wordLen; j++) {
-            const commonStyle = `width: ${finalSize}px; height: ${finalSize}px; min-width: 0; display: flex; align-items: center; justify-content: center; padding: 0;`;
+            const commonStyle = `width: ${baseBoxSize}px; height: ${baseBoxSize}px; display: flex; align-items: center; justify-content: center;`;
             if (g) gridHtml += `<div class="word-cell ${getLetterStatus(g.text, j, w.target)} ${fontSizeClass}" style="${commonStyle}">${g.text[j]}</div>`;
             else if (i === w.guesses.length && !w.isGameOver) gridHtml += `<div class="word-cell border-blue-400 text-gray-800 ${fontSizeClass}" style="${commonStyle}">${w.currentGuess[j] || ''}</div>`;
             else gridHtml += `<div class="word-cell opacity-40" style="${commonStyle}"></div>`;
@@ -398,7 +395,7 @@ function renderWordQuest(app) {
     }
     gridHtml += `</div>`;
 
-    app.innerHTML = `<div class="flex flex-col items-center w-full px-2 mt-2 word-quest-container"><div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card" style="direction:rtl"><button onclick="state.screen='menu'; render()" class="text-red-600 font-black">יציאה</button><div class="flex flex-col items-end"><div class="font-black text-lg text-emerald-700 flex items-center gap-2">רמז: ${w.hint} <button onclick="speak('${w.target}')" class="text-2xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div><div class="text-xs font-bold text-gray-500">${w.roundIndex+1}/${w.pool.length} | ניסיון ${w.guesses.length+1}/${w.maxAttempts}</div></div></div><div style="width: 100%; overflow-x: hidden; display: flex; justify-content: center;">${gridHtml}</div><div class="w-full max-w-md mt-6">${renderQwerty()}</div></div>`;
+    app.innerHTML = `<div class="flex flex-col items-center w-full px-2 mt-2 word-quest-container"><div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card" style="direction:rtl"><button onclick="state.screen='menu'; render()" class="text-red-600 font-black">יציאה</button><div class="flex flex-col items-end"><div class="font-black text-lg text-emerald-700 flex items-center gap-2">רמז: ${w.hint} <button onclick="speak('${w.target}')" class="text-2xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div><div class="text-xs font-bold text-gray-500">${w.roundIndex+1}/${w.pool.length} | ניסיון ${w.guesses.length+1}/${w.maxAttempts}</div></div></div><div style="width: 100%; display: flex; justify-content: center;">${gridHtml}</div><div class="w-full max-w-md mt-6">${renderQwerty()}</div></div>`;
 }
 
 function getLetterStatus(guess, idx, target) { if (guess[idx] === target[idx]) return 'correct'; if (target.includes(guess[idx])) return 'present'; return 'absent'; }

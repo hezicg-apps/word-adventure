@@ -23,7 +23,7 @@ function triggerConfetti() { confetti({ particleCount: 150, spread: 70, origin: 
 function speak(text) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.8; window.speechSynthesis.speak(u); }
 function shuffle(a) { return [...a].sort(() => Math.random() - 0.5); }
 
-// --- ניהול נתונים (זיכרון ושיתוף) ---
+// --- ניהול נתונים ---
 function saveToLocal() {
     localStorage.setItem('wm_words', JSON.stringify(state.words));
     localStorage.setItem('wm_input', state.inputText);
@@ -60,7 +60,7 @@ function shareList() {
         const encodedData = btoa(unescape(encodeURIComponent(state.inputText)));
         const shareUrl = `${window.location.origin}${window.location.pathname}?w=${encodedData}`;
         navigator.clipboard.writeText(shareUrl).then(() => {
-            alert("הקישור הועתק! עכשיו אפשר לשלוח אותו בוואטסאפ. 🚀");
+            alert("הקישור הועתק! 🚀");
         });
     } catch(e) { alert("שגיאה ביצירת הקישור."); }
 }
@@ -93,12 +93,12 @@ function render() {
     }
 }
 
+// פונקציית כותרת נקייה ללא פס
 function renderHeader(subtext) {
     return `
-        <div class="mb-6 animate-fade-in">
-            <h1 class="text-3xl font-black text-gray-800 mb-1">${state.listName}</h1>
-            <div class="h-1.5 w-24 bg-blue-500 mx-auto rounded-full mb-2"></div>
-            ${subtext ? `<p class="text-lg font-bold text-blue-600">${subtext}</p>` : ''}
+        <div class="mb-4">
+            <h1 class="text-2xl font-black text-gray-800">${state.listName}</h1>
+            ${subtext ? `<p class="text-lg font-bold text-blue-600 mt-1">${subtext}</p>` : ''}
         </div>`;
 }
 
@@ -108,9 +108,9 @@ function renderWelcome(app) {
             <div class="bg-white p-6 rounded-[2.5rem] border-4 border-blue-400 shadow-xl welcome-card">
                 <p class="text-4xl font-black text-blue-600 mb-6 border-b-2 pb-4">ברוכים הבאים! 👋</p>
                 <div class="space-y-4 text-right font-bold">
-                    <div class="bg-blue-50 p-4 rounded-2xl border-r-8 border-blue-500 step-blue"><p class="text-xl font-black text-blue-900 mb-1">📝 שלב 1: הזנה</p><p class="text-lg">מדביקים רשימת מילים.</p></div>
-                    <div class="bg-green-50 p-4 rounded-2xl border-r-8 border-green-500 step-green"><p class="text-xl font-black text-green-900 mb-1">🎴 שלב 2: תרגול</p><p class="text-lg">לומדים ובודקים ידע.</p></div>
-                    <div class="bg-purple-50 p-4 rounded-2xl border-r-8 border-purple-500 step-purple"><p class="text-xl font-black text-purple-900 mb-1">🎮 שלב 3: משחקים</p><p class="text-lg">משחקים באנגלית!</p></div>
+                    <div class="bg-blue-50 p-4 rounded-2xl border-r-8 border-blue-500"><p class="text-xl font-black text-blue-900 mb-1">📝 שלב 1: הזנה</p><p class="text-lg">מדביקים רשימת מילים.</p></div>
+                    <div class="bg-green-50 p-4 rounded-2xl border-r-8 border-green-500"><p class="text-xl font-black text-green-900 mb-1">🎴 שלב 2: תרגול</p><p class="text-lg">לומדים ובודקים ידע.</p></div>
+                    <div class="bg-purple-50 p-4 rounded-2xl border-r-8 border-purple-500"><p class="text-xl font-black text-purple-900 mb-1">🎮 שלב 3: משחקים</p><p class="text-lg">משחקים באנגלית!</p></div>
                 </div>
             </div>
             <button onclick="state.screen='input'; render()" class="bg-blue-600 text-white px-8 py-5 rounded-full text-2xl font-black w-full shadow-lg active:scale-95 transition-transform">בואו נתחיל! 🚀</button>
@@ -121,7 +121,7 @@ function renderInput(app) {
     app.innerHTML = `
         <div class="text-center space-y-4 w-full px-2 mt-4 animate-fade-in">
             <p class="text-2xl font-black text-blue-600">הזינו מילים (מילה - תרגום)</p>
-            <textarea id="wordInput" class="w-full h-64 p-6 rounded-[2rem] border-4 border-blue-200 outline-none text-right text-black bg-white shadow-inner text-xl font-bold focus:border-blue-400" placeholder="כותרת הרשימה (למשל: חיות)\napple - תפוח\nbanana - בננה">${state.inputText}</textarea>
+            <textarea id="wordInput" class="w-full h-64 p-6 rounded-[2rem] border-4 border-blue-200 outline-none text-right text-black bg-white shadow-inner text-xl font-bold focus:border-blue-400" placeholder="כותרת הרשימה\napple - תפוח\nbanana - בננה">${state.inputText}</textarea>
             <button onclick="processInput(true)" class="bg-blue-600 text-white px-8 py-5 rounded-full text-2xl font-black w-full shadow-lg active:scale-95 transition-transform">המשך לכרטיסיות 🌟</button>
         </div>`;
     const area = document.getElementById('wordInput'); area.oninput = (e) => state.inputText = e.target.value; area.focus();

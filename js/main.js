@@ -34,16 +34,26 @@ function saveToLocal() {
 function loadFromLocal() {
     const params = new URLSearchParams(window.location.search);
     const sharedData = params.get('w');
+    
     if (sharedData) {
         try {
+            // פענוח הנתונים מהקישור
             const decoded = decodeURIComponent(escape(atob(sharedData)));
             state.inputText = decoded;
+            
+            // עיבוד המילים
             processInput(false); 
-            state.screen = 'welcome';
+            
+            // מעבר ישיר לתפריט כדי שהמשתמש יראה את המילים מיד
+            state.screen = 'menu';
+            
+            // ניקוי ה-URL
             window.history.replaceState({}, document.title, window.location.pathname);
+            render();
             return;
-        } catch(e) { console.error("Error decoding share link"); }
+        } catch(e) { console.error("Error decoding share link", e); }
     }
+    
     const savedWords = localStorage.getItem('wm_words');
     if (savedWords) {
         state.words = JSON.parse(savedWords);
@@ -103,11 +113,9 @@ function renderHeader(subtext) {
 
 function renderWelcome(app) {
     const isDark = state.nightMode;
-    // הגדרות עיצוב מותאמות למצב לילה/יום
     const cardClass = isDark ? 'bg-transparent border-gray-700 shadow-none' : 'bg-white border-blue-400 shadow-xl';
     const titleColor = isDark ? 'text-yellow-500' : 'text-blue-600';
     const stepBoxBase = isDark ? 'bg-transparent border-gray-700' : 'p-4 rounded-2xl border-r-8 shadow-sm';
-    const stepTextColor = isDark ? 'text-yellow-500' : '';
 
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-md animate-fade-in mt-6">
@@ -391,18 +399,15 @@ function renderWordQuest(app) {
     }
 
     const wordLen = w.target.length;
-    // התאמה למילים קצרות: ריבועים גדולים יותר (62px במקום 55px)
     const baseBoxSize = wordLen <= 5 ? 62 : Math.min(Math.floor((window.innerWidth * 0.9) / wordLen), 55);
     const gapSize = wordLen > 10 ? 2 : 5;
     
     let fontSizeClass = 'text-2xl';
-    // הגדלת הפונט למילים קצרות (text-3xl)
     if (wordLen <= 5) fontSizeClass = 'text-3xl';
     else if (baseBoxSize < 30) fontSizeClass = 'text-[10px]';
     else if (baseBoxSize < 40) fontSizeClass = 'text-sm';
     else if (baseBoxSize < 50) fontSizeClass = 'text-lg';
 
-    // שימוש ב-fit-content למניעת מריחת רווחים
     let gridHtml = `<div class="word-grid" style="grid-template-columns: repeat(${wordLen}, 1fr); width: fit-content; max-width: 100%; gap: ${gapSize}px; margin: 0 auto; display: grid;">`;
     for (let i = 0; i < w.maxAttempts; i++) {
         const g = w.guesses[i];

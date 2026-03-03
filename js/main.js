@@ -37,17 +37,14 @@ function loadFromLocal() {
     
     if (sharedData) {
         try {
-            // פענוח הנתונים מהקישור
             const decoded = decodeURIComponent(escape(atob(sharedData)));
             state.inputText = decoded;
-            
-            // עיבוד המילים
             processInput(false); 
             
-            // מעבר ישיר לתפריט כדי שהמשתמש יראה את המילים מיד
-            state.screen = 'menu';
+            // תיקון: איפוס ציון ומעבר ישיר ללימוד מילים
+            state.masteryScore = 0;
+            state.screen = 'flashcards'; 
             
-            // ניקוי ה-URL
             window.history.replaceState({}, document.title, window.location.pathname);
             render();
             return;
@@ -60,7 +57,9 @@ function loadFromLocal() {
         state.inputText = localStorage.getItem('wm_input') || '';
         state.masteryScore = parseFloat(localStorage.getItem('wm_mastery')) || 0;
         state.listName = localStorage.getItem('wm_listName') || 'אוצר המילים שלי';
-        state.screen = 'menu';
+        
+        // תיקון זרימה: אם אין ציון מספיק, אל תשלח לתפריט נעול אלא ללימוד
+        state.screen = state.masteryScore >= 70 ? 'menu' : 'flashcards';
     }
 }
 
@@ -122,22 +121,18 @@ function renderWelcome(app) {
             <div class="${cardClass} p-6 rounded-[2.5rem] border-4 welcome-card">
                 <p class="text-4xl font-black ${titleColor} mb-6 border-b-2 pb-4">ברוכים הבאים! 👋</p>
                 <div class="space-y-4 text-right font-bold">
-                    
                     <div class="${stepBoxBase} ${isDark ? '' : 'bg-blue-50 border-blue-500'}">
                         <p class="text-xl font-black ${isDark ? 'text-yellow-500' : 'text-blue-900'} mb-1">📝 שלב 1: הזנה</p>
                         <p class="text-lg ${isDark ? 'text-yellow-400/90' : 'text-gray-800'}">מדביקים רשימת מילים.</p>
                     </div>
-
                     <div class="${stepBoxBase} ${isDark ? '' : 'bg-green-50 border-green-500'}">
                         <p class="text-xl font-black ${isDark ? 'text-yellow-500' : 'text-green-900'} mb-1">🎴 שלב 2: תרגול</p>
                         <p class="text-lg ${isDark ? 'text-yellow-400/90' : 'text-gray-800'}">לומדים ובודקים ידע.</p>
                     </div>
-
                     <div class="${stepBoxBase} ${isDark ? '' : 'bg-purple-50 border-purple-500'}">
                         <p class="text-xl font-black ${isDark ? 'text-yellow-500' : 'text-purple-900'} mb-1">🎮 שלב 3: משחקים</p>
                         <p class="text-lg ${isDark ? 'text-yellow-400/90' : 'text-gray-800'}">משחקים באנגלית!</p>
                     </div>
-
                 </div>
             </div>
             <button onclick="state.screen='input'; render()" class="bg-blue-600 text-white px-8 py-5 rounded-full text-2xl font-black w-full shadow-lg active:scale-95 transition-transform">בואו נתחיל!</button>

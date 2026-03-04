@@ -40,7 +40,6 @@
                 const json = JSON.parse(text.substr(47).slice(0, -2));
                 const rows = json.table.rows;
 
-                // סינון קפדני: חותך שורה ראשונה ומוריד שורות שאין בהן שם ספר אמיתי
                 const data = rows.slice(1) 
                     .map(r => ({
                         book: r.c[0]?.v,
@@ -55,7 +54,7 @@
                 renderBooks(data);
                 document.getElementById('loading').style.display = 'none';
             } catch (e) {
-                document.getElementById('loading').innerHTML = `<div class="text-red-500 font-bold">שגיאה בחיבור לטבלה. וודא שהיא ציבורית.</div>`;
+                document.getElementById('loading').innerHTML = `<div class="text-red-500 font-bold text-center">שגיאה בחיבור לטבלה. וודא שהיא ציבורית.</div>`;
             }
         }
 
@@ -70,8 +69,8 @@
                 const color = bookData[0].color; 
                 
                 let bookHtml = `
-                    <div class="bg-white rounded-[2.5rem] shadow-xl border-t-8 border-${color}-500 overflow-hidden mb-8 animate-fade-in">
-                        <div class="p-6 bg-${color}-50 flex justify-between items-center border-b border-slate-100">
+                    <div class="bg-white rounded-[2.5rem] shadow-xl border-t-8 border-${color}-500 overflow-hidden mb-8 animate-fade-in text-right">
+                        <div class="p-6 bg-${color}-50 flex justify-between items-center border-b border-slate-100 flex-row">
                             <h2 class="text-3xl font-black text-${color}-900">${bookTitle}</h2>
                             <span class="bg-${color}-500 text-white px-6 py-1 rounded-full text-sm font-black shadow-sm">${bookData[0].grade}</span>
                         </div>

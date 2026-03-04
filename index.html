@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Assistant', sans-serif; }
-        /* הגדרות צבעים */
         .border-sky-500 { border-color: #0ea5e9; } .bg-sky-50 { background-color: #f0f9ff; } .text-sky-900 { color: #0c4a6e; } .hover\:bg-sky-100:hover { background-color: #e0f2fe; }
         .border-amber-500 { border-color: #f59e0b; } .bg-amber-50 { background-color: #fffbeb; } .text-amber-900 { color: #78350f; } .hover\:bg-amber-100:hover { background-color: #fef3c7; }
         .border-violet-500 { border-color: #8b5cf6; } .bg-violet-50 { background-color: #f5f3ff; } .text-violet-900 { color: #4c1d95; } .hover\:bg-violet-100:hover { background-color: #ede9fe; }
@@ -41,7 +40,8 @@
                 const json = JSON.parse(text.substr(47).slice(0, -2));
                 const rows = json.table.rows;
 
-                const data = rows
+                // .slice(1) אומר לקוד: "תתחיל מהשורה השנייה, תתעלם מהכותרות"
+                const data = rows.slice(1)
                     .map(r => ({
                         book: r.c[0]?.v,
                         grade: r.c[1]?.v,
@@ -50,11 +50,12 @@
                         link: r.c[4]?.v,
                         color: r.c[5]?.v || 'blue'
                     }))
-                    .filter(item => item.book && item.book !== 'Book' && item.link);
+                    .filter(item => item.book && item.link); // משאיר רק שורות שיש בהן שם ספר ולינק
 
                 renderBooks(data);
                 document.getElementById('loading').style.display = 'none';
             } catch (e) {
+                console.error(e);
                 document.getElementById('loading').innerHTML = `<div class="text-red-500">שגיאה בטעינה.</div>`;
             }
         }
@@ -89,7 +90,6 @@
                     
                     const units = bookData.filter(d => d.chapter === ch);
                     units.forEach(u => {
-                        // כאן השינוי: הקישור הוא בדיוק מה שכתוב בטבלה
                         const fullUrl = u.link; 
                         bookHtml += `
                             <a href="${fullUrl}" target="_blank" class="flex justify-between items-center p-4 bg-slate-50 hover:bg-${color}-100 rounded-2xl transition-all group border border-transparent hover:border-${color}-200">

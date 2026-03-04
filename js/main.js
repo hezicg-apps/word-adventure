@@ -23,7 +23,7 @@ function triggerConfetti() { confetti({ particleCount: 150, spread: 70, origin: 
 function speak(text) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.8; window.speechSynthesis.speak(u); }
 function shuffle(a) { return [...a].sort(() => Math.random() - 0.5); }
 
-// --- ניהול נתונים ---
+// --- ניהול נתונים (תיקון למקצרי כתובות) ---
 function saveToLocal() {
     localStorage.setItem('wm_words', JSON.stringify(state.words));
     localStorage.setItem('wm_input', state.inputText);
@@ -33,23 +33,31 @@ function saveToLocal() {
 
 function loadFromLocal() {
     const params = new URLSearchParams(window.location.search);
-    const sharedData = params.get('w');
+    let sharedData = params.get('w');
     
     if (sharedData) {
         try {
+            // שחזור תווים שייתכן ושובשו ע"י מקצרי כתובות
+            sharedData = sharedData.replace(/-/g, '+').replace(/_/g, '/');
             const decoded = decodeURIComponent(escape(atob(sharedData)));
+            
             if (decoded && decoded.includes('-')) {
                 state.inputText = decoded;
                 processInput(false); 
                 state.masteryScore = 0; 
-                state.screen = 'flashcards'; // מעבר ישיר ללימוד כדי שלא ייראה "נעול"
+                state.screen = 'flashcards'; // תמיד נשלח ללימוד בקישור חיצוני
+                
+                // ניקוי ה-URL כדי שרענון דף לא יתקע אותנו
                 window.history.replaceState({}, document.title, window.location.pathname);
                 render();
                 return;
             }
-        } catch(e) { console.error("Error decoding share link", e); }
+        } catch(e) { 
+            console.error("Link decode error - possible corruption by shortener", e); 
+        }
     }
     
+    // אם אין קישור או שהפענוח נכשל - טעינה מהזיכרון המקומי
     const savedWords = localStorage.getItem('wm_words');
     if (savedWords) {
         state.words = JSON.parse(savedWords);
@@ -61,15 +69,24 @@ function loadFromLocal() {
 }
 
 function shareList() {
-    if (!state.inputText) return;
+    if (!state.inputText || !state.inputText.includes('-')) {
+        alert("אין מילים לשתף.");
+        return;
+    }
     try {
-        const encodedData = btoa(unescape(encodeURIComponent(state.inputText)));
+        // קידוד בטוח יותר ל-URL (URL Safe Base64)
+        let encodedData = btoa(unescape(encodeURIComponent(state.inputText)));
+        encodedData = encodedData.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        
         const shareUrl = `${window.location.origin}${window.location.pathname}?w=${encodedData}`;
-        navigator.clipboard.writeText(shareUrl).then(() => {
-            alert("הקישור הועתק! 🚀");
-        }).catch(() => {
-            prompt("העתיקו את הקישור מכאן:", shareUrl);
-        });
+        
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert("הקישור הועתק! 🚀 עכשיו אפשר לקצר אותו בבטחה.");
+            });
+        } else {
+            prompt("העתיקו את הקישור:", shareUrl);
+        }
     } catch(e) { alert("שגיאה ביצירת הקישור."); }
 }
 
@@ -101,14 +118,16 @@ function render() {
     }
 }
 
-// עדכון פונקציית הכותרת - מודגשת (Bold)
+// כותרת מודגשת (Bold) כפי שביקשת
 function renderHeader(subtext) {
     return `
         <div class="mb-4">
-            <h1 class="text-3xl font-black text-gray-800 drop-shadow-sm">${state.listName}</h1>
+            <h1 class="text-3xl font-black text-gray-800 tracking-tight">${state.listName}</h1>
             ${subtext ? `<p class="text-lg font-bold text-blue-600 mt-1">${subtext}</p>` : ''}
         </div>`;
 }
+
+// ... שאר הפונקציות נשארות ללא שינוי מהגרסה היציבה שלך ...
 
 function renderWelcome(app) {
     const isDark = state.nightMode;
@@ -250,7 +269,7 @@ function renderMenu(app) {
         </div>`;
 }
 
-// --- משחקים ---
+// ... יתר הפונקציות (זיכרון, 4 בשורה, wordquest) ...
 function startMemory() {
     state.screen = 'memory'; state.winner = null;
     const pairsCount = Math.min(state.words.length, 8);

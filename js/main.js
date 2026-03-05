@@ -204,6 +204,7 @@ function renderFlashcards(app) {
         </div>`;
 }
 
+// --- עדכון אתגר המילים (Quiz) עם מד התקדמות וכוכבים ---
 function renderQuiz(app) {
     if (state.quizIndex >= state.words.length) {
         state.masteryScore = (state.correctAnswers / state.words.length) * 100;
@@ -211,10 +212,23 @@ function renderQuiz(app) {
     }
     const cur = state.words[state.quizIndex];
     if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
+    
+    // חישוב התקדמות
+    const progress = (state.quizIndex / state.words.length) * 100;
+
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4">
-            ${renderHeader(`מבחן: ${state.quizIndex + 1}/${state.words.length}`)}
-            <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative">
+            <div class="w-full mb-2">
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <span class="font-bold text-blue-600 ${state.nightMode ? 'text-yellow-500' : ''}">אתגר המילים</span>
+                    <span class="text-xl">⭐ ${state.correctAnswers}</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${progress}%"></div>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative welcome-card">
                 <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4 text-gray-800">
                     ${cur.eng}
                     <button onclick="speak('${cur.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button>
@@ -226,7 +240,10 @@ function renderQuiz(app) {
                             if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans';
                             else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans';
                         }
-                        return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" class="py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 ${statusClass}">${o}</button>`;
+                        return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" 
+                            class="py-4 border-2 rounded-2xl font-black text-2xl transition-all challenge-btn ${statusClass}">
+                            ${o}
+                        </button>`;
                     }).join('')}
                 </div>
             </div>
@@ -239,7 +256,12 @@ function handleQuizAns(selected, correct, idx) {
     state.quizFeedback = { index: idx, status: isCorrect ? 'correct' : 'wrong', correctIndex: state.quizOptions.indexOf(correct) };
     if (isCorrect) state.correctAnswers++;
     render();
-    setTimeout(() => { state.quizIndex++; state.quizOptions = null; state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; render(); }, 800);
+    setTimeout(() => { 
+        state.quizIndex++; 
+        state.quizOptions = null; 
+        state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; 
+        render(); 
+    }, 800);
 }
 
 function renderMenu(app) {

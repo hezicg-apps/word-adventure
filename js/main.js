@@ -204,7 +204,6 @@ function renderFlashcards(app) {
         </div>`;
 }
 
-// --- עדכון אתגר המילים (Quiz) עם מד התקדמות וכוכבים ---
 function renderQuiz(app) {
     if (state.quizIndex >= state.words.length) {
         state.masteryScore = (state.correctAnswers / state.words.length) * 100;
@@ -212,23 +211,10 @@ function renderQuiz(app) {
     }
     const cur = state.words[state.quizIndex];
     if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
-    
-    // חישוב התקדמות
-    const progress = (state.quizIndex / state.words.length) * 100;
-
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4">
-            <div class="w-full mb-2">
-                <div class="flex justify-between items-center mb-2 px-1">
-                    <span class="font-bold text-blue-600 ${state.nightMode ? 'text-yellow-500' : ''}">אתגר המילים</span>
-                    <span class="text-xl">⭐ ${state.correctAnswers}</span>
-                </div>
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: ${progress}%"></div>
-                </div>
-            </div>
-
-            <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative welcome-card">
+            ${renderHeader(`מבחן: ${state.quizIndex + 1}/${state.words.length}`)}
+            <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative">
                 <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4 text-gray-800">
                     ${cur.eng}
                     <button onclick="speak('${cur.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button>
@@ -240,10 +226,7 @@ function renderQuiz(app) {
                             if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans';
                             else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans';
                         }
-                        return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" 
-                            class="py-4 border-2 rounded-2xl font-black text-2xl transition-all challenge-btn ${statusClass}">
-                            ${o}
-                        </button>`;
+                        return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" class="py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 ${statusClass}">${o}</button>`;
                     }).join('')}
                 </div>
             </div>
@@ -256,12 +239,7 @@ function handleQuizAns(selected, correct, idx) {
     state.quizFeedback = { index: idx, status: isCorrect ? 'correct' : 'wrong', correctIndex: state.quizOptions.indexOf(correct) };
     if (isCorrect) state.correctAnswers++;
     render();
-    setTimeout(() => { 
-        state.quizIndex++; 
-        state.quizOptions = null; 
-        state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; 
-        render(); 
-    }, 800);
+    setTimeout(() => { state.quizIndex++; state.quizOptions = null; state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; render(); }, 800);
 }
 
 function renderMenu(app) {
@@ -443,33 +421,4 @@ function renderWordQuest(app) {
             const commonStyle = `width: ${baseBoxSize}px; height: ${baseBoxSize}px; display: flex; align-items: center; justify-content: center;`;
             if (g) gridHtml += `<div class="word-cell ${getLetterStatus(g.text, j, w.target)} ${fontSizeClass}" style="${commonStyle}">${g.text[j]}</div>`;
             else if (i === w.guesses.length && !w.isGameOver) gridHtml += `<div class="word-cell border-blue-400 text-gray-800 ${fontSizeClass}" style="${commonStyle}">${w.currentGuess[j] || ''}</div>`;
-            else gridHtml += `<div class="word-cell opacity-40" style="${commonStyle}"></div>`;
-        }
-    }
-    gridHtml += `</div>`;
-
-    app.innerHTML = `<div class="flex flex-col items-center w-full px-2 mt-2 word-quest-container"><div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card" style="direction:rtl"><button onclick="state.screen='menu'; render()" class="text-red-600 font-black">יציאה</button><div class="flex flex-col items-end"><div class="font-black text-lg text-emerald-700 flex items-center gap-2">רמז: ${w.hint} <button onclick="speak('${w.target}')" class="text-2xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div><div class="text-xs font-bold text-gray-500">${w.roundIndex+1}/${w.pool.length} | ניסיון ${w.guesses.length+1}/${w.maxAttempts}</div></div></div><div style="width: 100%; display: flex; justify-content: center;">${gridHtml}</div><div class="w-full max-w-md mt-6">${renderQwerty()}</div></div>`;
-}
-
-function getLetterStatus(guess, idx, target) { if (guess[idx] === target[idx]) return 'correct'; if (target.includes(guess[idx])) return 'present'; return 'absent'; }
-function renderQwerty() { const rows = [['q','w','e','r','t','y','u','i','o','p'], ['a','s','d','f','g','h','j','k','l', '⌫'], ['z','x','c','v','b','n','m', 'ENTER']]; return rows.map(r => `<div class="qwerty-row">${r.map(k => `<button onclick="handleKey('${k}')" class="key ${state.wordQuest.keyStates[k] || ''} ${k==='ENTER'||k==='⌫'?'key-wide !bg-blue-600 !text-white':''} text-gray-800">${k==='ENTER'?'ENT':k}</button>`).join('')}</div>`).join(''); }
-function handleKey(k) { const w = state.wordQuest; if (w.isGameOver) return; if (k === '⌫') w.currentGuess = w.currentGuess.slice(0, -1); else if (k === 'ENTER') { if (w.currentGuess.length === w.target.length) submitGuess(); } else if (w.currentGuess.length < w.target.length && k.length === 1) w.currentGuess += k.toLowerCase(); render(); }
-function submitGuess() { const w = state.wordQuest; const g = w.currentGuess; w.guesses.push({ text: g }); for (let i = 0; i < g.length; i++) { const s = getLetterStatus(g, i, w.target); if (w.keyStates[g[i]] !== 'correct') w.keyStates[g[i]] = s; } if (g === w.target) { w.isGameOver = true; w.completedCount++; triggerConfetti(); setTimeout(() => { w.roundIndex++; if (w.roundIndex >= w.pool.length) { state.winner = { type:'wq', msg:'ניצחון!', subMsg:'סיימת הכל!', glowClass:'win-glow-emerald' }; } else { const next = w.pool[w.roundIndex]; w.target = next.eng.toLowerCase(); w.hint = next.heb; w.guesses = []; w.keyStates = {}; w.isGameOver = false; } render(); }, 1200); } else if (w.guesses.length >= w.maxAttempts) { w.isGameOver = true; setTimeout(() => { state.winner = { type:'wq', msg:'הפסד', subMsg:`המילה: ${w.target.toUpperCase()}`, glowClass:'win-glow-red' }; render(); }, 500); } w.currentGuess = ''; render(); }
-
-function renderWinScreen(app) {
-    const win = state.winner;
-    app.innerHTML = `
-        <div class="fixed inset-0 flex items-center justify-center bg-black/80 z-[300] px-4">
-            <div class="text-center p-10 rounded-[3rem] max-w-sm w-full animate-fade-in win-card-base ${win.glowClass || ''}">
-                <h2 class="text-4xl font-black mb-6 text-blue-700">${win.msg}</h2>
-                <p class="text-xl font-black mb-10 text-gray-800">${win.subMsg || ''}</p>
-                <div class="space-y-4">
-                    <button onclick="state.winner=null; if(state.screen==='memory')startMemory();else if(state.screen==='connect4')startC4(state.connect4.isPvP);else startWordQuest();" class="bg-blue-600 text-white py-5 rounded-2xl text-2xl font-black w-full shadow-lg">שחק שוב 🔄</button>
-                    <button onclick="state.winner=null; state.screen='menu'; render()" class="bg-gray-200 text-gray-800 py-4 rounded-2xl text-xl font-black w-full">חזרה לתפריט</button>
-                </div>
-            </div>
-        </div>`;
-}
-
-loadFromLocal();
-render();
+            else grid

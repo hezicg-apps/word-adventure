@@ -16,6 +16,7 @@
     <meta name="theme-color" content="#1e293b">
     
     <style>
+        /* אנימציות מסך פתיחה */
         .dot { animation: glow 1.5s infinite ease-in-out; }
         .dot:nth-child(2) { animation-delay: 0.5s; }
         .dot:nth-child(3) { animation-delay: 1s; }
@@ -28,6 +29,47 @@
             50% { transform: scale(1.05); opacity: 0.8; }
         }
         .animate-pulse-soft { animation: pulse-soft 2s infinite ease-in-out; }
+
+        /* --- הגדרות מצב לילה (Night Mode CSS) --- */
+        body { transition: background-color 0.3s, color 0.3s; }
+        
+        .night-mode { 
+            background-color: #0f172a !important; 
+            color: #f8fafc !important; 
+        }
+
+        /* התאמת כרטיסיות ותיבות טקסט במצב לילה */
+        .night-mode .bg-white, 
+        .night-mode .welcome-card,
+        .night-mode .card-front,
+        .night-mode #wordInput { 
+            background-color: #1e293b !important; 
+            color: #f8fafc !important; 
+            border-color: #334155 !important;
+            box-shadow: none !important;
+        }
+
+        /* התאמת טקסטים במצב לילה */
+        .night-mode .text-gray-800, 
+        .night-mode .text-gray-700,
+        .night-mode .text-gray-500 { 
+            color: #cbd5e1 !important; 
+        }
+
+        /* התאמת כותרות במצב לילה */
+        .night-mode h1, 
+        .night-mode .text-blue-600 { 
+            color: #fbbf24 !important; /* צהוב בולט */
+        }
+
+        /* התאמת כפתורים מסוימים שצריכים להישאר קריאים */
+        .night-mode .bg-blue-50 {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+        }
+        
+        /* הצמדת כותרות Unit לשמאל (כפי שביקשת קודם) */
+        .eng-text { text-align: left; direction: ltr; }
     </style>
 </head>
 <body class="bg-blue-50 text-gray-800 min-h-screen">
@@ -59,7 +101,11 @@
     <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center"></div>
 
     <script src="js/main.js"></script>
+
     <script>
+        /**
+         * לוגיקה למסך פתיחה
+         */
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
@@ -69,7 +115,34 @@
                 }
             }, 2500);
         });
+
+        /**
+         * לוגיקה למצב לילה - מסונכרנת עם ה-State של main.js
+         */
+        const toggleBtn = document.getElementById('toggleNight');
+        
+        toggleBtn.addEventListener('click', () => {
+            // שינוי ה-State בתוך main.js
+            if (typeof state !== 'undefined') {
+                state.nightMode = !state.nightMode;
+                
+                // שמירה ב-LocalStorage כדי שיזכור את הבחירה
+                localStorage.setItem('theme', state.nightMode ? 'night' : 'day');
+                
+                // קריאה לפונקציית הרינדור של main.js כדי לעדכן את כל המסכים
+                render(); 
+            }
+        });
+
+        // בדיקה בטעינה ראשונית אם יש העדפת לילה שמורה
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('theme') === 'night') {
+                if (typeof state !== 'undefined') {
+                    state.nightMode = true;
+                    render();
+                }
+            }
+        });
     </script>
 </body>
 </html>
-

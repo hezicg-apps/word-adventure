@@ -1,34 +1,148 @@
-<style>
-    /* סורק Knight Rider */
-    .scanner-container {
-        width: 200px;
-        height: 10px;
-        background: #111;
-        border: 2px solid #333;
-        border-radius: 5px;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
-    }
-    .scanner-bar {
-        width: 40px;
-        height: 100%;
-        background: linear-gradient(90deg, rgba(255,0,0,0) 0%, rgba(255,0,0,1) 50%, rgba(255,0,0,0) 100%);
-        position: absolute;
-        box-shadow: 0 0 15px 5px rgba(255, 0, 0, 0.8);
-        animation: scan 1.5s infinite ease-in-out;
-    }
-    @keyframes scan {
-        0% { left: -40px; }
-        50% { left: 200px; }
-        100% { left: -40px; }
-    }
-</style>
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Word Adventure</title>
+    
+    <link rel="icon" type="image/png" href="favicon.png?v=3">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1e293b">
 
-<div id="splash-screen" class="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-black transition-opacity duration-1000">
-    <img src="favicon.png" alt="Logo" class="w-80 h-80 mb-12 animate-pulse object-contain opacity-90"> 
-    <h2 class="text-4xl font-black text-red-600 mb-8 tracking-widest eng-text">SCANNING SYSTEM...</h2>
-    <div class="scanner-container">
-        <div class="scanner-bar"></div>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* גופן גלובלי */
+        * { font-family: 'Fredoka', 'Assistant', sans-serif !important; }
+        
+        body { transition: background-color 0.3s; color: #1d4ed8; }
+
+        /* --- Knight Rider Splash Screen Fix --- */
+        #splash-screen {
+            background-color: #000000 !important;
+            display: flex !important;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+        }
+
+        .scanner-container {
+            width: 80%;
+            max-width: 400px;
+            height: 16px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scanner-bar {
+            width: 80px;
+            height: 100%;
+            background: #ff0000;
+            position: absolute;
+            /* אפקט שובל (Trail) חזק */
+            box-shadow: 
+                0 0 20px #ff0000, 
+                -10px 0 15px rgba(255, 0, 0, 0.7), 
+                10px 0 15px rgba(255, 0, 0, 0.7);
+            animation: scan-knight 2s infinite ease-in-out;
+        }
+
+        @keyframes scan-knight {
+            0% { transform: translateX(-100px); }
+            50% { transform: translateX(400px); }
+            100% { transform: translateX(-100px); }
+        }
+
+        /* התאמות צבעים כלליות */
+        .text-blue-main { color: #1d4ed8 !important; }
+        .bg-night { background-color: #1e293b !important; }
+        
+        /* כפתורי יודע/לא יודע - טקסט לבן */
+        .bg-green-500, .bg-red-500, .bg-green-600, .bg-red-600, .correct-ans, .wrong-ans {
+            color: #ffffff !important;
+        }
+
+        /* מצב לילה */
+        .night-mode { background-color: #1e293b !important; color: #f1f5f9 !important; }
+        .night-mode .bg-white, .night-mode .card-front, .night-mode #wordInput { 
+            background-color: #334155 !important; color: #f1f5f9 !important; border-color: #475569 !important;
+        }
+    </style>
+</head>
+<body class="bg-blue-50 min-h-screen">
+    
+    <div id="splash-screen">
+        <img src="favicon.png" alt="Logo" class="w-64 h-64 md:w-80 md:h-80 mb-12 animate-pulse object-contain"> 
+        <h2 class="text-2xl md:text-4xl font-black text-red-600 mb-8 tracking-widest">SCANNING SYSTEM...</h2>
+        <div class="scanner-container">
+            <div class="scanner-bar"></div>
+        </div>
     </div>
-</div>
+
+    <header class="w-full max-w-2xl mx-auto px-4 py-4 relative z-10">
+        <div class="grid grid-cols-3 items-center w-full">
+            <div class="flex justify-start">
+                <button id="toggleNight" class="text-3xl bg-transparent border-none cursor-pointer p-2">☀️</button>
+            </div>
+            <div class="flex justify-center text-center">
+                <h1 class="text-xl sm:text-3xl font-black text-yellow-500 tracking-tight whitespace-nowrap drop-shadow-sm">Word Adventure</h1>
+            </div>
+            <div class="flex justify-end">
+                <img src="favicon.png?v=3" alt="Logo" class="h-12 w-auto cursor-pointer active:scale-90 transition-transform" onclick="resetAllData()">
+            </div>
+        </div>
+    </header>
+
+    <main id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center relative z-10"></main>
+
+    <script src="js/main.js"></script>
+
+    <script>
+        // הסרת מסך פתיחה
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if(splash) {
+                    splash.style.opacity = '0';
+                    splash.style.transition = 'opacity 0.8s ease';
+                    setTimeout(() => {
+                        splash.style.display = 'none';
+                    }, 800);
+                }
+            }, 2000); // 2 שניות של סריקה
+        });
+
+        // כפתור לילה
+        const toggleBtn = document.getElementById('toggleNight');
+        if(toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                if (typeof state !== 'undefined') {
+                    state.nightMode = !state.nightMode;
+                    localStorage.setItem('theme', state.nightMode ? 'night' : 'day');
+                    render(); 
+                }
+            });
+        }
+
+        // טעינה ראשונית
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('theme') === 'night' && typeof state !== 'undefined') {
+                state.nightMode = true;
+                render();
+            }
+        });
+    </script>
+</body>
+</html>

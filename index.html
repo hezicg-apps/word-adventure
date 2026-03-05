@@ -18,77 +18,85 @@
     <link rel="stylesheet" href="css/style.css">
 
     <style>
-        /* גופן גלובלי */
+        /* גופן גלובלי נעול - Fredoka לילדים */
         * { font-family: 'Fredoka', 'Assistant', sans-serif !important; }
         
         body { transition: background-color 0.3s; color: #1d4ed8; }
 
-        /* --- Knight Rider Splash Screen Fix --- */
+        /* מסך פתיחה קלאסי ומהיר */
         #splash-screen {
-            background-color: #000000 !important;
-            display: flex !important;
+            background-color: #0f172a;
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             position: fixed;
             inset: 0;
             z-index: 9999;
+            transition: opacity 0.5s ease;
         }
 
-        .scanner-container {
-            width: 80%;
-            max-width: 400px;
-            height: 16px;
-            background: #111;
-            border: 2px solid #333;
-            border-radius: 8px;
-            position: relative;
-            overflow: hidden;
+        /* צבע שאלות ותשובות במצב יום - תכלת עמוק (במקום שחור) */
+        .text-gray-800, .text-gray-700, #wordInput, .text-blue-main {
+            color: #1d4ed8 !important; 
         }
 
-        .scanner-bar {
-            width: 80px;
-            height: 100%;
-            background: #ff0000;
-            position: absolute;
-            /* אפקט שובל (Trail) חזק */
-            box-shadow: 
-                0 0 20px #ff0000, 
-                -10px 0 15px rgba(255, 0, 0, 0.7), 
-                10px 0 15px rgba(255, 0, 0, 0.7);
-            animation: scan-knight 2s infinite ease-in-out;
+        /* כפתורי תשובות במבחן - טקסט תכלת במצב יום */
+        button.py-4.border-2 {
+            color: #1d4ed8 !important;
+            border-color: #bfdbfe !important;
         }
 
-        @keyframes scan-knight {
-            0% { transform: translateX(-100px); }
-            50% { transform: translateX(400px); }
-            100% { transform: translateX(-100px); }
-        }
-
-        /* התאמות צבעים כלליות */
-        .text-blue-main { color: #1d4ed8 !important; }
-        .bg-night { background-color: #1e293b !important; }
-        
-        /* כפתורי יודע/לא יודע - טקסט לבן */
+        /* כפתורי יודע/לא יודע - טקסט לבן חובה */
         .bg-green-500, .bg-red-500, .bg-green-600, .bg-red-600, .correct-ans, .wrong-ans {
             color: #ffffff !important;
         }
 
-        /* מצב לילה */
-        .night-mode { background-color: #1e293b !important; color: #f1f5f9 !important; }
-        .night-mode .bg-white, .night-mode .card-front, .night-mode #wordInput { 
-            background-color: #334155 !important; color: #f1f5f9 !important; border-color: #475569 !important;
+        /* --- מצב לילה תכלת-נייבי רך --- */
+        .night-mode { 
+            background-color: #1e293b !important; 
+            color: #f1f5f9 !important; 
         }
+
+        .night-mode .bg-white, 
+        .night-mode .welcome-card,
+        .night-mode .card-front,
+        .night-mode #wordInput,
+        .night-mode .bg-blue-50 { 
+            background-color: #334155 !important; 
+            color: #f1f5f9 !important; 
+            border-color: #475569 !important;
+        }
+
+        /* כפתורי התשובות במבחן במצב לילה */
+        .night-mode button.py-4.border-2 {
+            background-color: #475569 !important;
+            color: #f1f5f9 !important;
+            border-color: #64748b !important;
+        }
+
+        /* כפתור "חזרה לתפריט" במצב לילה */
+        .night-mode .bg-gray-200 { 
+            background-color: #94a3b8 !important; 
+            color: #0f172a !important; 
+        }
+
+        /* כותרות */
+        .night-mode h1, .night-mode .text-blue-600, .night-mode .text-blue-700 { color: #fbbf24 !important; }
+        
+        /* משחק הזיכרון - מסגרת ירוקה בולטת */
+        .border-green-500 { border-color: #4ade80 !important; border-width: 5px !important; }
+        .bg-green-50 { background-color: #f0fdf4 !important; }
+        .night-mode .bg-green-50 { background-color: #064e3b !important; }
+
+        #shareBtnElement { min-width: 180px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 20px; }
     </style>
 </head>
 <body class="bg-blue-50 min-h-screen">
     
     <div id="splash-screen">
-        <img src="favicon.png" alt="Logo" class="w-64 h-64 md:w-80 md:h-80 mb-12 animate-pulse object-contain"> 
-        <h2 class="text-2xl md:text-4xl font-black text-red-600 mb-8 tracking-widest">SCANNING SYSTEM...</h2>
-        <div class="scanner-container">
-            <div class="scanner-bar"></div>
-        </div>
+        <img src="favicon.png" alt="Logo" class="w-64 h-64 mb-8 animate-pulse object-contain"> 
+        <h2 class="text-3xl font-black text-yellow-500">Word Adventure</h2>
     </div>
 
     <header class="w-full max-w-2xl mx-auto px-4 py-4 relative z-10">
@@ -96,7 +104,7 @@
             <div class="flex justify-start">
                 <button id="toggleNight" class="text-3xl bg-transparent border-none cursor-pointer p-2">☀️</button>
             </div>
-            <div class="flex justify-center text-center">
+            <div class="flex justify-center">
                 <h1 class="text-xl sm:text-3xl font-black text-yellow-500 tracking-tight whitespace-nowrap drop-shadow-sm">Word Adventure</h1>
             </div>
             <div class="flex justify-end">
@@ -110,21 +118,18 @@
     <script src="js/main.js"></script>
 
     <script>
-        // הסרת מסך פתיחה
+        // הסרת מסך פתיחה מהירה (0.8 שניות)
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 if(splash) {
                     splash.style.opacity = '0';
-                    splash.style.transition = 'opacity 0.8s ease';
-                    setTimeout(() => {
-                        splash.style.display = 'none';
-                    }, 800);
+                    setTimeout(() => splash.remove(), 500);
                 }
-            }, 2000); // 2 שניות של סריקה
+            }, 800); 
         });
 
-        // כפתור לילה
+        // כפתור מצב לילה
         const toggleBtn = document.getElementById('toggleNight');
         if(toggleBtn) {
             toggleBtn.addEventListener('click', () => {
@@ -136,7 +141,7 @@
             });
         }
 
-        // טעינה ראשונית
+        // טעינה ראשונית - הגדרת ערכת נושא
         window.addEventListener('DOMContentLoaded', () => {
             if (localStorage.getItem('theme') === 'night' && typeof state !== 'undefined') {
                 state.nightMode = true;

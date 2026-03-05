@@ -17,7 +17,6 @@
     <meta name="theme-color" content="#1e293b">
     
     <style>
-        /* הגדרת גופן כללית לכל האפליקציה */
         body { 
             font-family: 'Assistant', 'Fredoka', sans-serif; 
             transition: background-color 0.3s, color 0.3s; 
@@ -32,34 +31,51 @@
             50% { opacity: 1; transform: scale(1.3); }
         }
         
-        /* --- מצב לילה --- */
-        .night-mode { background-color: #0f172a !important; color: #f8fafc !important; }
+        /* --- מצב לילה מעודכן (קליל יותר) --- */
+        .night-mode { 
+            background-color: #1e293b !important; /* כחול כהה במקום שחור */
+            color: #f1f5f9 !important; 
+        }
+
+        /* כרטיסיות ותיבות טקסט במצב לילה - גוון תכלת-כהה רך */
         .night-mode .bg-white, 
         .night-mode .welcome-card,
         .night-mode .card-front,
-        .night-mode #wordInput { 
-            background-color: #1e293b !important; 
-            color: #f8fafc !important; 
-            border-color: #334155 !important;
+        .night-mode #wordInput,
+        .night-mode .bg-blue-50 { 
+            background-color: #334155 !important; 
+            color: #f1f5f9 !important; 
+            border-color: #475569 !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
         }
 
-        /* תיקון כפתור "חזרה לתפריט" במצב לילה - טקסט כהה על רקע בהיר */
+        /* כפתור "חזרה לתפריט" - טקסט כהה על תכלת בהיר */
         .night-mode .bg-gray-200 { 
-            background-color: #e2e8f0 !important; 
+            background-color: #94a3b8 !important; 
             color: #0f172a !important; 
             font-weight: 800;
         }
 
-        .night-mode .text-gray-800, .night-mode .text-gray-700 { color: #cbd5e1 !important; }
-        .night-mode h1, .night-mode .text-blue-600 { color: #fbbf24 !important; }
+        /* צבעי טקסט משניים */
+        .night-mode .text-gray-800, 
+        .night-mode .text-gray-700,
+        .night-mode .text-gray-600 { 
+            color: #cbd5e1 !important; 
+        }
 
-        /* תיקון משחק הזיכרון - ירוק זוהר וברור יותר */
+        /* כותרות במצב לילה - צהוב בולט ונעים */
+        .night-mode h1, 
+        .night-mode .text-blue-600,
+        .night-mode .text-blue-700 { 
+            color: #fbbf24 !important; 
+        }
+
+        /* תיקון משחק הזיכרון - ירוק ניאון */
         .border-green-500 { border-color: #4ade80 !important; border-width: 5px !important; }
         .bg-green-50 { background-color: #f0fdf4 !important; }
         .night-mode .bg-green-50 { background-color: #064e3b !important; }
-        .night-mode .border-green-500 { border-color: #4ade80 !important; }
 
-        /* סידור כפתור שיתוף */
+        /* כפתור שיתוף */
         #shareBtnElement {
             min-width: 180px;
             white-space: normal;

@@ -74,7 +74,6 @@ function shareList() {
         return;
     }
     try {
-        // קידוד בטוח יותר ל-URL (URL Safe Base64)
         let encodedData = btoa(unescape(encodeURIComponent(state.inputText)));
         encodedData = encodedData.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         
@@ -82,7 +81,12 @@ function shareList() {
         
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(shareUrl).then(() => {
-                alert("הקישור הועתק! 🚀 עכשיו אפשר לקצר אותו בבטחה.");
+                // שינוי הכיתוב זמנית לאישור העתקה עם ינשוף
+                const btn = document.getElementById('shareBtnElement');
+                if(btn) btn.innerHTML = 'הקישור הועתק! 🦉';
+                setTimeout(() => {
+                    if(btn) btn.innerHTML = '🔗 העתק קישור למשחק 🦉';
+                }, 2500);
             });
         } else {
             prompt("העתיקו את הקישור:", shareUrl);
@@ -257,7 +261,7 @@ function renderMenu(app) {
                 <p class="text-xl font-bold text-gray-700 mb-4">הציון הנוכחי: ${state.masteryScore.toFixed(0)}%</p>
                 <div class="flex gap-2 justify-center">
                     <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="bg-orange-600 text-white px-6 py-2 rounded-full font-black shadow-md">🔄 תרגול חוזר</button>
-                    <button onclick="shareList()" class="${shareBtnStyle} border px-6 py-2 rounded-full font-black shadow-sm transition-colors flex items-center gap-2">🔗 שתפו רשימה</button>
+                   <button id="shareBtnElement" onclick="shareList()" class="${shareBtnStyle} border px-6 py-2 rounded-full font-black shadow-sm transition-colors flex items-center gap-2">🔗 העתק קישור למשחק 🦉</button>2">🔗 שתפו רשימה</button>
                 </div>
             </div>
             <div class="grid gap-4">
@@ -463,3 +467,4 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+

@@ -191,3 +191,18 @@ header img {
 .night-mode header img {
     filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
 }
+
+/* מניעת צהוב על לבן במצב לילה */
+.night-mode .unit-title-header {
+    color: #facc15 !important; /* צהוב בוהק */
+}
+
+.night-mode .dark-card {
+    background-color: #2d3748 !important; /* רקע אפור כהה במקום לבן */
+    border-color: #4a5568 !important;
+}
+
+/* צבע תכלת מותאם למצב לילה (שייראה טוב יותר מצהוב) */
+.night-mode .text-cyan-500 {
+    color: #22d3ee !important;
+}

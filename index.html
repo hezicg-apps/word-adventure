@@ -17,17 +17,28 @@
     <meta name="theme-color" content="#1e293b">
     
     <style>
-        /* גופן גלובלי נעול */
+        /* גופן גלובלי נעול - Fredoka המעוגל */
         * { font-family: 'Fredoka', 'Assistant', sans-serif !important; }
         
         body { 
             transition: background-color 0.3s, color 0.3s; 
-            color: #1e3a8a; /* כחול כהה במקום שחור כברירת מחדל לכל הגוף */
+            color: #2563eb; /* תכלת עמוק כברירת מחדל */
         }
 
-        /* הגדרת צבע כחול לשאלות ותשובות במצב יום */
-        .text-gray-800, .text-gray-700, button, textarea {
-            color: #1e3a8a !important; 
+        /* צבע שאלות ותשובות במצב יום - תכלת ידידותי */
+        .text-gray-800, .text-gray-700, #wordInput {
+            color: #1d4ed8 !important; 
+        }
+
+        /* כפתורי תשובות במבחן במצב יום - טקסט תכלת */
+        button.py-4.border-2 {
+            color: #1d4ed8 !important;
+            border-color: #bfdbfe !important;
+        }
+
+        /* כפתורי יודע/לא יודע - טקסט לבן חובה */
+        .bg-green-500, .bg-red-500, .bg-green-600, .bg-red-600 {
+            color: #ffffff !important;
         }
 
         .dot { animation: glow 1.5s infinite ease-in-out; }
@@ -61,11 +72,11 @@
             border-color: #64748b !important;
         }
         
-        /* צבעי הצלחה/כישלון */
+        /* צבעי הצלחה/כישלון - טקסט לבן תמיד */
         .correct-ans { background-color: #22c55e !important; color: white !important; border-color: #16a34a !important; }
         .wrong-ans { background-color: #ef4444 !important; color: white !important; border-color: #dc2626 !important; }
 
-        /* כפתור "חזרה לתפריט" במצב לילה */
+        /* כפתור "חזרה לתפריט" */
         .night-mode .bg-gray-200 { 
             background-color: #94a3b8 !important; 
             color: #0f172a !important; 
@@ -73,8 +84,7 @@
 
         /* כותרות */
         .night-mode h1, .night-mode .text-blue-600, .night-mode .text-blue-700 { color: #fbbf24 !important; }
-        .text-blue-600, .text-blue-700 { color: #2563eb !important; }
-
+        
         /* משחק הזיכרון */
         .border-green-500 { border-color: #4ade80 !important; border-width: 5px !important; }
         .bg-green-50 { background-color: #f0fdf4 !important; }

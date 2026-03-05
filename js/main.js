@@ -23,7 +23,7 @@ function triggerConfetti() { confetti({ particleCount: 150, spread: 70, origin: 
 function speak(text) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.8; window.speechSynthesis.speak(u); }
 function shuffle(a) { return [...a].sort(() => Math.random() - 0.5); }
 
-// --- ניהול נתונים (תיקון למקצרי כתובות) ---
+// --- ניהול נתונים ---
 function saveToLocal() {
     localStorage.setItem('wm_words', JSON.stringify(state.words));
     localStorage.setItem('wm_input', state.inputText);
@@ -37,27 +37,20 @@ function loadFromLocal() {
     
     if (sharedData) {
         try {
-            // שחזור תווים שייתכן ושובשו ע"י מקצרי כתובות
             sharedData = sharedData.replace(/-/g, '+').replace(/_/g, '/');
             const decoded = decodeURIComponent(escape(atob(sharedData)));
-            
             if (decoded && decoded.includes('-')) {
                 state.inputText = decoded;
                 processInput(false); 
                 state.masteryScore = 0; 
-                state.screen = 'flashcards'; // תמיד נשלח ללימוד בקישור חיצוני
-                
-                // ניקוי ה-URL כדי שרענון דף לא יתקע אותנו
+                state.screen = 'flashcards';
                 window.history.replaceState({}, document.title, window.location.pathname);
                 render();
                 return;
             }
-        } catch(e) { 
-            console.error("Link decode error - possible corruption by shortener", e); 
-        }
+        } catch(e) { console.error("Link error", e); }
     }
     
-    // אם אין קישור או שהפענוח נכשל - טעינה מהזיכרון המקומי
     const savedWords = localStorage.getItem('wm_words');
     if (savedWords) {
         state.words = JSON.parse(savedWords);
@@ -76,17 +69,19 @@ function shareList() {
     try {
         let encodedData = btoa(unescape(encodeURIComponent(state.inputText)));
         encodedData = encodedData.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-        
         const shareUrl = `${window.location.origin}${window.location.pathname}?w=${encodedData}`;
         
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(shareUrl).then(() => {
-                // שינוי הכיתוב זמנית לאישור העתקה עם ינשוף
                 const btn = document.getElementById('shareBtnElement');
-                if(btn) btn.innerHTML = 'הקישור הועתק! 🦉';
-                setTimeout(() => {
-                    if(btn) btn.innerHTML = '🔗 העתק קישור למשחק 🦉';
-                }, 2500);
+                if(btn) {
+                    btn.innerText = 'הועתק! 🦉';
+                    btn.classList.add('bg-green-100', 'text-green-700');
+                    setTimeout(() => {
+                        btn.innerText = '🔗 העתק קישור למשחק 🦉';
+                        btn.classList.remove('bg-green-100', 'text-green-700');
+                    }, 2500);
+                }
             });
         } else {
             prompt("העתיקו את הקישור:", shareUrl);
@@ -122,7 +117,6 @@ function render() {
     }
 }
 
-// כותרת מודגשת (Bold) כפי שביקשת
 function renderHeader(subtext) {
     return `
         <div class="mb-4">
@@ -130,8 +124,6 @@ function renderHeader(subtext) {
             ${subtext ? `<p class="text-lg font-bold text-blue-600 mt-1">${subtext}</p>` : ''}
         </div>`;
 }
-
-// ... שאר הפונקציות נשארות ללא שינוי מהגרסה היציבה שלך ...
 
 function renderWelcome(app) {
     const isDark = state.nightMode;
@@ -259,9 +251,11 @@ function renderMenu(app) {
             <div class="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-blue-100 welcome-card">
                 ${renderHeader(isLocked ? 'צריך 70% כדי לפתוח משחקים' : 'המשחקים פתוחים!')}
                 <p class="text-xl font-bold text-gray-700 mb-4">הציון הנוכחי: ${state.masteryScore.toFixed(0)}%</p>
-                <div class="flex gap-2 justify-center">
-                    <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="bg-orange-600 text-white px-6 py-2 rounded-full font-black shadow-md">🔄 תרגול חוזר</button>
-                   <button id="shareBtnElement" onclick="shareList()" class="${shareBtnStyle} border px-6 py-2 rounded-full font-black shadow-sm transition-colors flex items-center gap-2">🔗 העתק קישור למשחק 🦉</button>2">🔗 שתפו רשימה</button>
+                <div class="flex flex-col gap-3 items-center">
+                    <div class="flex gap-2">
+                        <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="bg-orange-600 text-white px-6 py-2 rounded-full font-black shadow-md">🔄 תרגול חוזר</button>
+                        <button id="shareBtnElement" onclick="shareList()" class="${shareBtnStyle} border px-6 py-2 rounded-full font-black shadow-sm transition-colors text-sm whitespace-nowrap min-w-[170px]">🔗 העתק קישור למשחק 🦉</button>
+                    </div>
                 </div>
             </div>
             <div class="grid gap-4">
@@ -273,7 +267,6 @@ function renderMenu(app) {
         </div>`;
 }
 
-// ... יתר הפונקציות (זיכרון, 4 בשורה, wordquest) ...
 function startMemory() {
     state.screen = 'memory'; state.winner = null;
     const pairsCount = Math.min(state.words.length, 8);
@@ -416,16 +409,10 @@ function renderWordQuest(app) {
         app.innerHTML = `<div class="text-center space-y-6 w-full max-w-md animate-fade-in mt-6"><div class="bg-white p-8 rounded-[2.5rem] border-4 border-emerald-400 shadow-xl welcome-card"><h2 class="text-3xl font-black text-emerald-600 mb-6">איך משחקים? 🔐</h2><div class="space-y-4 text-right"><p class="text-lg font-bold text-gray-800">נחשו את המילה לפי הרמז.</p><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-[#38bdf8]"></div> <p class="text-gray-800">אות נכונה ובמקום (תכלת)</p></div><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-[#a855f7]"></div> <p class="text-gray-800">אות נכונה במקום הלא נכון (סגול)</p></div></div><button onclick="state.wordQuest.showTutorial=false; render();" class="mt-8 bg-emerald-600 text-white px-8 py-4 rounded-full text-xl font-black w-full shadow-lg">בואו נתחיל!</button></div></div>`; 
         return; 
     }
-
     const wordLen = w.target.length;
     const baseBoxSize = wordLen <= 5 ? 62 : Math.min(Math.floor((window.innerWidth * 0.9) / wordLen), 55);
     const gapSize = wordLen > 10 ? 2 : 5;
-    
-    let fontSizeClass = 'text-2xl';
-    if (wordLen <= 5) fontSizeClass = 'text-3xl';
-    else if (baseBoxSize < 30) fontSizeClass = 'text-[10px]';
-    else if (baseBoxSize < 40) fontSizeClass = 'text-sm';
-    else if (baseBoxSize < 50) fontSizeClass = 'text-lg';
+    let fontSizeClass = wordLen <= 5 ? 'text-3xl' : (baseBoxSize < 40 ? 'text-sm' : 'text-lg');
 
     let gridHtml = `<div class="word-grid" style="grid-template-columns: repeat(${wordLen}, 1fr); width: fit-content; max-width: 100%; gap: ${gapSize}px; margin: 0 auto; display: grid;">`;
     for (let i = 0; i < w.maxAttempts; i++) {
@@ -456,15 +443,11 @@ function renderWinScreen(app) {
                 <p class="text-xl font-black mb-10 text-gray-800">${win.subMsg || ''}</p>
                 <div class="space-y-4">
                     <button onclick="state.winner=null; if(state.screen==='memory')startMemory();else if(state.screen==='connect4')startC4(state.connect4.isPvP);else startWordQuest();" class="bg-blue-600 text-white py-5 rounded-2xl text-2xl font-black w-full shadow-lg">שחק שוב 🔄</button>
-                    <button onclick="state.winner=null; state.screen='menu'; render()" class="bg-white text-gray-800 py-4 rounded-2xl text-xl font-black w-full shadow">חזרה לתפריט 🏠</button>
+                    <button onclick="state.winner=null; state.screen='menu'; render()" class="bg-gray-200 text-gray-800 py-4 rounded-2xl text-xl font-black w-full">חזרה לתפריט</button>
                 </div>
             </div>
         </div>`;
 }
 
-document.getElementById('toggleNight').onclick = () => { state.nightMode = !state.nightMode; render(); };
-window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && !state.wordQuest.showTutorial) { if (e.key === 'Enter') handleKey('ENTER'); else if (e.key === 'Backspace') handleKey('⌫'); else if (/^[a-z]$/i.test(e.key)) handleKey(e.key.toLowerCase()); } });
-
 loadFromLocal();
 render();
-

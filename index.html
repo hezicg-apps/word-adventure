@@ -1,156 +1,34 @@
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>English Learning Adventure</title>
-    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link rel="stylesheet" href="css/style.css">
+<style>
+    /* סורק Knight Rider */
+    .scanner-container {
+        width: 200px;
+        height: 10px;
+        background: #111;
+        border: 2px solid #333;
+        border-radius: 5px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+    }
+    .scanner-bar {
+        width: 40px;
+        height: 100%;
+        background: linear-gradient(90deg, rgba(255,0,0,0) 0%, rgba(255,0,0,1) 50%, rgba(255,0,0,0) 100%);
+        position: absolute;
+        box-shadow: 0 0 15px 5px rgba(255, 0, 0, 0.8);
+        animation: scan 1.5s infinite ease-in-out;
+    }
+    @keyframes scan {
+        0% { left: -40px; }
+        50% { left: 200px; }
+        100% { left: -40px; }
+    }
+</style>
 
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="favicon.png">
-    <link rel="icon" type="image/png" href="favicon.png?v=3">
-    <meta name="theme-color" content="#1e293b">
-    
-    <style>
-        /* גופן גלובלי נעול - Fredoka המעוגל */
-        * { font-family: 'Fredoka', 'Assistant', sans-serif !important; }
-        
-        body { 
-            transition: background-color 0.3s, color 0.3s; 
-            color: #2563eb; /* תכלת עמוק כברירת מחדל */
-        }
-
-        /* צבע שאלות ותשובות במצב יום - תכלת ידידותי */
-        .text-gray-800, .text-gray-700, #wordInput {
-            color: #1d4ed8 !important; 
-        }
-
-        /* כפתורי תשובות במבחן במצב יום - טקסט תכלת */
-        button.py-4.border-2 {
-            color: #1d4ed8 !important;
-            border-color: #bfdbfe !important;
-        }
-
-        /* כפתורי יודע/לא יודע - טקסט לבן חובה */
-        .bg-green-500, .bg-red-500, .bg-green-600, .bg-red-600 {
-            color: #ffffff !important;
-        }
-
-        .dot { animation: glow 1.5s infinite ease-in-out; }
-        .dot:nth-child(2) { animation-delay: 0.5s; }
-        .dot:nth-child(3) { animation-delay: 1s; }
-        @keyframes glow {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.3); }
-        }
-        
-        /* --- מצב לילה תכלת-נייבי --- */
-        .night-mode { 
-            background-color: #1e293b !important; 
-            color: #f1f5f9 !important; 
-        }
-
-        .night-mode .bg-white, 
-        .night-mode .welcome-card,
-        .night-mode .card-front,
-        .night-mode #wordInput,
-        .night-mode .bg-blue-50 { 
-            background-color: #334155 !important; 
-            color: #f1f5f9 !important; 
-            border-color: #475569 !important;
-        }
-
-        /* כפתורי התשובות במבחן במצב לילה */
-        .night-mode button.py-4.border-2 {
-            background-color: #475569 !important;
-            color: #f1f5f9 !important;
-            border-color: #64748b !important;
-        }
-        
-        /* צבעי הצלחה/כישלון - טקסט לבן תמיד */
-        .correct-ans { background-color: #22c55e !important; color: white !important; border-color: #16a34a !important; }
-        .wrong-ans { background-color: #ef4444 !important; color: white !important; border-color: #dc2626 !important; }
-
-        /* כפתור "חזרה לתפריט" */
-        .night-mode .bg-gray-200 { 
-            background-color: #94a3b8 !important; 
-            color: #0f172a !important; 
-        }
-
-        /* כותרות */
-        .night-mode h1, .night-mode .text-blue-600, .night-mode .text-blue-700 { color: #fbbf24 !important; }
-        
-        /* משחק הזיכרון */
-        .border-green-500 { border-color: #4ade80 !important; border-width: 5px !important; }
-        .bg-green-50 { background-color: #f0fdf4 !important; }
-        .night-mode .bg-green-50 { background-color: #064e3b !important; }
-
-        #shareBtnElement { min-width: 180px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 20px; }
-    </style>
-</head>
-<body class="bg-blue-50 min-h-screen">
-    
-    <div id="splash-screen" class="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-slate-900 transition-opacity duration-1000">
-        <img src="favicon.png" alt="Logo" class="w-80 h-80 mb-8 animate-pulse object-contain"> 
-        <h2 class="text-5xl font-black text-yellow-500 mb-10">Word Adventure</h2>
-        <div class="flex gap-4">
-            <div class="dot w-5 h-5 rounded-full bg-blue-500 shadow-[0_0_15px_#3b82f6]"></div>
-            <div class="dot w-5 h-5 rounded-full bg-purple-500 shadow-[0_0_15px_#a855f7]"></div>
-            <div class="dot w-5 h-5 rounded-full bg-blue-400 shadow-[0_0_15px_#60a5fa]"></div>
-        </div>
+<div id="splash-screen" class="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-black transition-opacity duration-1000">
+    <img src="favicon.png" alt="Logo" class="w-80 h-80 mb-12 animate-pulse object-contain opacity-90"> 
+    <h2 class="text-4xl font-black text-red-600 mb-8 tracking-widest eng-text">SCANNING SYSTEM...</h2>
+    <div class="scanner-container">
+        <div class="scanner-bar"></div>
     </div>
-
-    <header class="w-full max-w-2xl mx-auto px-4 py-4">
-        <div class="grid grid-cols-3 items-center w-full">
-            <div class="flex justify-start">
-                <button id="toggleNight" class="text-3xl bg-transparent border-none cursor-pointer p-2">☀️</button>
-            </div>
-            <div class="flex justify-center">
-                <h1 class="text-2xl sm:text-3xl font-black text-yellow-500 tracking-tight whitespace-nowrap drop-shadow-sm">Word Adventure</h1>
-            </div>
-            <div class="flex justify-end">
-                <img src="favicon.png?v=3" alt="Logo" class="h-14 w-auto object-contain cursor-pointer active:scale-90 transition-transform" onclick="resetAllData()">
-            </div>
-        </div>
-    </header>
-
-    <div id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center"></div>
-
-    <script src="js/main.js"></script>
-
-    <script>
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                if(splash) {
-                    splash.style.opacity = '0';
-                    setTimeout(() => splash.remove(), 1000);
-                }
-            }, 1200); 
-        });
-
-        const toggleBtn = document.getElementById('toggleNight');
-        toggleBtn.addEventListener('click', () => {
-            if (typeof state !== 'undefined') {
-                state.nightMode = !state.nightMode;
-                localStorage.setItem('theme', state.nightMode ? 'night' : 'day');
-                render(); 
-            }
-        });
-
-        window.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('theme') === 'night') {
-                if (typeof state !== 'undefined') {
-                    state.nightMode = true;
-                    render();
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+</div>

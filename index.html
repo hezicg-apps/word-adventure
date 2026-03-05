@@ -5,26 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Word Adventure</title>
     
-    <link rel="icon" type="image/png" href="favicon.png?v=3">
-    <link rel="apple-touch-icon" href="favicon.png">
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/png" href="favicon.png?v=4">
+    <link rel="apple-touch-icon" href="favicon.png?v=4">
+    <link rel="manifest" href="manifest.json?v=4">
     <meta name="theme-color" content="#1e293b">
 
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=4">
 
     <style>
-        /* גופן גלובלי נעול - Fredoka לילדים */
+        /* גופן גלובלי נעול */
         * { font-family: 'Fredoka', 'Assistant', sans-serif !important; }
         
-        body { transition: background-color 0.3s; color: #1d4ed8; }
+        body { transition: background-color 0.3s; color: #1d4ed8; overflow-x: hidden; }
 
-        /* מסך פתיחה קלאסי ומהיר */
-        #splash-screen {
+        /* מסך פתיחה - עיגולים זוהרים */
+        #new-splash-v4 {
             background-color: #0f172a;
             display: flex;
             flex-direction: column;
@@ -32,71 +30,56 @@
             justify-content: center;
             position: fixed;
             inset: 0;
-            z-index: 9999;
-            transition: opacity 0.5s ease;
+            z-index: 99999;
+        }
+        .glow-dot { 
+            width: 18px; height: 18px; border-radius: 50%; 
+            animation: glow-pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes glow-pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); box-shadow: 0 0 5px rgba(255,255,255,0.1); }
+            50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 15px currentColor; }
         }
 
-        /* צבע שאלות ותשובות במצב יום - תכלת עמוק (במקום שחור) */
-        .text-gray-800, .text-gray-700, #wordInput, .text-blue-main {
-            color: #1d4ed8 !important; 
+        /* חיווי תשובות במבחן - חובה לעדכן */
+        .correct-ans { 
+            background-color: #22c55e !important; 
+            color: #ffffff !important; 
+            border-color: #16a34a !important; 
+            transform: scale(1.02);
+        }
+        .wrong-ans { 
+            background-color: #ef4444 !important; 
+            color: #ffffff !important; 
+            border-color: #dc2626 !important; 
         }
 
-        /* כפתורי תשובות במבחן - טקסט תכלת במצב יום */
-        button.py-4.border-2 {
-            color: #1d4ed8 !important;
-            border-color: #bfdbfe !important;
-        }
+        /* צבעי טקסט במצב יום */
+        .text-gray-800, .text-gray-700, #wordInput, .text-blue-main { color: #1d4ed8 !important; }
+        button.py-4.border-2 { color: #1d4ed8 !important; border-color: #bfdbfe !important; }
 
-        /* כפתורי יודע/לא יודע - טקסט לבן חובה */
-        .bg-green-500, .bg-red-500, .bg-green-600, .bg-red-600, .correct-ans, .wrong-ans {
-            color: #ffffff !important;
+        /* מצב לילה */
+        .night-mode { background-color: #1e293b !important; color: #f1f5f9 !important; }
+        .night-mode .bg-white, .night-mode .welcome-card, .night-mode .card-front, .night-mode #wordInput { 
+            background-color: #334155 !important; color: #f1f5f9 !important; border-color: #475569 !important;
         }
+        .night-mode button.py-4.border-2 { background-color: #475569 !important; color: #f1f5f9 !important; border-color: #64748b !important; }
+        .night-mode h1 { color: #fbbf24 !important; }
 
-        /* --- מצב לילה תכלת-נייבי רך --- */
-        .night-mode { 
-            background-color: #1e293b !important; 
-            color: #f1f5f9 !important; 
-        }
-
-        .night-mode .bg-white, 
-        .night-mode .welcome-card,
-        .night-mode .card-front,
-        .night-mode #wordInput,
-        .night-mode .bg-blue-50 { 
-            background-color: #334155 !important; 
-            color: #f1f5f9 !important; 
-            border-color: #475569 !important;
-        }
-
-        /* כפתורי התשובות במבחן במצב לילה */
-        .night-mode button.py-4.border-2 {
-            background-color: #475569 !important;
-            color: #f1f5f9 !important;
-            border-color: #64748b !important;
-        }
-
-        /* כפתור "חזרה לתפריט" במצב לילה */
-        .night-mode .bg-gray-200 { 
-            background-color: #94a3b8 !important; 
-            color: #0f172a !important; 
-        }
-
-        /* כותרות */
-        .night-mode h1, .night-mode .text-blue-600, .night-mode .text-blue-700 { color: #fbbf24 !important; }
-        
-        /* משחק הזיכרון - מסגרת ירוקה בולטת */
+        /* משחק הזיכרון */
         .border-green-500 { border-color: #4ade80 !important; border-width: 5px !important; }
-        .bg-green-50 { background-color: #f0fdf4 !important; }
-        .night-mode .bg-green-50 { background-color: #064e3b !important; }
-
-        #shareBtnElement { min-width: 180px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 20px; }
     </style>
 </head>
 <body class="bg-blue-50 min-h-screen">
     
-    <div id="splash-screen">
-        <img src="favicon.png" alt="Logo" class="w-64 h-64 mb-8 animate-pulse object-contain"> 
-        <h2 class="text-3xl font-black text-yellow-500">Word Adventure</h2>
+    <div id="new-splash-v4">
+        <img src="favicon.png" alt="Logo" class="w-64 h-64 mb-12 animate-pulse object-contain"> 
+        <div class="flex gap-8 mb-4">
+            <div class="glow-dot text-blue-500 bg-blue-500"></div>
+            <div class="glow-dot text-purple-500 bg-purple-500" style="animation-delay: 0.3s"></div>
+            <div class="glow-dot text-pink-500 bg-pink-500" style="animation-delay: 0.6s"></div>
+        </div>
+        <h2 class="text-2xl font-bold text-yellow-500 tracking-widest uppercase">Loading Adventure</h2>
     </div>
 
     <header class="w-full max-w-2xl mx-auto px-4 py-4 relative z-10">
@@ -108,25 +91,26 @@
                 <h1 class="text-xl sm:text-3xl font-black text-yellow-500 tracking-tight whitespace-nowrap drop-shadow-sm">Word Adventure</h1>
             </div>
             <div class="flex justify-end">
-                <img src="favicon.png?v=3" alt="Logo" class="h-12 w-auto cursor-pointer active:scale-90 transition-transform" onclick="resetAllData()">
+                <img src="favicon.png?v=4" alt="Logo" class="h-12 w-auto cursor-pointer active:scale-90 transition-transform" onclick="resetAllData()">
             </div>
         </div>
     </header>
 
     <main id="app" class="container mx-auto px-4 pb-10 max-w-2xl flex flex-col items-center relative z-10"></main>
 
-    <script src="js/main.js"></script>
+    <script src="js/main.js?v=4"></script>
 
     <script>
-        // הסרת מסך פתיחה מהירה (0.8 שניות)
+        // הסרת מסך פתיחה - בטוחה יותר
         window.addEventListener('load', () => {
-            setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                if(splash) {
+            const splash = document.getElementById('new-splash-v4');
+            if(splash) {
+                setTimeout(() => {
                     splash.style.opacity = '0';
+                    splash.style.transition = 'opacity 0.5s ease';
                     setTimeout(() => splash.remove(), 500);
-                }
-            }, 800); 
+                }, 1000);
+            }
         });
 
         // כפתור מצב לילה
@@ -141,7 +125,7 @@
             });
         }
 
-        // טעינה ראשונית - הגדרת ערכת נושא
+        // טעינה ראשונית
         window.addEventListener('DOMContentLoaded', () => {
             if (localStorage.getItem('theme') === 'night' && typeof state !== 'undefined') {
                 state.nightMode = true;

@@ -27,27 +27,19 @@ function saveToLocal() {
 }
 
 function loadFromLocal() {
-    const params = new URLSearchParams(window.location.search);
-    const sharedData = params.get('w');
-    
-    if (sharedData) {
-        try {
-            // פענוח Base64 שתומך בעברית
-            state.inputText = decodeURIComponent(escape(atob(sharedData)));
-            processInput(false);
-            state.screen = 'welcome'; // מתחילים מההתחלה עם הרשימה החדשה
-            return;
-        } catch(e) { console.error("שגיאה בפענוח הקישור"); }
-    }
-    
     const savedWords = localStorage.getItem('wm_words');
+    const savedInput = localStorage.getItem('wm_input');
+    const savedListName = localStorage.getItem('wm_listName');
+    
     if (savedWords) {
         state.words = JSON.parse(savedWords);
-        state.inputText = localStorage.getItem('wm_input') || '';
-        state.listName = localStorage.getItem('wm_listName') || 'אוצר המילים שלי';
-        state.screen = 'menu';
-        state.masteryScore = 100; 
+        // התיקון: אם נמצאו מילים בזיכרון, דלג על מסך הפתיחה ועבור לכרטיסיות
+        if (state.words.length > 0) {
+            state.screen = 'flashcards';
+        }
     }
+    if (savedInput) state.inputText = savedInput;
+    if (savedListName) state.listName = savedListName;
 }
 
 function shareList() {
@@ -481,3 +473,4 @@ window.addEventListener('keydown', (e) => {
 
 loadFromLocal();
 render();
+

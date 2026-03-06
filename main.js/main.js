@@ -33,6 +33,7 @@ function loadFromLocal() {
     
     if (savedWords) {
         state.words = JSON.parse(savedWords);
+        // אם יש מילים בזיכרון, נלך לכרטיסיות
         if (state.words.length > 0) state.screen = 'flashcards';
     }
     if (savedInput) state.inputText = savedInput;
@@ -147,6 +148,7 @@ function processInput() {
 function renderFlashcards(app) {
     const unknown = state.words.filter(w => !w.known);
     if (unknown.length === 0) {
+        // אם סיימנו את הכרטיסיות, עוברים למבחן
         state.screen = 'quiz';
         state.quizIndex = 0;
         state.correctAnswers = 0;
@@ -622,19 +624,23 @@ window.onload = () => {
         try {
             const decodedText = decodeURIComponent(escape(atob(sharedWords)));
             const lines = decodedText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            
             if (lines.length > 0) {
+                // בדיקה אם השורה הראשונה היא כותרת (אין בה מקף)
                 if (!lines[0].includes('-')) {
                     state.listName = lines[0];
-                    state.words = lines.filter(l => l.includes('-')).map(l => {
-                        const p = l.split('-');
-                        return { eng: p[0].trim(), heb: p[1].trim(), known: false };
+                    const wordLines = lines.filter(l => l.includes('-'));
+                    state.words = wordLines.map(l => {
+                        const parts = l.split('-');
+                        return { eng: parts[0].trim(), heb: parts[1].trim(), known: false };
                     });
                 } else {
-                    state.words = lines.filter(l => l.includes('-')).map(l => {
-                        const p = l.split('-');
-                        return { eng: p[0].trim(), heb: p[1].trim(), known: false };
+                    state.words = lines.map(l => {
+                        const parts = l.split('-');
+                        return { eng: parts[0].trim(), heb: parts[1].trim(), known: false };
                     });
                 }
+                // מעבר ישיר לכרטיסיות
                 state.screen = 'flashcards';
                 saveToLocal();
             }

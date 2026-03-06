@@ -5,14 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>English Learning Adventure</title>
     
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="icon" type="image/png" href="favicon.png?v=2">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 
     <style>
+        /* תיקון לטאץ' בטלפונים */
+        button, .card-inner, [onclick] {
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* אנימציית טעינה */
         .dot { animation: glow 1.5s infinite ease-in-out; }
         .dot:nth-child(2) { animation-delay: 0.5s; }
         .dot:nth-child(3) { animation-delay: 1s; }
@@ -22,38 +29,35 @@
         .brand-container {
             display: flex;
             align-items: center;
-            justify-content: flex-end; /* מצמיד לשמאל ב-RTL */
-            gap: 10px;
+            justify-content: flex-end;
+            gap: 8px;
         }
 
         #logo-img {
-            max-height: 45px;
+            max-height: 40px;
             width: auto;
             display: block;
         }
 
         .brand-text {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: 900;
-            color: #2563eb; /* כחול */
-            letter-spacing: -0.05em;
+            color: #2563eb;
+            white-space: nowrap;
         }
         
-        /* מצב לילה לטקסט */
-        .night-mode .brand-text {
-            color: #facc15 !important;
-        }
+        .night-mode .brand-text { color: #facc15 !important; }
     </style>
 </head>
 <body class="p-4 min-h-screen flex flex-col items-center bg-slate-50 transition-colors duration-300">
 
     <header class="w-full max-w-md flex justify-between items-center mb-6 py-2">
-        <button id="toggleNight" class="text-3xl bg-transparent border-none p-2 rounded-full hover:scale-110 transition-transform shadow-none outline-none">☀️</button>
+        <button id="toggleNight" class="text-3xl bg-transparent border-none p-2 rounded-full shadow-none outline-none">☀️</button>
         
         <div id="game-branding" class="brand-container">
-            <button onclick="resetToInput()" id="logo-btn" class="bg-transparent border-none p-0 outline-none shadow-none flex items-center gap-2">
+            <button onclick="resetToInput()" class="bg-transparent border-none p-0 outline-none shadow-none flex items-center gap-2">
                 <span class="brand-text">WORD ADVENTURE</span>
-                <img id="logo-img" src="logo.png" alt="" onerror="this.style.display='none';">
+                <img id="logo-img" src="logo.png?v=1" alt="" onerror="this.style.display='none';">
             </button>
         </div>
     </header>
@@ -66,13 +70,12 @@
             <div class="dot w-4 h-4 bg-blue-500 rounded-full"></div>
             <div class="dot w-4 h-4 bg-blue-400 rounded-full"></div>
         </div>
-        <p class="font-black text-blue-600">טוען...</p>
+        <p class="font-black text-blue-600">מעלה את ההרפתקה...</p>
     </div>
 
-    <script src="main.js"></script>
+    <script src="main.js?v=2"></script>
 
     <script>
-        // פונקציה לאיפוס
         function resetToInput() {
             if(confirm("האם לאפס את הרשימה ולהזין מילים חדשות?")) {
                 state.words = [];

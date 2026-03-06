@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="style.css?v=2">
 
-    <style>
+  <style>
         /* תיקון לטאץ' בטלפונים */
         button, .card-inner, [onclick] {
             cursor: pointer;
@@ -25,7 +25,7 @@
         .dot:nth-child(3) { animation-delay: 1s; }
         @keyframes glow { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
         
-        /* עיצוב הלוגו והטקסט */
+        /* עיצוב הלוגו והטקסט - הגרסה המתוקנת */
         .brand-container {
             display: flex;
             align-items: center;
@@ -34,9 +34,10 @@
         }
 
         #logo-img {
-            max-height: 40px;
+            height: 40px; /* גובה קבוע */
             width: auto;
-            display: block;
+            display: block; /* מוודא שזה לא נסתר */
+            object-fit: contain;
         }
 
         .brand-text {
@@ -48,19 +49,20 @@
         
         .night-mode .brand-text { color: #facc15 !important; }
     </style>
+    
 </head>
 <body class="p-4 min-h-screen flex flex-col items-center bg-slate-50 transition-colors duration-300">
 
   <header class="w-full max-w-md flex justify-between items-center mb-6 py-2">
-    <button id="toggleNight" class="text-3xl bg-transparent border-none p-2 rounded-full shadow-none outline-none">☀️</button>
-    
-    <div id="game-branding" class="brand-container">
-        <button onclick="resetToInput()" class="bg-transparent border-none p-0 outline-none shadow-none flex items-center gap-2">
-            <img id="logo-img" src="logo.png" alt="Logo">
-            <span class="brand-text">WORD ADVENTURE</span>
-        </button>
-    </div>
-</header>
+        <button id="toggleNight" class="text-3xl bg-transparent border-none p-2 rounded-full shadow-none outline-none">☀️</button>
+        
+        <div id="game-branding" class="brand-container">
+            <button onclick="resetToInput()" class="bg-transparent border-none p-0 outline-none shadow-none flex items-center gap-2">
+                <span class="brand-text">WORD ADVENTURE</span>
+                <img id="logo-img" src="logo.png" alt="Logo">
+            </button>
+        </div>
+    </header>
 
     <main id="app" class="w-full max-w-md"></main>
 
@@ -94,5 +96,6 @@
     </script>
 </body>
 </html>
+
 
 

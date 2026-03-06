@@ -3,84 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Adventure</title>
+    <title>Word Adventure Full</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f0f7ff; }
-        .card { transition: 0.3s; }
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&display=swap');
+        body { font-family: 'Assistant', sans-serif; background: #f0f7ff; transition: 0.3s; }
+        .card-inner { transition: transform 0.6s; transform-style: preserve-3d; position: relative; width: 100%; height: 100%; }
+        .card-flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 4px solid #e2e8f0; }
+        .card-back { transform: rotateY(180deg); background: #2563eb; color: white; border-color: #1d4ed8; }
+        .eng-text { font-family: 'Arial', sans-serif; }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center">
-    <h1 class="text-3xl font-black text-blue-600 my-6">Word Adventure</h1>
+<body class="p-4 min-h-screen flex flex-col items-center">
+    <h1 class="text-3xl font-black text-blue-600 my-4">Word Adventure</h1>
     
-    <div id="app" class="w-full max-w-md">
-        </div>
+    <div id="app" class="w-full max-w-md"></div>
 
     <script>
         let state = {
             screen: 'input',
             words: [],
-            currentIdx: 0
+            listName: 'הרשימה שלי',
+            currentIdx: 0,
+            score: 0,
+            memory: { cards: [], flipped: [], pairs: 0, lock: false },
+            c4: { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: null }
         };
 
         function render() {
             const app = document.getElementById('app');
-            
-            if (state.screen === 'input') {
-                app.innerHTML = `
-                    <div class="bg-white p-6 rounded-3xl shadow-xl border-4 border-blue-100">
-                        <h2 class="text-xl font-bold mb-4">הזינו מילים (מילה - תרגום):</h2>
-                        <textarea id="mainInput" class="w-full h-48 p-4 border-2 rounded-2xl mb-4 text-right" placeholder="apple - תפוח"></textarea>
-                        <button onclick="startApp()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-xl shadow-lg hover:bg-blue-700">צור כרטיסיות! 🚀</button>
-                    </div>`;
-            } else if (state.screen === 'learn') {
-                const word = state.words[state.currentIdx];
-                app.innerHTML = `
-                    <div class="space-y-6 text-center">
-                        <div class="bg-white p-12 rounded-[2rem] shadow-2xl border-4 border-blue-500 card">
-                            <div class="text-sm text-gray-400 mb-4">מילה ${state.currentIdx + 1} מתוך ${state.words.length}</div>
-                            <div class="text-5xl font-black text-blue-600 mb-6">${word.eng}</div>
-                            <div id="translation" class="text-3xl font-bold text-gray-800 hidden bg-blue-50 py-4 rounded-xl">${word.heb}</div>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 gap-4">
-                            <button onclick="document.getElementById('translation').classList.remove('hidden')" class="bg-green-500 text-white py-4 rounded-2xl font-bold text-lg shadow-md">הצג תרגום 👁️</button>
-                            <button onclick="nextWord()" class="bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg shadow-md">המילה הבאה ➡️</button>
-                            <button onclick="state.screen='input'; render();" class="text-gray-400 font-bold mt-4">חזרה להזנת מילים</button>
-                        </div>
-                    </div>`;
-            }
+            app.innerHTML = '';
+
+            if (state.screen === 'input') renderInput(app);
+            else if (state.screen === 'menu') renderMenu(app);
+            else if (state.screen === 'learn') renderLearn(app);
+            else if (state.screen === 'quiz') renderQuiz(app);
+            else if (state.screen === 'memory') renderMemory(app);
+            else if (state.screen === 'c4') renderC4(app);
         }
 
-        function startApp() {
-            const text = document.getElementById('mainInput').value;
-            const lines = text.split('\n').filter(l => l.includes('-'));
-            
-            if (lines.length === 0) {
-                alert('חובה להשתמש בסימן מינוס (-) בין המילה לתרגום. למשל: apple - תפוח');
+        function renderInput(app) {
+            app.innerHTML = `
+                <div class="bg-white p-6 rounded-[2rem] shadow-xl border-4 border-blue-100">
+                    <h2 class="text-xl font-bold mb-4">הכנס רשימת מילים:</h2>
+                    <textarea id="wordsIn" class="w-full h-48 p-4 border-2 rounded-2xl mb-4 text-right" placeholder="apple - תפוח\nbanana - בננה"></textarea>
+                    <button onclick="process()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-xl shadow-lg hover:scale-105 transition">צור משחקים! ✨</button>
+                </div>`;
+        }
+
+        function process() {
+            const raw = document.getElementById('wordsIn').value;
+            const lines = raw.split('\n').filter(l => l.includes('-'));
+            if (lines.length < 2) return alert('נא להזין לפחות 2 מילים עם סימן מינוס (-)');
+            state.words = lines.map(l => {
+                const [e, h] = l.split('-').map(s => s.trim());
+                return { eng: e, heb: h };
+            });
+            state.screen = 'menu';
+            render();
+        }
+
+        function renderMenu(app) {
+            app.innerHTML = `
+                <div class="grid gap-4">
+                    <div class="bg-white p-6 rounded-2xl text-center shadow">
+                        <h2 class="text-2xl font-bold text-blue-600">כל המילים מוכנות!</h2>
+                        <p class="text-gray-500">מה נרצה לעשות עכשיו?</p>
+                    </div>
+                    <button onclick="state.screen='learn'; state.currentIdx=0; render()" class="p-6 bg-orange-400 text-white rounded-3xl text-2xl font-black shadow-lg">כרטיסיות לימוד 🗂️</button>
+                    <button onclick="state.screen='quiz'; state.currentIdx=0; state.score=0; render()" class="p-6 bg-blue-500 text-white rounded-3xl text-2xl font-black shadow-lg">מבחן אמריקאי 📝</button>
+                    <button onclick="startMemory()" class="p-6 bg-purple-500 text-white rounded-3xl text-2xl font-black shadow-lg">משחק זיכרון 🧠</button>
+                    <button onclick="startC4()" class="p-6 bg-red-500 text-white rounded-3xl text-2xl font-black shadow-lg">4 בשורה 🔴🟡</button>
+                    <button onclick="state.screen='input'; render()" class="mt-4 text-gray-400 font-bold">🗑️ מחק רשימה והתחל מחדש</button>
+                </div>`;
+        }
+
+        function renderLearn(app) {
+            const word = state.words[state.currentIdx];
+            app.innerHTML = `
+                <div class="flex flex-col items-center space-y-6">
+                    <div class="w-full h-72 perspective-1000 cursor-pointer" onclick="this.classList.toggle('card-flipped')">
+                        <div class="card-inner shadow-2xl">
+                            <div class="card-front bg-white"><span class="text-4xl font-black text-blue-600 eng-text">${word.eng}</span><p class="mt-4 text-gray-300">לחץ להפיכה</p></div>
+                            <div class="card-back"><span class="text-4xl font-bold">${word.heb}</span></div>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 w-full">
+                        <button onclick="state.currentIdx = (state.currentIdx + 1) % state.words.length; render()" class="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold text-xl shadow">הבא ➡️</button>
+                        <button onclick="state.screen='menu'; render()" class="px-8 py-4 bg-gray-800 text-white rounded-2xl font-bold">בית 🏠</button>
+                    </div>
+                </div>`;
+        }
+
+        function renderQuiz(app) {
+            const word = state.words[state.currentIdx];
+            if (!word) { 
+                app.innerHTML = `<div class="text-center bg-white p-10 rounded-3xl shadow-xl"><h2 class="text-3xl font-bold mb-4">סיימת! 🏆</h2><p class="text-xl mb-6">צדקת ב-${state.score} מתוך ${state.words.length}</p><button onclick="state.screen='menu'; render()" class="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold">חזרה לתפריט</button></div>`;
                 return;
             }
+            let opts = [word.heb, ...state.words.filter(w => w.heb !== word.heb).map(w => w.heb).sort(() => 0.5 - Math.random()).slice(0, 3)].sort(() => 0.5 - Math.random());
+            app.innerHTML = `
+                <div class="bg-white p-8 rounded-3xl shadow-xl text-center">
+                    <div class="text-4xl font-black text-blue-600 mb-8 eng-text">${word.eng}</div>
+                    <div class="grid gap-3">
+                        ${opts.map(o => `<button onclick="ansQuiz('${o}','${word.heb}')" class="py-4 border-2 rounded-2xl font-bold hover:bg-blue-50 transition">${o}</button>`).join('')}
+                    </div>
+                </div>`;
+        }
 
-            state.words = lines.map(l => {
-                const parts = l.split('-');
-                return { eng: parts[0].trim(), heb: parts[1].trim() };
+        function ansQuiz(sel, cor) {
+            if (sel === cor) { state.score++; confetti(); }
+            state.currentIdx++; render();
+        }
+
+        function startMemory() {
+            let cards = [];
+            const pool = state.words.sort(() => 0.5 - Math.random()).slice(0, 6);
+            pool.forEach(w => {
+                cards.push({ v: w.eng, p: w.heb, f: false, m: false });
+                cards.push({ v: w.heb, p: w.eng, f: false, m: false });
             });
-            
-            state.currentIdx = 0;
-            state.screen = 'learn';
-            render();
+            state.memory = { cards: cards.sort(() => 0.5 - Math.random()), flipped: [], pairs: 0, lock: false };
+            state.screen = 'memory'; render();
         }
 
-        function nextWord() {
-            state.currentIdx++;
-            if (state.currentIdx >= state.words.length) {
-                alert('סיימת את כל המילים! חוזרים להתחלה.');
-                state.currentIdx = 0;
+        function renderMemory(app) {
+            app.innerHTML = `<div class="grid grid-cols-3 gap-3">
+                ${state.memory.cards.map((c, i) => `
+                    <div onclick="moveMem(${i})" class="h-24 rounded-xl flex items-center justify-center cursor-pointer transition shadow-md ${c.m ? 'opacity-0' : (c.f ? 'bg-white border-2 border-purple-500' : 'bg-purple-600 text-white')}">
+                        <span class="font-bold text-xs ${c.f ? '' : 'hidden'}">${c.v}</span>
+                    </div>`).join('')}
+            </div><button onclick="state.screen='menu'; render()" class="w-full mt-6 py-4 bg-gray-800 text-white rounded-xl font-bold">יציאה</button>`;
+        }
+
+        function moveMem(i) {
+            const m = state.memory; if (m.lock || m.cards[i].f || m.cards[i].m) return;
+            m.cards[i].f = true; m.flipped.push(i); render();
+            if (m.flipped.length === 2) {
+                m.lock = true; const [a, b] = m.flipped;
+                if (m.cards[a].v === m.cards[b].p || m.cards[b].v === m.cards[a].p) {
+                    setTimeout(() => { m.cards[a].m = m.cards[b].m = true; m.pairs++; m.flipped = []; m.lock = false; if (m.pairs === 6) { confetti(); alert('כל הכבוד!'); state.screen='menu'; } render(); }, 500);
+                } else {
+                    setTimeout(() => { m.cards[a].f = m.cards[b].f = false; m.flipped = []; m.lock = false; render(); }, 1000);
+                }
             }
-            render();
         }
 
-        // הפעלה ראשונית
+        function startC4() {
+            state.c4 = { board: Array(6).fill(null).map(() => Array(7).fill(null)), turn: 1, q: null };
+            state.screen = 'c4'; render();
+        }
+
+        function renderC4(app) {
+            const c = state.c4;
+            app.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <div class="mb-4 font-bold text-lg bg-white px-6 py-2 rounded-full shadow">${c.turn === 1 ? '🔴 תור אדום' : '🟡 תור צהוב'}</div>
+                    <div class="bg-blue-800 p-2 rounded-xl grid grid-cols-7 gap-1 shadow-2xl">
+                        ${c.board.map((row, r) => row.map((cell, col) => `
+                            <div onclick="clickC4(${col})" class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center cursor-pointer">
+                                ${cell === 1 ? '<div class="w-8 h-8 bg-red-500 rounded-full"></div>' : cell === 2 ? '<div class="w-8 h-8 bg-yellow-400 rounded-full"></div>' : ''}
+                            </div>`).join('')).join('')}
+                    </div>
+                    ${c.q ? `<div class="fixed inset-0 bg-black/80 flex items-center justify-center p-4"><div class="bg-white p-6 rounded-2xl w-full max-w-xs text-center">
+                        <h3 class="text-3xl font-black text-blue-600 mb-4">${c.q.eng}</h3>
+                        <div class="grid gap-2">${c.q.opts.map(o => `<button onclick="checkC4('${o}')" class="py-3 bg-gray-100 rounded-xl font-bold">${o}</button>`).join('')}</div>
+                    </div></div>` : ''}
+                    <button onclick="state.screen='menu'; render()" class="mt-6 text-gray-500 font-bold">חזרה</button>
+                </div>`;
+        }
+
+        function clickC4(col) {
+            if (state.c4.board[0][col]) return;
+            const word = state.words[Math.floor(Math.random() * state.words.length)];
+            let opts = [word.heb, ...state.words.filter(w => w.heb !== word.heb).map(w => w.heb).sort(() => 0.5-Math.random()).slice(0, 2)].sort(() => 0.5-Math.random());
+            state.c4.q = { ...word, opts, col }; render();
+        }
+
+        function checkC4(ans) {
+            const c = state.c4;
+            if (ans === c.q.heb) {
+                for (let r = 5; r >= 0; r--) {
+                    if (!c.board[r][c.q.col]) { c.board[r][c.q.col] = c.turn; break; }
+                }
+                c.turn = c.turn === 1 ? 2 : 1;
+            } else { alert('טעות!'); c.turn = c.turn === 1 ? 2 : 1; }
+            c.q = null; render();
+        }
+
         render();
     </script>
 </body>

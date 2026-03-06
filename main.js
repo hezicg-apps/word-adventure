@@ -217,7 +217,7 @@ function renderQuiz(app) {
     if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4">
-            ${renderHeader(`מבחן: ${state.quizIndex + 1}/${state.words.length}`)}
+            ${renderHeader(`אתגר המילים: ${state.quizIndex + 1}/${state.words.length}`)}
             <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative">
                 <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4 text-gray-800">
                     ${cur.eng}
@@ -463,3 +463,4 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+

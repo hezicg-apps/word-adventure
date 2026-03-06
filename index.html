@@ -34,12 +34,29 @@
         vertical-align: middle;
     }
 
+  /* עיצוב הלוגו והכותרת - מרכוז מוחלט */
+    .brand-container {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        white-space: nowrap;
+    }
+
+    #logo-img {
+        height: 35px !important; /* גובה הלוגו */
+        width: auto !important;
+        display: inline-block !important;
+        vertical-align: middle;
+    }
+
     /* הכותרת - גדולה ובולטת (BOLD) */
     .brand-text {
-        font-size: 1.5rem; /* גודל הטקסט */
-        font-weight: 900; /* עובי הטקסט - הכי מודגש */
-        color: #2563eb; /* צבע כחול */
-        white-space: nowrap;
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: #2563eb;
         letter-spacing: -0.02em;
     }
     
@@ -47,15 +64,16 @@
     .night-mode .brand-text { 
         color: #facc15 !important; 
     }
+        
 </style>
     
 </head>
 <body class="p-4 min-h-screen flex flex-col items-center bg-slate-50 transition-colors duration-300">
 
-    <header class="w-full max-w-md flex justify-between items-center mb-6 py-2 relative z-50">
-    <button id="toggleNight" class="text-3xl bg-transparent border-none p-2 rounded-full shadow-none outline-none">☀️</button>
+  <header class="w-full max-w-md flex items-center mb-10 py-2 relative z-50">
+    <button id="toggleNight" class="text-3xl bg-transparent border-none p-2 rounded-full shadow-none outline-none z-10">☀️</button>
     
-    <div id="game-branding">
+    <div class="brand-container">
         <button onclick="resetToInput()" class="bg-transparent border-none p-0 outline-none shadow-none flex items-center gap-2">
             <span class="brand-text">WORD ADVENTURE</span>
             <img id="logo-img" src="logo.png" alt="Logo">
@@ -102,4 +120,5 @@
     </script>
 </body>
 </html>
+
 

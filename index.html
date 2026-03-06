@@ -11,48 +11,51 @@
     <link rel="stylesheet" href="style.css">
 
     <style>
-        /* אנימציית טעינה בזמן שה-JS מתעורר */
         .dot { animation: glow 1.5s infinite ease-in-out; }
         .dot:nth-child(2) { animation-delay: 0.5s; }
         .dot:nth-child(3) { animation-delay: 1s; }
         @keyframes glow { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+        
+        /* הסתרת האפליקציה עד שהיא נטענת */
+        #app:empty + #loading-screen { display: flex; }
+        #app:not(:empty) { display: block; }
     </style>
 </head>
-<body class="p-4 min-h-screen flex flex-col items-center bg-slate-50">
+<body class="p-4 min-h-screen flex flex-col items-center bg-slate-50 transition-colors duration-300">
 
     <header class="w-full max-w-md flex justify-between items-center mb-6 py-2">
         <button id="toggleNight" class="text-3xl bg-white p-3 rounded-full shadow-lg hover:scale-110 transition-transform">☀️</button>
         
         <div id="game-branding" class="text-2xl font-black text-blue-600 tracking-tighter">
-            WORD ADVENTURE
+            <img src="logo.png" alt="WORD ADVENTURE" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span style="display:none;">WORD ADVENTURE</span>
         </div>
         
         <div class="w-12"></div>
     </header>
 
-    <div id="app" class="w-full max-w-md">
-        <div id="loading-screen" class="flex flex-col items-center justify-center mt-20">
-            <div class="flex gap-2 mb-4">
-                <div class="dot w-4 h-4 bg-blue-600 rounded-full"></div>
-                <div class="dot w-4 h-4 bg-blue-500 rounded-full"></div>
-                <div class="dot w-4 h-4 bg-blue-400 rounded-full"></div>
-            </div>
-            <p class="font-black text-blue-600 animate-pulse">טוען את הגרסה המלאה...</p>
+    <main id="app" class="w-full max-w-md">
+        </main>
+
+    <div id="loading-screen" class="flex flex-col items-center justify-center mt-20">
+        <div class="flex gap-2 mb-4">
+            <div class="dot w-4 h-4 bg-blue-600 rounded-full"></div>
+            <div class="dot w-4 h-4 bg-blue-500 rounded-full"></div>
+            <div class="dot w-4 h-4 bg-blue-400 rounded-full"></div>
         </div>
+        <p class="font-black text-blue-600">טוען את ההרפתקה המלאה...</p>
     </div>
 
     <script src="main.js"></script>
 
     <script>
-        // בדיקה שהכל נטען
+        // וידוא שהמשחק מתחיל גם אם יש שיהוי בטעינה
         window.addEventListener('load', () => {
-            // אם אחרי 2 שניות עדיין יש מסך טעינה, סימן שיש שגיאה ב-JS
-            setTimeout(() => {
-                const app = document.getElementById('app');
-                if (app.innerHTML.includes('loading-screen')) {
-                    console.error("The app failed to render. Check main.js for errors.");
-                }
-            }, 2000);
+            if (typeof render === 'function') {
+                const loading = document.getElementById('loading-screen');
+                if (loading) loading.style.display = 'none';
+                render(); 
+            }
         });
     </script>
 </body>

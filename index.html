@@ -2,46 +2,85 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word Adventure</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: sans-serif; background: #f0f7ff; }
+        .card { transition: 0.3s; }
+    </style>
 </head>
-<body class="bg-blue-50 p-4 flex flex-col items-center font-sans">
-    <h1 class="text-2xl font-black text-blue-600 mb-6">Word Adventure</h1>
-    <div id="app" class="w-full max-w-md"></div>
+<body class="p-4 flex flex-col items-center">
+    <h1 class="text-3xl font-black text-blue-600 my-6">Word Adventure</h1>
+    
+    <div id="app" class="w-full max-w-md">
+        </div>
 
     <script>
-        let words = [];
-        let screen = 'input';
+        let state = {
+            screen: 'input',
+            words: [],
+            currentIdx: 0
+        };
 
         function render() {
             const app = document.getElementById('app');
-            if (screen === 'input') {
+            
+            if (state.screen === 'input') {
                 app.innerHTML = `
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <textarea id="win" class="w-full h-32 border p-2 mb-4 text-right" placeholder="מילה - תרגום"></textarea>
-                        <button onclick="save()" class="w-full bg-blue-600 text-white p-4 rounded-xl font-bold">התחל ללמוד</button>
+                    <div class="bg-white p-6 rounded-3xl shadow-xl border-4 border-blue-100">
+                        <h2 class="text-xl font-bold mb-4">הזינו מילים (מילה - תרגום):</h2>
+                        <textarea id="mainInput" class="w-full h-48 p-4 border-2 rounded-2xl mb-4 text-right" placeholder="apple - תפוח"></textarea>
+                        <button onclick="startApp()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-xl shadow-lg hover:bg-blue-700">צור כרטיסיות! 🚀</button>
                     </div>`;
-            } else {
+            } else if (state.screen === 'learn') {
+                const word = state.words[state.currentIdx];
                 app.innerHTML = `
-                    <div class="bg-white p-10 rounded-2xl shadow-lg text-center">
-                        <h2 class="text-3xl font-bold mb-4">${words[0].eng}</h2>
-                        <button onclick="alert(words[0].heb)" class="bg-green-500 text-white p-4 rounded-xl w-full">הצג תרגום</button>
-                        <button onclick="location.reload()" class="mt-4 text-gray-400">חזור</button>
+                    <div class="space-y-6 text-center">
+                        <div class="bg-white p-12 rounded-[2rem] shadow-2xl border-4 border-blue-500 card">
+                            <div class="text-sm text-gray-400 mb-4">מילה ${state.currentIdx + 1} מתוך ${state.words.length}</div>
+                            <div class="text-5xl font-black text-blue-600 mb-6">${word.eng}</div>
+                            <div id="translation" class="text-3xl font-bold text-gray-800 hidden bg-blue-50 py-4 rounded-xl">${word.heb}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-4">
+                            <button onclick="document.getElementById('translation').classList.remove('hidden')" class="bg-green-500 text-white py-4 rounded-2xl font-bold text-lg shadow-md">הצג תרגום 👁️</button>
+                            <button onclick="nextWord()" class="bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg shadow-md">המילה הבאה ➡️</button>
+                            <button onclick="state.screen='input'; render();" class="text-gray-400 font-bold mt-4">חזרה להזנת מילים</button>
+                        </div>
                     </div>`;
             }
         }
 
-        function save() {
-            const val = document.getElementById('win').value;
-            if(!val.includes('-')) return alert('צריך סימן - בין המילה לתרגום');
-            words = val.split('\n').map(l => {
-                const [e, h] = l.split('-');
-                return {eng: e.trim(), heb: h.trim()};
+        function startApp() {
+            const text = document.getElementById('mainInput').value;
+            const lines = text.split('\n').filter(l => l.includes('-'));
+            
+            if (lines.length === 0) {
+                alert('חובה להשתמש בסימן מינוס (-) בין המילה לתרגום. למשל: apple - תפוח');
+                return;
+            }
+
+            state.words = lines.map(l => {
+                const parts = l.split('-');
+                return { eng: parts[0].trim(), heb: parts[1].trim() };
             });
-            screen = 'learn';
+            
+            state.currentIdx = 0;
+            state.screen = 'learn';
             render();
         }
 
+        function nextWord() {
+            state.currentIdx++;
+            if (state.currentIdx >= state.words.length) {
+                alert('סיימת את כל המילים! חוזרים להתחלה.');
+                state.currentIdx = 0;
+            }
+            render();
+        }
+
+        // הפעלה ראשונית
         render();
     </script>
 </body>

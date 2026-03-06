@@ -52,15 +52,15 @@
 <body class="p-4 min-h-screen flex flex-col items-center bg-slate-50 transition-colors duration-300">
 
   <header class="w-full max-w-md flex justify-between items-center mb-6 py-2">
-        <button id="toggleNight" class="text-3xl bg-transparent border-none p-2 rounded-full shadow-none outline-none">☀️</button>
-        
-        <div id="game-branding" class="brand-container">
-            <button onclick="resetToInput()" class="bg-transparent border-none p-0 outline-none shadow-none flex items-center gap-2">
-                <img id="logo-img" src="./logo.png?v=3" alt="Logo" onerror="this.style.display='none';">
-                <span class="brand-text">WORD ADVENTURE</span>
-            </button>
-        </div>
-    </header>
+    <button id="toggleNight" class="text-3xl bg-transparent border-none p-2 rounded-full shadow-none outline-none">☀️</button>
+    
+    <div id="game-branding" class="brand-container">
+        <button onclick="resetToInput()" class="bg-transparent border-none p-0 outline-none shadow-none flex items-center gap-2">
+            <img id="logo-img" src="logo.png" alt="Logo">
+            <span class="brand-text">WORD ADVENTURE</span>
+        </button>
+    </div>
+</header>
 
     <main id="app" class="w-full max-w-md"></main>
 
@@ -94,4 +94,5 @@
     </script>
 </body>
 </html>
+
 

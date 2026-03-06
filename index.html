@@ -34,46 +34,41 @@
         vertical-align: middle;
     }
 
- /* עיצוב הלוגו והכותרת - מרכוז מוחלט */
+ /* עיצוב הלוגו והכותרת - מוצמד לשמאל */
     .brand-container {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
         display: flex;
-        flex-direction: row-reverse; /* גורם ללוגו להיות משמאל לטקסט */
         align-items: center;
         gap: 10px;
         white-space: nowrap;
+        /* כאן אין יותר position: absolute */
     }
 
     #logo-img {
-        height: 38px !important; /* גובה הלוגו */
+        height: 40px !important; /* גודל לוגו ברור */
         width: auto !important;
-        display: inline-block !important;
+        display: block !important;
     }
 
     .brand-text {
-        font-size: 1.6rem; /* כותרת גדולה ובולטת */
+        font-size: 1.4rem;
         font-weight: 900;
         color: #2563eb;
         letter-spacing: -0.02em;
-        line-height: 1;
     }
     
     .night-mode .brand-text { color: #facc15 !important; }
-        
 </style>
     
 </head>
 <body class="p-4 min-h-screen flex flex-col items-center bg-slate-50 transition-colors duration-300">
 
- <header class="w-full max-w-md flex items-center mb-10 py-2 relative z-50" style="min-height: 60px;">
-    <button id="toggleNight" class="text-3xl bg-transparent border-none p-2 rounded-full shadow-none outline-none z-10">☀️</button>
+ <header class="w-full max-w-md flex justify-between items-center mb-10 py-2 relative z-50">
+    <button id="toggleNight" class="text-3xl bg-transparent border-none p-2 rounded-full shadow-none outline-none">☀️</button>
     
-    <div class="brand-container">
-        <button onclick="resetToInput()" class="bg-transparent border-none p-0 outline-none shadow-none flex flex-row-reverse items-center gap-2">
-            <img id="logo-img" src="logo.png" alt="Logo">
+    <div id="game-branding" class="brand-container">
+        <button onclick="resetToInput()" class="bg-transparent border-none p-0 outline-none shadow-none flex items-center gap-2">
             <span class="brand-text">WORD ADVENTURE</span>
+            <img id="logo-img" src="logo.png" alt="Logo">
         </button>
     </div>
 </header>
@@ -117,6 +112,7 @@
     </script>
 </body>
 </html>
+
 
 
 

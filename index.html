@@ -4,43 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>English Learning Adventure</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
     <link rel="stylesheet" href="style.css">
-
-    <style>
-        /* עיצוב זמני למסך הטעינה */
-        .dot { animation: glow 1.5s infinite ease-in-out; }
-        .dot:nth-child(2) { animation-delay: 0.5s; }
-        .dot:nth-child(3) { animation-delay: 1s; }
-        @keyframes glow { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
-    </style>
 </head>
-<body class="bg-slate-900 flex items-center justify-center min-h-screen">
-    
-    <div id="app" class="w-full max-w-md p-4">
-        <div id="loading-screen" class="flex flex-col items-center">
+<body class="p-4 min-h-screen flex flex-col items-center bg-slate-50">
+
+    <header class="w-full max-w-md flex justify-between items-center mb-6 py-2">
+        <button id="toggleNight" class="text-3xl bg-white p-3 rounded-full shadow-lg">☀️</button>
+        <div id="game-branding" class="text-2xl font-black text-blue-600">
+            WORD ADVENTURE
+        </div>
+        <div class="w-12"></div>
+    </header>
+
+    <div id="app" class="w-full max-w-md">
+        <div id="loading-screen" class="flex flex-col items-center justify-center mt-20">
             <div class="flex gap-2 mb-4">
-                <div class="dot w-4 h-4 bg-blue-500 rounded-full"></div>
-                <div class="dot w-4 h-4 bg-blue-500 rounded-full"></div>
-                <div class="dot w-4 h-4 bg-blue-500 rounded-full"></div>
+                <div class="w-4 h-4 bg-blue-600 rounded-full animate-bounce"></div>
+                <div class="w-4 h-4 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                <div class="w-4 h-4 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.5s]"></div>
             </div>
-            <p class="text-white font-black text-xl">טוען את ההרפתקה...</p>
+            <p class="font-black text-blue-600">טוען את המשחק שלך...</p>
         </div>
     </div>
 
     <script src="main.js"></script>
-    
-    <script>
-        // בדיקה אם ה-JS נטען בכלל
-        window.addEventListener('load', () => {
-            if (typeof render === 'undefined') {
-                document.getElementById('loading-screen').innerHTML = 
-                    '<p class="text-red-500 font-black text-center">שגיאה: קובץ main.js לא נמצא.<br>וודא שהקובץ נמצא בתיקייה הראשית ב-GitHub.</p>';
-            }
-        });
-    </script>
 </body>
 </html>

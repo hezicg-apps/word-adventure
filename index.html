@@ -18,22 +18,43 @@
         .dot:nth-child(3) { animation-delay: 1s; }
         @keyframes glow { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
         
-        /* עיצוב לוגו מצד שמאל */
-        #game-branding img {
-            max-height: 50px;
+        /* עיצוב הלוגו והטקסט */
+        .brand-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; /* מצמיד לשמאל ב-RTL */
+            gap: 10px;
+        }
+
+        #logo-img {
+            max-height: 45px;
             width: auto;
-            object-fit: contain;
+            display: block;
+        }
+
+        .brand-text {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #2563eb; /* כחול */
+            letter-spacing: -0.05em;
+        }
+        
+        /* מצב לילה לטקסט */
+        .night-mode .brand-text {
+            color: #facc15 !important;
         }
     </style>
 </head>
 <body class="p-4 min-h-screen flex flex-col items-center bg-slate-50 transition-colors duration-300">
 
     <header class="w-full max-w-md flex justify-between items-center mb-6 py-2">
-        <button id="toggleNight" class="text-3xl bg-transparent p-3 rounded-full hover:scale-110 transition-transform outline-none border-none shadow-none">☀️</button>
+        <button id="toggleNight" class="text-3xl bg-transparent border-none p-2 rounded-full hover:scale-110 transition-transform shadow-none outline-none">☀️</button>
         
-        <div id="game-branding" class="flex items-center">
-            <img src="logo.png" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-            <span style="display:none;" class="text-2xl font-black text-blue-600">WORD ADVENTURE</span>
+        <div id="game-branding" class="brand-container">
+            <button onclick="resetToInput()" id="logo-btn" class="bg-transparent border-none p-0 outline-none shadow-none flex items-center gap-2">
+                <span class="brand-text">WORD ADVENTURE</span>
+                <img id="logo-img" src="logo.png" alt="" onerror="this.style.display='none';">
+            </button>
         </div>
     </header>
 
@@ -51,6 +72,15 @@
     <script src="main.js"></script>
 
     <script>
+        // פונקציה לאיפוס
+        function resetToInput() {
+            if(confirm("האם לאפס את הרשימה ולהזין מילים חדשות?")) {
+                state.words = [];
+                state.screen = 'input';
+                render();
+            }
+        }
+
         window.addEventListener('load', () => {
             if (typeof render === 'function') {
                 const loading = document.getElementById('loading-screen');

@@ -1,32 +1,27 @@
+// בדיקה בסיסית - האם הקוד רץ?
+console.log("JS is running!");
+
 let state = {
-    screen: 'welcome',
-    words: [],
-    listName: 'הרשימה שלי'
+    screen: 'welcome'
 };
 
 function render() {
     const app = document.getElementById('app');
-    if (!app) return;
-    
+    if (!app) {
+        console.error("Could not find element with id 'app'");
+        return;
+    }
+
     if (state.screen === 'welcome') {
         app.innerHTML = `
-            <div class="bg-white p-10 rounded-3xl shadow-xl text-center border-4 border-blue-100">
-                <h2 class="text-3xl font-bold mb-6">ברוכים הבאים! 🚀</h2>
-                <button onclick="state.screen='input'; render();" class="bg-blue-600 text-white px-8 py-4 rounded-full text-xl font-bold">התחל עכשיו</button>
-            </div>`;
-    } else if (state.screen === 'input') {
-        app.innerHTML = `
-            <div class="w-full max-w-md bg-white p-6 rounded-3xl shadow-lg">
-                <textarea id="wordInput" class="w-full h-40 p-4 border-2 rounded-xl mb-4 text-right" placeholder="מילה - תרגום"></textarea>
-                <button onclick="processInput()" class="w-full bg-green-500 text-white py-4 rounded-xl font-bold">צור משחק</button>
-            </div>`;
+            <div style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center;">
+                <h2 style="font-size: 24px; margin-bottom: 20px;">הקוד עובד! 🎉</h2>
+                <p style="margin-bottom: 20px;">אם אתם רואים את זה, הקשר בין הקבצים תקין.</p>
+                <button onclick="alert('מעולה!')" style="background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold;">לחצו עליי</button>
+            </div>
+        `;
     }
 }
 
-function processInput() {
-    const val = document.getElementById('wordInput').value;
-    if (!val.includes('-')) return alert('כתוב בפורמט: מילה - תרגום');
-    alert('הצלחת! הקוד עובד. עכשיו אפשר להמשיך למשחקים.');
-}
-
+// הפעלה ברגע שהדף נטען
 window.onload = render;

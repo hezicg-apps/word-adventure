@@ -167,7 +167,7 @@
 }
 
 #game-branding img {
-    display: none; /* מסתיר את הלוגו הישן אם נשאר */
+   
 }
 
 /* תיקון לוגו וטקסט */
@@ -191,3 +191,4 @@ header img {
 .night-mode header img {
     filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
 }
+

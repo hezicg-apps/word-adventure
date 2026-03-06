@@ -11,32 +11,25 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="style.css?v=2">
 
-  <style>
-        /* תיקון לטאץ' בטלפונים */
+    <style>
         button, .card-inner, [onclick] {
             cursor: pointer;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* אנימציית טעינה */
         .dot { animation: glow 1.5s infinite ease-in-out; }
         .dot:nth-child(2) { animation-delay: 0.5s; }
         .dot:nth-child(3) { animation-delay: 1s; }
         @keyframes glow { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
         
-        /* עיצוב הלוגו והטקסט - הגרסה המתוקנת */
-        .brand-container {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 8px;
-        }
-
+        /* עיצוב הלוגו - בכוח */
         #logo-img {
-            height: 40px; /* גובה קבוע */
-            width: auto;
-            display: block; /* מוודא שזה לא נסתר */
+            height: 45px !important;
+            width: auto !important;
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
             object-fit: contain;
         }
 
@@ -49,15 +42,14 @@
         
         .night-mode .brand-text { color: #facc15 !important; }
     </style>
-    
 </head>
 <body class="p-4 min-h-screen flex flex-col items-center bg-slate-50 transition-colors duration-300">
 
-  <header class="w-full max-w-md flex justify-between items-center mb-6 py-2">
+    <header class="w-full max-w-md flex justify-between items-center mb-6 py-2 relative z-50">
         <button id="toggleNight" class="text-3xl bg-transparent border-none p-2 rounded-full shadow-none outline-none">☀️</button>
         
-        <div id="game-branding" class="brand-container">
-            <button onclick="resetToInput()" class="bg-transparent border-none p-0 outline-none shadow-none flex items-center gap-2">
+        <div id="game-branding">
+            <button onclick="resetToInput()" class="bg-transparent border-none p-0 outline-none shadow-none flex items-center gap-3">
                 <span class="brand-text">WORD ADVENTURE</span>
                 <img id="logo-img" src="logo.png" alt="Logo">
             </button>
@@ -86,7 +78,14 @@
             }
         }
 
+        // פונקציית רענון לוגו למקרה של Cache של GitHub
         window.addEventListener('load', () => {
+            const img = document.getElementById('logo-img');
+            // אם התמונה לא נטענה (גובה 0), ננסה להכריח אותה עם Timestamp
+            if (img && img.naturalHeight === 0) {
+                img.src = "logo.png?t=" + new Date().getTime();
+            }
+
             if (typeof render === 'function') {
                 const loading = document.getElementById('loading-screen');
                 if (loading) loading.style.display = 'none';
@@ -96,6 +95,3 @@
     </script>
 </body>
 </html>
-
-
-

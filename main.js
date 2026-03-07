@@ -69,26 +69,26 @@ function getShareUrl() {
 function shareVia(platform) {
     const url = getShareUrl();
     if (!url) return;
-    const text = encodeURIComponent(`הנה רשימת המילים שלי באנגלית - ${state.listName}: `);
+    
+    // הודעה עם ירידת שורה (ENTER) בין שם הרשימה לקישור
+    const messageText = `הנה רשימת המילים שלי באנגלית:\n${state.listName}\n\n`;
+    const encodedText = encodeURIComponent(messageText);
     
     switch(platform) {
         case 'whatsapp':
-            window.open(`https://api.whatsapp.com/send?text=${text}${url}`, '_blank');
+            window.open(`https://api.whatsapp.com/send?text=${encodedText}${url}`, '_blank');
             break;
         case 'gmail':
-            window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${state.listName}&body=${text}${url}`, '_blank');
-            break;
-        case 'email':
-            window.location.href = `mailto:?subject=${state.listName}&body=${text}${url}`;
+            window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${state.listName}&body=${encodedText}${url}`, '_blank');
             break;
         case 'copy':
             navigator.clipboard.writeText(url).then(() => {
                 const btn = document.getElementById('copyBtn');
-                const originalText = btn.innerHTML;
+                const originalContent = btn.innerHTML;
                 btn.innerHTML = '✅ הקישור הועתק!';
                 btn.classList.add('bg-green-100', 'text-green-700', 'border-green-300');
                 setTimeout(() => {
-                    btn.innerHTML = originalText;
+                    btn.innerHTML = originalContent;
                     btn.classList.remove('bg-green-100', 'text-green-700', 'border-green-300');
                 }, 2000);
             });
@@ -103,20 +103,20 @@ function renderShareModal(app) {
     modal.innerHTML = `
         <div class="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl border-4 border-blue-400 relative">
             <button onclick="state.showShareModal=false; render();" class="absolute top-4 left-4 text-3xl text-gray-300 hover:text-gray-500 transition-colors">✕</button>
-            <h3 class="text-3xl font-black text-blue-700 mb-2 text-center">איך לשתף? 🚀</h3>
-            <p class="text-gray-600 font-bold text-center mb-6 text-sm">בחרו איך לשלוח את המילים לחבר או למורה:</p>
+            <h3 class="text-3xl font-black text-blue-700 mb-2 text-center text-right">איך לשתף?</h3>
+            <p class="text-gray-600 font-bold text-center mb-6 text-sm text-right">בחרו איך לשלוח את המילים:</p>
             <div class="grid gap-4">
                 <button onclick="shareVia('whatsapp')" class="flex items-center gap-4 p-4 bg-[#25D366] text-white rounded-2xl font-black shadow-md active:scale-95 transition-transform text-lg">
-                    <span class="text-3xl">📱</span> שלחו ב-WhatsApp
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="w-8 h-8 filter brightness-0 invert" alt="WhatsApp">
+                    <span>שלחו ב-WhatsApp</span>
                 </button>
                 <button onclick="shareVia('gmail')" class="flex items-center gap-4 p-4 bg-[#EA4335] text-white rounded-2xl font-black shadow-md active:scale-95 transition-transform text-lg">
-                    <span class="text-3xl">📧</span> שלחו ב-Gmail
-                </button>
-                <button onclick="shareVia('email')" class="flex items-center gap-4 p-4 bg-gray-600 text-white rounded-2xl font-black shadow-md active:scale-95 transition-transform text-lg">
-                    <span class="text-3xl">📩</span> שלחו בדוא"ל
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" class="w-8 h-8" alt="Gmail">
+                    <span>שלחו ב-Gmail</span>
                 </button>
                 <button id="copyBtn" onclick="shareVia('copy')" class="flex items-center gap-4 p-4 bg-blue-50 text-blue-700 border-2 border-blue-200 rounded-2xl font-black shadow-sm active:scale-95 transition-transform text-lg">
-                    <span class="text-3xl">🔗</span> העתיקו קישור
+                    <span class="text-2xl">📋</span>
+                    <span>העתיקו קישור</span>
                 </button>
             </div>
         </div>

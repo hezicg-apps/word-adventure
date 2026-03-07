@@ -222,21 +222,20 @@ function renderFlashcards(app) {
     const unknown = state.words.filter(w => !w.known);
     if (unknown.length === 0) { state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render(); return; }
     const cur = unknown[0];
-    const tutorialColor = state.nightMode ? 'bg-white text-black' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    const tutorialColor = state.nightMode ? 'bg-transparent text-yellow-500 border-yellow-500/30' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
     app.innerHTML = `
-        <div class="text-center space-y-4 w-full max-sm px-2 mt-2 relative">
-            ${renderHeader(`לימוד מילים (${state.words.filter(w=>w.known).length}/${state.words.length})`)}
-            <div class="${tutorialColor} py-2 px-6 rounded-full inline-flex items-center gap-2 font-black border mb-2 shadow-sm transition-colors">
-                <span>לחצו על הכרטיסייה לסיבוב</span>
-                <span class="text-xl">🔄</span>
+        <div class="text-center space-y-2 w-full max-sm px-2 mt-1">
+            ${renderHeader(`לימוד: ${state.words.filter(w=>w.known).length}/${state.words.length}`)}
+            <div class="${tutorialColor} py-1 px-6 rounded-full inline-flex items-center gap-2 font-black border mb-1 shadow-sm text-sm">
+                <span>לחצו על הכרטיסייה לסיבוב</span> 🔄
             </div>
-            <div onclick="this.classList.toggle('card-flipped')" class="relative w-full h-80 perspective-1000 cursor-pointer mt-2">
+            <div onclick="this.classList.toggle('card-flipped')" class="relative w-full h-72 perspective-1000 cursor-pointer">
                 <div class="card-inner">
-                    <div class="card-front bg-white border-4 border-blue-200 flex-col"><span class="text-5xl font-black text-blue-600 eng-text mb-6">${cur.eng}</span><button onclick="event.stopPropagation(); speak('${cur.eng}')" class="text-5xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div>
+                    <div class="card-front bg-white border-4 border-blue-200 flex-col"><span class="text-5xl font-black text-blue-600 eng-text mb-6">${cur.eng}</span><button onclick="event.stopPropagation(); speak('${cur.eng}')" class="text-5xl">🔊</button></div>
                     <div class="card-back bg-blue-600 border-4 border-blue-700 text-white"><span class="text-4xl font-black px-4 text-center">${cur.heb}</span></div>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-4 mt-2">
                  <button onclick="state.words.find(w=>w.id === '${cur.id}').known=true; render()" class="bg-green-600 text-white py-5 rounded-2xl font-black text-2xl shadow-md active:scale-95 transition-transform">יודע ✅</button>
                  <button onclick="state.words = shuffle(state.words); render()" class="bg-orange-600 text-white py-5 rounded-2xl font-black text-2xl shadow-md active:scale-95 transition-transform">עוד לא ⏳</button>
             </div>
@@ -579,6 +578,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

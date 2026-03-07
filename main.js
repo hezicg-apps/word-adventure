@@ -285,31 +285,34 @@ function handleQuizAns(selected, correct, idx) {
 // צמצום רווחים במסך התפריט
 function renderMenu(app) {
     const isLocked = state.masteryScore < 70;
-    const shareBtnStyle = state.nightMode ? 'bg-white text-black border-gray-200' : 'bg-blue-50 text-blue-700 border-blue-200';
+    const isDark = state.nightMode;
+    const shareBtnStyle = isDark ? 'bg-transparent text-yellow-500 border-yellow-500/50' : 'bg-blue-50 text-blue-700 border-blue-200';
+    const resetBtnStyle = isDark ? 'bg-transparent text-red-400 border-red-400/50' : 'bg-red-50 text-red-600 border-red-100';
+
     app.innerHTML = `
-        <div class="text-center space-y-4 w-full max-w-md px-2 mt-2 animate-fade-in">
+        <div class="text-center space-y-3 w-full max-w-md px-2 mt-1 animate-fade-in">
             <div class="w-full flex justify-between items-center mb-0 px-1">
                 <button onclick="window.location.href='https://hezicg-apps.github.io/wa-website/'" 
                     class="bg-white text-gray-700 px-4 py-2 rounded-full font-black text-xs border-2 border-gray-200 shadow-sm flex items-center gap-2 active:scale-95">
                     <span>🏠</span> בית
                 </button>
                 <button onclick="resetAllData()" 
-                    class="bg-red-50 text-red-600 px-4 py-2 rounded-full font-black text-xs border-2 border-red-100 shadow-sm active:scale-95">
+                    class="${resetBtnStyle} px-4 py-2 rounded-full font-black text-xs border-2 shadow-sm active:scale-95">
                     🗑️ רשימה חדשה
                 </button>
             </div>
-            <div class="bg-white p-6 rounded-[2rem] shadow-xl border-4 border-blue-100 welcome-card">
-                ${renderHeader(isLocked ? 'צריך 70% כדי לפתוח משחקים' : 'המשחקים פתוחים!')}
-                <p class="text-xl font-bold text-gray-700 mb-4">הציון הנוכחי: ${state.masteryScore.toFixed(0)}%</p>
+            <div class="bg-white p-4 rounded-[2rem] shadow-xl border-4 border-blue-100 welcome-card">
+                ${renderHeader(isLocked ? 'צריך 70% למשחקים' : 'המשחקים פתוחים!')}
+                <p class="text-xl font-bold text-gray-700 mb-2">ציון: ${state.masteryScore.toFixed(0)}%</p>
                 <div class="flex gap-2 justify-center">
-                    <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="bg-orange-600 text-white px-6 py-2 rounded-full font-black shadow-md text-sm">🔄 תרגול חוזר</button>
+                    <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="bg-orange-600 text-white px-6 py-2 rounded-full font-black shadow-md text-sm">🔄 תרגול</button>
                     <button onclick="state.showShareModal=true; render();" class="${shareBtnStyle} border px-6 py-2 rounded-full font-black shadow-sm text-sm flex items-center gap-2">🔗 שיתוף</button>
                 </div>
             </div>
-            <div class="grid gap-4">
-                <button onclick="${isLocked?'':'startMemory()'}" class="p-6 bg-purple-600 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">משחק זיכרון 🧠</button>
-                <button onclick="${isLocked?'':'state.screen=\'c4_menu\'; render()'}" class="p-6 bg-blue-600 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">4 בשורה 🔴🟡</button>
-                <button onclick="${isLocked?'':'startWordQuest()'}" class="p-6 bg-emerald-600 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">הקוד הסודי 🔐</button>
+            <div class="grid gap-3">
+                <button onclick="${isLocked?'':'startMemory()'}" class="p-5 bg-purple-600 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">משחק זיכרון 🧠</button>
+                <button onclick="${isLocked?'':'state.screen=\'c4_menu\'; render()'}" class="p-5 bg-blue-600 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">4 בשורה 🔴🟡</button>
+                <button onclick="${isLocked?'':'startWordQuest()'}" class="p-5 bg-emerald-600 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">הקוד הסודי 🔐</button>
             </div>
         </div>`;
 }
@@ -576,5 +579,6 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 

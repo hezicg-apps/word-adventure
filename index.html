@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>English Learning Adventure</title>
+    
+    <link rel="icon" type="image/png" href="favicon.png?v=2">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="style.css?v=2">
+
+    <style>
+    /* תיקון לטאץ' בטלפונים */
+    button, .card-inner, [onclick] {
+        cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* אנימציית טעינה */
+    .dot { animation: glow 1.5s infinite ease-in-out; }
+    .dot:nth-child(2) { animation-delay: 0.5s; }
+    .dot:nth-child(3) { animation-delay: 1s; }
+    @keyframes glow { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+    
+    /* עיצוב הלוגו - גודל מעודכן */
+    #logo-img {
+        height: 32px !important; /* הגובה של הלוגו */
+        width: auto !important;
+        display: inline-block !important;
+        object-fit: contain;
+        vertical-align: middle;
+    }
+
+ /* עיצוב הלוגו והכותרת - מוצמד לשמאל */
+    .brand-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        white-space: nowrap;
+        /* כאן אין יותר position: absolute */
+    }
+
+    #logo-img {
+        height: 40px !important; /* גודל לוגו ברור */
+        width: auto !important;
+        display: block !important;
+    }
+
+    .brand-text {
+        font-size: 1.4rem;
+        font-weight: 900;
+        color: #2563eb;
+        letter-spacing: -0.02em;
+    }
+    
+    .night-mode .brand-text { color: #facc15 !important; }
+</style>
+    
+</head>
+<body class="p-4 min-h-screen flex flex-col items-center bg-slate-50 transition-colors duration-300">
+
+ <header class="w-full max-w-md flex justify-between items-center mb-10 py-2 relative z-50">
+    <button id="toggleNight" class="text-3xl bg-transparent border-none p-2 rounded-full shadow-none outline-none">☀️</button>
+    
+    <div id="game-branding" class="brand-container">
+        <button onclick="resetToInput()" class="bg-transparent border-none p-0 outline-none shadow-none flex items-center gap-2">
+            <span class="brand-text">WORD ADVENTURE</span>
+            <img id="logo-img" src="logo.png" alt="Logo">
+        </button>
+    </div>
+</header>
+
+    <main id="app" class="w-full max-w-md"></main>
+
+    <div id="loading-screen" class="flex flex-col items-center justify-center mt-20">
+        <div class="flex gap-2 mb-4">
+            <div class="dot w-4 h-4 bg-blue-600 rounded-full"></div>
+            <div class="dot w-4 h-4 bg-blue-500 rounded-full"></div>
+            <div class="dot w-4 h-4 bg-blue-400 rounded-full"></div>
+        </div>
+        <p class="font-black text-blue-600">מעלה את ההרפתקה...</p>
+    </div>
+
+    <script src="main.js?v=2"></script>
+
+    <script>
+        function resetToInput() {
+            if(confirm("האם לאפס את הרשימה ולהזין מילים חדשות?")) {
+                state.words = [];
+                state.screen = 'input';
+                render();
+            }
+        }
+
+        // פונקציית רענון לוגו למקרה של Cache של GitHub
+        window.addEventListener('load', () => {
+            const img = document.getElementById('logo-img');
+            // אם התמונה לא נטענה (גובה 0), ננסה להכריח אותה עם Timestamp
+            if (img && img.naturalHeight === 0) {
+                img.src = "logo.png?t=" + new Date().getTime();
+            }
+
+            if (typeof render === 'function') {
+                const loading = document.getElementById('loading-screen');
+                if (loading) loading.style.display = 'none';
+                render(); 
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+

@@ -91,36 +91,40 @@ function shareVia(platform) {
     }
 }
 
-function renderShareModal(app) {
-    if (!state.showShareModal) return;
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black/60 flex items-center justify-center z-[500] px-4 animate-fade-in';
-    modal.innerHTML = `
-        <div class="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl border-4 border-blue-400 relative text-right">
-            <button onclick="state.showShareModal=false; render();" class="absolute top-4 left-4 text-3xl text-gray-300 hover:text-gray-500 transition-colors">✕</button>
-            <h3 class="text-3xl font-black text-blue-700 mb-2 text-center">איך לשתף?</h3>
-            <p class="text-gray-600 font-bold text-center mb-6 text-sm">בחרו איך לשלוח את המילים:</p>
-            <div class="grid gap-3">
-                <button onclick="shareVia('whatsapp')" class="flex items-center justify-between p-4 bg-white text-gray-800 border-2 border-[#25D366] rounded-2xl font-black shadow-sm active:scale-95 transition-transform text-lg">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="w-8 h-8" alt="WhatsApp">
-                    <span>שלחו ב-WhatsApp</span>
+function renderMenu(app) {
+    const isLocked = state.masteryScore < 70;
+    const isDark = state.nightMode;
+    const shareBtnStyle = isDark ? 'bg-transparent text-yellow-500 border-yellow-500/50' : 'bg-blue-50 text-blue-700 border-blue-200';
+    
+    // כאן מוגדר הכפתור ללא רקע במצב לילה
+    const resetBtnStyle = isDark ? 'bg-transparent text-red-400 border-red-400/50' : 'bg-red-50 text-red-600 border-red-100';
+
+    app.innerHTML = `
+        <div class="text-center space-y-3 w-full max-w-md px-2 mt-1 animate-fade-in">
+            <div class="w-full flex justify-between items-center mb-0 px-1">
+                <button onclick="window.location.href='https://hezicg-apps.github.io/wa-website/'" 
+                    class="bg-white text-gray-700 px-4 py-2 rounded-full font-black text-xs border-2 border-gray-200 shadow-sm flex items-center gap-2 active:scale-95">
+                    <span>🏠</span> בית
                 </button>
-                <button onclick="shareVia('gmail')" class="flex items-center justify-between p-4 bg-white text-gray-800 border-2 border-[#EA4335] rounded-2xl font-black shadow-sm active:scale-95 transition-transform text-lg">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" class="w-8 h-8" alt="Gmail">
-                    <span>שלחו ב-Gmail</span>
-                </button>
-                <button onclick="shareVia('email')" class="flex items-center justify-between p-4 bg-white text-gray-800 border-2 border-blue-400 rounded-2xl font-black shadow-sm active:scale-95 transition-transform text-lg">
-                    <span class="text-3xl">✉️</span>
-                    <span>שלחו בדוא"ל אחר</span>
-                </button>
-                <button id="copyBtn" onclick="shareVia('copy')" class="flex items-center justify-between p-4 bg-blue-50 text-blue-700 border-2 border-blue-200 rounded-2xl font-black shadow-sm active:scale-95 transition-transform text-lg mt-2">
-                    <span class="text-2xl">📋</span>
-                    <span>העתיקו קישור</span>
+                <button onclick="resetAllData()" 
+                    class="${resetBtnStyle} px-4 py-2 rounded-full font-black text-xs border-2 shadow-sm active:scale-95">
+                    🗑️ רשימה חדשה
                 </button>
             </div>
-        </div>
-    `;
-    app.appendChild(modal);
+            <div class="bg-white p-4 rounded-[2rem] shadow-xl border-4 border-blue-100 welcome-card">
+                ${renderHeader(isLocked ? 'צריך 70% כדי לפתוח משחקים' : 'המשחקים פתוחים!')}
+                <p class="text-xl font-bold text-gray-700 mb-2">הציון: ${state.masteryScore.toFixed(0)}%</p>
+                <div class="flex gap-2 justify-center">
+                    <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="bg-orange-600 text-white px-6 py-2 rounded-full font-black shadow-md text-sm">🔄 תרגול חוזר</button>
+                    <button onclick="state.showShareModal=true; render();" class="${shareBtnStyle} border px-6 py-2 rounded-full font-black shadow-sm text-sm flex items-center gap-2">🔗 שיתוף</button>
+                </div>
+            </div>
+            <div class="grid gap-3">
+                <button onclick="${isLocked?'':'startMemory()'}" class="p-5 bg-purple-600 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">משחק זיכרון 🧠</button>
+                <button onclick="${isLocked?'':'state.screen=\'c4_menu\'; render()'}" class="p-5 bg-blue-600 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">4 בשורה 🔴🟡</button>
+                <button onclick="${isLocked?'':'startWordQuest()'}" class="p-5 bg-emerald-600 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">הקוד הסודי 🔐</button>
+            </div>
+        </div>`;
 }
 
 function resetAllData() { 
@@ -571,3 +575,4 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+

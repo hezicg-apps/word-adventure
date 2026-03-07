@@ -250,22 +250,23 @@ function renderQuiz(app) {
     }
     const cur = state.words[state.quizIndex];
     if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
+    
     app.innerHTML = `
-        <div class="text-center space-y-4 w-full max-w-sm px-2 mt-2">
+        <div class="text-center space-y-2 w-full max-w-sm px-2 mt-1 animate-fade-in">
             ${renderHeader(`אתגר: ${state.quizIndex + 1}/${state.words.length}`)}
-            <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative">
-                <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4 text-gray-800">
+            <div class="bg-white p-6 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative">
+                <div class="text-4xl font-black mb-6 eng-text flex items-center justify-center gap-4 text-gray-800">
                     ${cur.eng}
                     <button onclick="speak('${cur.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button>
                 </div>
-                <div class="grid gap-4">
+                <div class="grid gap-3">
                     ${state.quizOptions.map((o, idx) => {
                         let statusClass = '';
                         if (state.quizFeedback.status) {
                             if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans';
                             else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans';
                         }
-                        return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" class="py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 ${statusClass}">${o}</button>`;
+                        return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" class="py-3 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 ${statusClass}">${o}</button>`;
                     }).join('')}
                 </div>
             </div>
@@ -575,4 +576,5 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 

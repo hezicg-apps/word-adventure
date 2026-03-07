@@ -15,7 +15,8 @@ let state = {
         isGameOver: false, keyStates: {}, showTutorial: true, 
         roundIndex: 0, pool: [], completedCount: 0 
     },
-    winner: null
+    winner: null,
+    showShareModal: false
 };
 
 // --- עזרים ---
@@ -58,23 +59,69 @@ function loadFromLocal() {
     }
 }
 
-function shareList() {
-    if (!state.inputText || !state.inputText.includes('-')) {
-        alert("אין מילים לשתף.");
-        return;
-    }
-    try {
-        let encodedData = btoa(unescape(encodeURIComponent(state.inputText)));
-        encodedData = encodedData.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-        const shareUrl = `${window.location.origin}${window.location.pathname}?w=${encodedData}`;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(shareUrl).then(() => {
-                alert("הועתק!");
+function getShareUrl() {
+    if (!state.inputText || !state.inputText.includes('-')) return null;
+    let encodedData = btoa(unescape(encodeURIComponent(state.inputText)));
+    encodedData = encodedData.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return `${window.location.origin}${window.location.pathname}?w=${encodedData}`;
+}
+
+function shareVia(platform) {
+    const url = getShareUrl();
+    if (!url) return;
+    const text = encodeURIComponent(`הנה רשימת המילים שלי באנגלית - ${state.listName}: `);
+    
+    switch(platform) {
+        case 'whatsapp':
+            window.open(`https://api.whatsapp.com/send?text=${text}${url}`, '_blank');
+            break;
+        case 'gmail':
+            window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${state.listName}&body=${text}${url}`, '_blank');
+            break;
+        case 'email':
+            window.location.href = `mailto:?subject=${state.listName}&body=${text}${url}`;
+            break;
+        case 'copy':
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ הקישור הועתק!';
+                btn.classList.add('bg-green-100', 'text-green-700', 'border-green-300');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('bg-green-100', 'text-green-700', 'border-green-300');
+                }, 2000);
             });
-        } else {
-            prompt("העתיקו את הקישור:", shareUrl);
-        }
-    } catch(e) { alert("שגיאה ביצירת הקישור."); }
+            break;
+    }
+}
+
+function renderShareModal(app) {
+    if (!state.showShareModal) return;
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/60 flex items-center justify-center z-[500] px-4 animate-fade-in';
+    modal.innerHTML = `
+        <div class="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl border-4 border-blue-400 relative">
+            <button onclick="state.showShareModal=false; render();" class="absolute top-4 left-4 text-3xl text-gray-300 hover:text-gray-500 transition-colors">✕</button>
+            <h3 class="text-3xl font-black text-blue-700 mb-2 text-center">איך לשתף? 🚀</h3>
+            <p class="text-gray-600 font-bold text-center mb-6 text-sm">בחרו איך לשלוח את המילים לחבר או למורה:</p>
+            <div class="grid gap-4">
+                <button onclick="shareVia('whatsapp')" class="flex items-center gap-4 p-4 bg-[#25D366] text-white rounded-2xl font-black shadow-md active:scale-95 transition-transform text-lg">
+                    <span class="text-3xl">📱</span> שלחו ב-WhatsApp
+                </button>
+                <button onclick="shareVia('gmail')" class="flex items-center gap-4 p-4 bg-[#EA4335] text-white rounded-2xl font-black shadow-md active:scale-95 transition-transform text-lg">
+                    <span class="text-3xl">📧</span> שלחו ב-Gmail
+                </button>
+                <button onclick="shareVia('email')" class="flex items-center gap-4 p-4 bg-gray-600 text-white rounded-2xl font-black shadow-md active:scale-95 transition-transform text-lg">
+                    <span class="text-3xl">📩</span> שלחו בדוא"ל
+                </button>
+                <button id="copyBtn" onclick="shareVia('copy')" class="flex items-center gap-4 p-4 bg-blue-50 text-blue-700 border-2 border-blue-200 rounded-2xl font-black shadow-sm active:scale-95 transition-transform text-lg">
+                    <span class="text-3xl">🔗</span> העתיקו קישור
+                </button>
+            </div>
+        </div>
+    `;
+    app.appendChild(modal);
 }
 
 function resetAllData() { 
@@ -91,7 +138,9 @@ function render() {
     if (toggleBtn) toggleBtn.innerText = state.nightMode ? '🌙' : '☀️';
     const app = document.getElementById('app');
     app.innerHTML = '';
+    
     if (state.winner) { renderWinScreen(app); return; }
+    
     switch(state.screen) {
         case 'welcome': renderWelcome(app); break;
         case 'input': renderInput(app); break;
@@ -103,6 +152,8 @@ function render() {
         case 'connect4': renderConnect4(app); break;
         case 'wordquest': renderWordQuest(app); break;
     }
+
+    if (state.showShareModal) renderShareModal(app);
 }
 
 function renderHeader(subtext) {
@@ -251,7 +302,7 @@ function renderMenu(app) {
                 <p class="text-xl font-bold text-gray-700 mb-4">הציון הנוכחי: ${state.masteryScore.toFixed(0)}%</p>
                 <div class="flex gap-2 justify-center">
                     <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="bg-orange-600 text-white px-6 py-2 rounded-full font-black shadow-md text-sm">🔄 תרגול חוזר</button>
-                    <button onclick="shareList()" class="${shareBtnStyle} border px-6 py-2 rounded-full font-black shadow-sm text-sm flex items-center gap-2">🔗 שיתוף</button>
+                    <button onclick="state.showShareModal=true; render();" class="${shareBtnStyle} border px-6 py-2 rounded-full font-black shadow-sm text-sm flex items-center gap-2">🔗 שיתוף</button>
                 </div>
             </div>
             <div class="grid gap-4">

@@ -69,21 +69,13 @@ function getShareUrl() {
 function shareVia(platform) {
     const url = getShareUrl();
     if (!url) return;
-    
     const messageText = `הנה רשימת המילים שלי באנגלית:\n${state.listName}\n\n`;
     const encodedText = encodeURIComponent(messageText);
     const fullMessage = encodedText + url;
-    
     switch(platform) {
-        case 'whatsapp':
-            window.open(`https://api.whatsapp.com/send?text=${fullMessage}`, '_blank');
-            break;
-        case 'gmail':
-            window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(state.listName)}&body=${fullMessage}`, '_blank');
-            break;
-        case 'email':
-            window.location.href = `mailto:?subject=${encodeURIComponent(state.listName)}&body=${fullMessage}`;
-            break;
+        case 'whatsapp': window.open(`https://api.whatsapp.com/send?text=${fullMessage}`, '_blank'); break;
+        case 'gmail': window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(state.listName)}&body=${fullMessage}`, '_blank'); break;
+        case 'email': window.location.href = `mailto:?subject=${encodeURIComponent(state.listName)}&body=${fullMessage}`; break;
         case 'copy':
             navigator.clipboard.writeText(url).then(() => {
                 const btn = document.getElementById('copyBtn');
@@ -104,28 +96,24 @@ function renderShareModal(app) {
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black/60 flex items-center justify-center z-[500] px-4 animate-fade-in';
     modal.innerHTML = `
-        <div class="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl border-4 border-blue-400 relative">
+        <div class="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl border-4 border-blue-400 relative text-right">
             <button onclick="state.showShareModal=false; render();" class="absolute top-4 left-4 text-3xl text-gray-300 hover:text-gray-500 transition-colors">✕</button>
             <h3 class="text-3xl font-black text-blue-700 mb-2 text-center">איך לשתף?</h3>
             <p class="text-gray-600 font-bold text-center mb-6 text-sm">בחרו איך לשלוח את המילים:</p>
-            
             <div class="grid gap-3">
-                <button onclick="shareVia('whatsapp')" class="flex items-center gap-4 p-4 bg-white text-gray-800 border-2 border-[#25D366] rounded-2xl font-black shadow-sm active:scale-95 transition-transform text-lg">
+                <button onclick="shareVia('whatsapp')" class="flex items-center justify-between p-4 bg-white text-gray-800 border-2 border-[#25D366] rounded-2xl font-black shadow-sm active:scale-95 transition-transform text-lg">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="w-8 h-8" alt="WhatsApp">
                     <span>שלחו ב-WhatsApp</span>
                 </button>
-                
-                <button onclick="shareVia('gmail')" class="flex items-center gap-4 p-4 bg-white text-gray-800 border-2 border-[#EA4335] rounded-2xl font-black shadow-sm active:scale-95 transition-transform text-lg">
+                <button onclick="shareVia('gmail')" class="flex items-center justify-between p-4 bg-white text-gray-800 border-2 border-[#EA4335] rounded-2xl font-black shadow-sm active:scale-95 transition-transform text-lg">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" class="w-8 h-8" alt="Gmail">
                     <span>שלחו ב-Gmail</span>
                 </button>
-
-                <button onclick="shareVia('email')" class="flex items-center gap-4 p-4 bg-white text-gray-800 border-2 border-blue-400 rounded-2xl font-black shadow-sm active:scale-95 transition-transform text-lg">
+                <button onclick="shareVia('email')" class="flex items-center justify-between p-4 bg-white text-gray-800 border-2 border-blue-400 rounded-2xl font-black shadow-sm active:scale-95 transition-transform text-lg">
                     <span class="text-3xl">✉️</span>
                     <span>שלחו בדוא"ל אחר</span>
                 </button>
-                
-                <button id="copyBtn" onclick="shareVia('copy')" class="flex items-center gap-4 p-4 bg-blue-50 text-blue-700 border-2 border-blue-200 rounded-2xl font-black shadow-sm active:scale-95 transition-transform text-lg mt-2">
+                <button id="copyBtn" onclick="shareVia('copy')" class="flex items-center justify-between p-4 bg-blue-50 text-blue-700 border-2 border-blue-200 rounded-2xl font-black shadow-sm active:scale-95 transition-transform text-lg mt-2">
                     <span class="text-2xl">📋</span>
                     <span>העתיקו קישור</span>
                 </button>
@@ -149,9 +137,7 @@ function render() {
     if (toggleBtn) toggleBtn.innerText = state.nightMode ? '🌙' : '☀️';
     const app = document.getElementById('app');
     app.innerHTML = '';
-    
     if (state.winner) { renderWinScreen(app); return; }
-    
     switch(state.screen) {
         case 'welcome': renderWelcome(app); break;
         case 'input': renderInput(app); break;
@@ -163,15 +149,16 @@ function render() {
         case 'connect4': renderConnect4(app); break;
         case 'wordquest': renderWordQuest(app); break;
     }
-
     if (state.showShareModal) renderShareModal(app);
 }
 
+// צמצום רווח בכותרת
 function renderHeader(subtext) {
+    const titleColor = state.nightMode ? 'text-yellow-500' : 'text-gray-800';
     return `
-        <div class="mb-4">
-            <h1 class="text-3xl font-black text-gray-800 tracking-tight">${state.listName}</h1>
-            ${subtext ? `<p class="text-lg font-bold text-blue-600 mt-1">${subtext}</p>` : ''}
+        <div class="mb-2">
+            <h1 class="text-3xl font-black ${titleColor} tracking-tight">${state.listName}</h1>
+            ${subtext ? `<p class="text-lg font-bold text-blue-600 mt-0">${subtext}</p>` : ''}
         </div>`;
 }
 
@@ -180,9 +167,8 @@ function renderWelcome(app) {
     const cardClass = isDark ? 'bg-transparent border-gray-700 shadow-none' : 'bg-white border-blue-400 shadow-xl';
     const titleColor = isDark ? 'text-yellow-500' : 'text-blue-600';
     const stepBoxBase = isDark ? 'bg-transparent border-gray-700' : 'p-4 rounded-2xl border-r-8 shadow-sm';
-
     app.innerHTML = `
-        <div class="text-center space-y-6 w-full max-w-md animate-fade-in mt-6">
+        <div class="text-center space-y-6 w-full max-w-md animate-fade-in mt-2">
             <div class="${cardClass} p-6 rounded-[2.5rem] border-4 welcome-card">
                 <p class="text-4xl font-black ${titleColor} mb-6 border-b-2 pb-4">ברוכים הבאים! 👋</p>
                 <div class="space-y-4 text-right font-bold">
@@ -206,7 +192,7 @@ function renderWelcome(app) {
 
 function renderInput(app) {
     app.innerHTML = `
-        <div class="text-center space-y-4 w-full px-2 mt-4 animate-fade-in">
+        <div class="text-center space-y-4 w-full px-2 mt-2 animate-fade-in">
             <p class="text-2xl font-black text-blue-600">הזינו מילים (מילה - תרגום)</p>
             <textarea id="wordInput" class="w-full h-64 p-6 rounded-[2rem] border-4 border-blue-200 outline-none text-right text-black bg-white shadow-inner text-xl font-bold focus:border-blue-400" placeholder="כותרת הרשימה\napple - תפוח\nbanana - בננה">${state.inputText}</textarea>
             <button onclick="processInput(true)" class="bg-blue-600 text-white px-8 py-5 rounded-full text-2xl font-black w-full shadow-lg active:scale-95 transition-transform">המשך לכרטיסיות 🌟</button>
@@ -234,7 +220,7 @@ function renderFlashcards(app) {
     const cur = unknown[0];
     const tutorialColor = state.nightMode ? 'bg-white text-black' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
     app.innerHTML = `
-        <div class="text-center space-y-4 w-full max-sm px-2 mt-4 relative">
+        <div class="text-center space-y-4 w-full max-sm px-2 mt-2 relative">
             ${renderHeader(`לימוד מילים (${state.words.filter(w=>w.known).length}/${state.words.length})`)}
             <div class="${tutorialColor} py-2 px-6 rounded-full inline-flex items-center gap-2 font-black border mb-2 shadow-sm transition-colors">
                 <span>לחצו על הכרטיסייה לסיבוב</span>
@@ -261,7 +247,7 @@ function renderQuiz(app) {
     const cur = state.words[state.quizIndex];
     if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
     app.innerHTML = `
-        <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4">
+        <div class="text-center space-y-4 w-full max-w-sm px-2 mt-2">
             ${renderHeader(`אתגר: ${state.quizIndex + 1}/${state.words.length}`)}
             <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative">
                 <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4 text-gray-800">
@@ -291,13 +277,13 @@ function handleQuizAns(selected, correct, idx) {
     setTimeout(() => { state.quizIndex++; state.quizOptions = null; state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; render(); }, 800);
 }
 
+// צמצום רווחים במסך התפריט
 function renderMenu(app) {
     const isLocked = state.masteryScore < 70;
     const shareBtnStyle = state.nightMode ? 'bg-white text-black border-gray-200' : 'bg-blue-50 text-blue-700 border-blue-200';
-
     app.innerHTML = `
-        <div class="text-center space-y-6 w-full max-w-md px-2 mt-6 animate-fade-in">
-            <div class="w-full flex justify-between items-center mb-2 px-1">
+        <div class="text-center space-y-4 w-full max-w-md px-2 mt-2 animate-fade-in">
+            <div class="w-full flex justify-between items-center mb-0 px-1">
                 <button onclick="window.location.href='https://hezicg-apps.github.io/wa-website/'" 
                     class="bg-white text-gray-700 px-4 py-2 rounded-full font-black text-xs border-2 border-gray-200 shadow-sm flex items-center gap-2 active:scale-95">
                     <span>🏠</span> בית
@@ -307,7 +293,6 @@ function renderMenu(app) {
                     🗑️ רשימה חדשה
                 </button>
             </div>
-
             <div class="bg-white p-6 rounded-[2rem] shadow-xl border-4 border-blue-100 welcome-card">
                 ${renderHeader(isLocked ? 'צריך 70% כדי לפתוח משחקים' : 'המשחקים פתוחים!')}
                 <p class="text-xl font-bold text-gray-700 mb-4">הציון הנוכחי: ${state.masteryScore.toFixed(0)}%</p>
@@ -337,7 +322,7 @@ function startMemory() {
 function renderMemory(app) {
     const g = state.memoryGame;
     app.innerHTML = `
-        <div class="flex flex-col items-center w-full max-w-sm px-2 mt-4">
+        <div class="flex flex-col items-center w-full max-w-sm px-2 mt-2">
             <div class="flex justify-between items-center w-full mb-4 bg-white p-4 rounded-2xl shadow-md welcome-card">
                 <button onclick="state.screen='menu'; render()" class="text-red-600 font-black px-4 py-1 rounded-full border border-red-100 bg-red-50 text-sm">יציאה</button>
                 <span class="text-lg font-black text-gray-800">צעדים: ${g.steps} | זוגות: ${g.pairs}</span>
@@ -373,7 +358,7 @@ function flipM(id) {
 
 function renderC4Menu(app) {
     app.innerHTML = `
-        <div class="text-center space-y-6 w-full max-w-sm px-2 mt-8 animate-fade-in">
+        <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4 animate-fade-in">
             <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl welcome-card">
                 <h2 class="text-3xl font-black text-blue-600 mb-6">4 בשורה 🔴🟡</h2>
                 <div class="grid gap-4">
@@ -404,7 +389,7 @@ function genC4Q() {
 function renderConnect4(app) {
     const c = state.connect4;
     app.innerHTML = `
-        <div class="flex flex-col items-center w-full px-2 mt-4">
+        <div class="flex flex-col items-center w-full px-2 mt-2">
             <div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card">
                 <button onclick="state.screen='menu'; render()" class="text-red-600 font-black px-4 py-1 rounded-full border border-red-100 bg-red-50 text-sm">יציאה</button>
                 <div class="font-black text-lg text-gray-800">תור: ${c.turn===1?'אדום 🔴':'צהוב 🟡'}</div>
@@ -453,7 +438,7 @@ function checkWin(b) {
     for (let r=0; r<3; r++) for (let c=0; c<4; c++) { if (b[r][c] && b[r][c]==b[r+1][c+1] && b[r][c]==b[r+2][c+2] && b[r][c]==b[r+3][c+3]) return true; if (b[r][c+3] && b[r][c+3]==b[r+1][c+2] && b[r][c+3]==b[r+2][c+1] && b[r][c+3]==b[r+3][c]) return true; } return false;
 }
 
-// --- WORD QUEST ---
+// --- WORD QUEST (תיקוני מצב לילה) ---
 function startWordQuest() {
     const pool = shuffle(state.words.filter(w => w.eng.length >= 2 && !w.eng.includes(' ')));
     state.screen = 'wordquest'; state.winner = null;
@@ -463,15 +448,16 @@ function startWordQuest() {
 
 function renderWordQuest(app) {
     const w = state.wordQuest;
+    const isDark = state.nightMode;
     if (w.showTutorial) { 
         app.innerHTML = `
             <div class="text-center space-y-6 w-full max-w-md animate-fade-in mt-6">
-                <div class="bg-white p-8 rounded-[2.5rem] border-4 border-emerald-400 shadow-xl welcome-card">
+                <div class="${isDark?'bg-gray-800 border-emerald-500':'bg-white border-emerald-400'} p-8 rounded-[2.5rem] border-4 shadow-xl welcome-card">
                     <h2 class="text-3xl font-black text-emerald-600 mb-6">איך משחקים? 🔐</h2>
                     <div class="space-y-4 text-right">
-                        <p class="text-lg font-bold text-gray-800">נחשו את המילה לפי הרמז.</p>
-                        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-[#ffd700] border shadow-sm"></div> <p class="text-gray-800">אות נכונה ובמקום (זהב)</p></div>
-                        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-[#c0c0c0] border shadow-sm"></div> <p class="text-gray-800">אות נכונה במקום הלא נכון (כסף)</p></div>
+                        <p class="text-lg font-bold ${isDark?'text-white':'text-gray-800'}">נחשו את המילה לפי הרמז.</p>
+                        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-[#ffd700] border shadow-sm"></div> <p class="${isDark?'text-white':'text-gray-800'}">אות נכונה ובמקום (זהב)</p></div>
+                        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-[#c0c0c0] border shadow-sm"></div> <p class="${isDark?'text-white':'text-gray-800'}">אות נכונה במקום הלא נכון (כסף)</p></div>
                     </div>
                     <button onclick="state.wordQuest.showTutorial=false; render();" class="mt-8 bg-emerald-600 text-white px-8 py-4 rounded-full text-xl font-black w-full shadow-lg">בואו נתחיל!</button>
                 </div>
@@ -482,23 +468,20 @@ function renderWordQuest(app) {
     const wordLen = w.target.length;
     const baseBoxSize = wordLen <= 5 ? 62 : Math.min(Math.floor((window.innerWidth * 0.9) / wordLen), 55);
     const gapSize = wordLen > 10 ? 2 : 5;
-    
-    let fontSizeClass = 'text-2xl';
-    if (wordLen <= 5) fontSizeClass = 'text-3xl';
-    else if (baseBoxSize < 30) fontSizeClass = 'text-[10px]';
-    else if (baseBoxSize < 40) fontSizeClass = 'text-sm';
-    else if (baseBoxSize < 50) fontSizeClass = 'text-lg';
+    let fontSizeClass = (wordLen <= 5) ? 'text-3xl' : (baseBoxSize < 30 ? 'text-[10px]' : (baseBoxSize < 40 ? 'text-sm' : (baseBoxSize < 50 ? 'text-lg' : 'text-2xl')));
 
+    // תיקון צבע מקרא במצב לילה - ללא רקע וטקסט בולט
+    const legendTextColor = isDark ? 'text-gray-300' : 'text-gray-700';
     const legendHtml = `
-        <div class="flex justify-center gap-3 mb-4 p-3 bg-white/50 rounded-2xl border border-emerald-100 shadow-sm w-full max-w-sm">
-            <div class="flex items-center gap-1 text-sm font-black text-gray-700">
+        <div class="flex justify-center gap-3 mb-4 p-3 bg-transparent w-full max-w-sm">
+            <div class="flex items-center gap-1 text-xs font-black ${legendTextColor}">
                 <div class="w-4 h-4 bg-[#ffd700] rounded-sm border border-yellow-600"></div> זהב: בול
             </div>
-            <div class="flex items-center gap-1 text-sm font-black text-gray-700">
+            <div class="flex items-center gap-1 text-xs font-black ${legendTextColor}">
                 <div class="w-4 h-4 bg-[#c0c0c0] rounded-sm border border-gray-400"></div> כסף: במילה
             </div>
-             <div class="flex items-center gap-1 text-sm font-black text-gray-400">
-                <div class="w-4 h-4 border border-gray-200 rounded-sm"></div> שקוף: לא פה
+             <div class="flex items-center gap-1 text-xs font-black ${isDark ? 'text-gray-500' : 'text-gray-400'}">
+                <div class="w-4 h-4 border border-gray-400 rounded-sm"></div> שקוף: לא פה
             </div>
         </div>
     `;
@@ -510,17 +493,23 @@ function renderWordQuest(app) {
             const commonStyle = `width: ${baseBoxSize}px; height: ${baseBoxSize}px; display: flex; align-items: center; justify-content: center; border-width: 2px; border-radius: 12px; font-weight: 900;`;
             if (g) {
                 const status = getLetterStatus(g.text, j, w.target);
-                let bgColor = ''; let borderColor = ''; let textColor = 'black';
+                let bgColor = '', borderColor = '', textColor = 'black';
                 if (status === 'correct') { bgColor = '#ffd700'; borderColor = '#d4af37'; }
                 else if (status === 'present') { bgColor = '#c0c0c0'; borderColor = '#a9a9a9'; }
-                else { bgColor = 'transparent'; borderColor = '#e2e8f0'; textColor = '#4a5568'; }
+                else { bgColor = 'transparent'; borderColor = isDark ? '#4a5568' : '#e2e8f0'; textColor = isDark ? '#cbd5e0' : '#4a5568'; }
                 gridHtml += `<div class="word-cell ${fontSizeClass}" style="${commonStyle} background-color: ${bgColor}; border-color: ${borderColor}; color: ${textColor};">${g.text[j]}</div>`;
+            } else if (i === w.guesses.length && !w.isGameOver) {
+                gridHtml += `<div class="word-cell border-blue-400 ${isDark?'text-white':'text-gray-800'} ${fontSizeClass}" style="${commonStyle}">${w.currentGuess[j] || ''}</div>`;
+            } else {
+                gridHtml += `<div class="word-cell border-gray-700 opacity-20" style="${commonStyle}"></div>`;
             }
-            else if (i === w.guesses.length && !w.isGameOver) gridHtml += `<div class="word-cell border-blue-400 text-gray-800 ${fontSizeClass}" style="${commonStyle}">${w.currentGuess[j] || ''}</div>`;
-            else gridHtml += `<div class="word-cell border-gray-100 opacity-20" style="${commonStyle}"></div>`;
         }
     }
     gridHtml += `</div>`;
+
+    // תיקון תיבת רמז - ללא רקע וטקסט צהוב בולט בלילה
+    const hintBoxStyle = isDark ? 'bg-transparent border-0' : 'bg-emerald-50 border-2 border-emerald-200 shadow-inner';
+    const hintTextColor = isDark ? 'text-yellow-400' : 'text-emerald-800';
 
     app.innerHTML = `
         <div class="flex flex-col items-center w-full px-2 mt-2 word-quest-container">
@@ -528,19 +517,14 @@ function renderWordQuest(app) {
                 <button onclick="state.screen='menu'; render()" class="bg-red-50 text-red-600 px-4 py-1 rounded-full font-black text-xs border border-red-100">יציאה</button>
                 <div class="text-xs font-bold text-gray-500">${w.roundIndex+1}/${w.pool.length} | ניסיון ${w.guesses.length+1}/${w.maxAttempts}</div>
             </div>
-
             ${legendHtml}
-
-            <div class="w-full bg-emerald-50 p-4 rounded-2xl mb-4 border-2 border-emerald-200 max-w-sm shadow-inner">
-                <div class="font-black text-xl text-emerald-800 text-center flex items-center justify-center gap-3">
+            <div class="w-full p-4 rounded-2xl mb-4 max-w-sm ${hintBoxStyle}">
+                <div class="font-black text-xl text-center flex items-center justify-center gap-3 ${hintTextColor}">
                     רמז: ${w.hint} 
-                    <button onclick="speak('${w.target}')" class="text-3xl bg-white rounded-full w-10 h-10 flex items-center justify-center shadow-sm cursor-pointer">🔊</button>
+                    <button onclick="speak('${w.target}')" class="text-3xl bg-white rounded-full w-10 h-10 flex items-center justify-center shadow-sm cursor-pointer border-0">🔊</button>
                 </div>
             </div>
-
-            <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-                ${gridHtml}
-            </div>
+            <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">${gridHtml}</div>
             <div class="w-full max-w-md mt-6">${renderQwerty()}</div>
         </div>`;
 }
@@ -558,8 +542,7 @@ function renderQwerty() {
         let style = "";
         if (keyClass === 'correct') style = "background-color: #ffd700 !important; color: black;";
         else if (keyClass === 'present') style = "background-color: #c0c0c0 !important; color: black;";
-        else if (keyClass === 'absent') style = "background-color: #e2e8f0 !important; color: #a0aec0; opacity: 0.6;";
-        
+        else if (keyClass === 'absent') style = "background-color: #4a5568 !important; color: #718096; opacity: 0.6;";
         return `<button onclick="handleKey('${k}')" class="key ${keyClass} ${k==='ENTER'||k==='⌫'?'key-wide !bg-blue-600 !text-white':''} text-gray-800" style="${style}">${k==='ENTER'?'ENT':k}</button>`;
     }).join('')}</div>`).join(''); 
 }
@@ -571,7 +554,7 @@ function renderWinScreen(app) {
     const win = state.winner;
     app.innerHTML = `
         <div class="fixed inset-0 flex items-center justify-center bg-black/80 z-[300] px-4">
-            <div class="text-center p-10 rounded-[3rem] max-w-sm w-full animate-fade-in win-card-base ${win.glowClass || ''}">
+            <div class="text-center p-10 rounded-[3rem] max-w-sm w-full animate-fade-in win-card-base ${win.glowClass || ''} bg-white">
                 <h2 class="text-4xl font-black mb-6 text-blue-700">${win.msg}</h2>
                 <p class="text-xl font-black mb-10 text-gray-800">${win.subMsg || ''}</p>
                 <div class="space-y-4">
@@ -584,7 +567,6 @@ function renderWinScreen(app) {
 
 const toggleBtn = document.getElementById('toggleNight');
 if (toggleBtn) toggleBtn.onclick = () => { state.nightMode = !state.nightMode; render(); };
-
 window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && !state.wordQuest.showTutorial) { if (e.key === 'Enter') handleKey('ENTER'); else if (e.key === 'Backspace') handleKey('⌫'); else if (/^[a-z]$/i.test(e.key)) handleKey(e.key.toLowerCase()); } });
 
 loadFromLocal();

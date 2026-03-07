@@ -69,7 +69,7 @@ function shareList() {
         const shareUrl = `${window.location.origin}${window.location.pathname}?w=${encodedData}`;
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(shareUrl).then(() => {
-                alert("הועתק!"); // הודעה מקוצרת לבקשתך
+                alert("הועתק!");
             });
         } else {
             prompt("העתיקו את הקישור:", shareUrl);
@@ -87,7 +87,8 @@ function resetAllData() {
 
 function render() {
     document.body.classList.toggle('night-mode', state.nightMode);
-    document.getElementById('toggleNight').innerText = state.nightMode ? '🌙' : '☀️';
+    const toggleBtn = document.getElementById('toggleNight');
+    if (toggleBtn) toggleBtn.innerText = state.nightMode ? '🌙' : '☀️';
     const app = document.getElementById('app');
     app.innerHTML = '';
     if (state.winner) { renderWinScreen(app); return; }
@@ -234,19 +235,23 @@ function renderMenu(app) {
 
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-md px-2 mt-6 animate-fade-in">
-            <div class="w-full flex justify-start mb-2">
+            <div class="w-full flex justify-between items-center mb-2 px-1">
                 <button onclick="window.location.href='https://hezicg-apps.github.io/wa-website/'" 
-                    class="bg-white text-gray-700 px-5 py-2 rounded-full font-black text-sm border-2 border-gray-200 shadow-sm flex items-center gap-2 hover:bg-gray-50 transition-all active:scale-95">
-                    <span class="text-lg">🏠</span> חזרה לאתר הראשי
+                    class="bg-white text-gray-700 px-4 py-2 rounded-full font-black text-xs border-2 border-gray-200 shadow-sm flex items-center gap-2 active:scale-95">
+                    <span>🏠</span> בית
+                </button>
+                <button onclick="resetAllData()" 
+                    class="bg-red-50 text-red-600 px-4 py-2 rounded-full font-black text-xs border-2 border-red-100 shadow-sm active:scale-95">
+                    🗑️ רשימה חדשה
                 </button>
             </div>
 
-            <div class="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-blue-100 welcome-card">
+            <div class="bg-white p-6 rounded-[2rem] shadow-xl border-4 border-blue-100 welcome-card">
                 ${renderHeader(isLocked ? 'צריך 70% כדי לפתוח משחקים' : 'המשחקים פתוחים!')}
                 <p class="text-xl font-bold text-gray-700 mb-4">הציון הנוכחי: ${state.masteryScore.toFixed(0)}%</p>
                 <div class="flex gap-2 justify-center">
-                    <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="bg-orange-600 text-white px-6 py-2 rounded-full font-black shadow-md">🔄 תרגול חוזר</button>
-                    <button onclick="shareList()" class="${shareBtnStyle} border px-6 py-2 rounded-full font-black shadow-sm transition-colors flex items-center gap-2">🔗 שתפו רשימה</button>
+                    <button onclick="state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render();" class="bg-orange-600 text-white px-6 py-2 rounded-full font-black shadow-md text-sm">🔄 תרגול חוזר</button>
+                    <button onclick="shareList()" class="${shareBtnStyle} border px-6 py-2 rounded-full font-black shadow-sm text-sm flex items-center gap-2">🔗 שיתוף</button>
                 </div>
             </div>
             <div class="grid gap-4">
@@ -254,7 +259,6 @@ function renderMenu(app) {
                 <button onclick="${isLocked?'':'state.screen=\'c4_menu\'; render()'}" class="p-6 bg-blue-600 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">4 בשורה 🔴🟡</button>
                 <button onclick="${isLocked?'':'startWordQuest()'}" class="p-6 bg-emerald-600 text-white rounded-[2rem] text-2xl font-black shadow-lg ${isLocked?'opacity-50':''}">הקוד הסודי 🔐</button>
             </div>
-            <button onclick="resetAllData()" class="text-red-600 font-black underline mt-6">הזנת רשימה חדשה</button>
         </div>`;
 }
 
@@ -387,7 +391,7 @@ function checkWin(b) {
     for (let r=0; r<3; r++) for (let c=0; c<4; c++) { if (b[r][c] && b[r][c]==b[r+1][c+1] && b[r][c]==b[r+2][c+2] && b[r][c]==b[r+3][c+3]) return true; if (b[r][c+3] && b[r][c+3]==b[r+1][c+2] && b[r][c+3]==b[r+2][c+1] && b[r][c+3]==b[r+3][c]) return true; } return false;
 }
 
-// --- WORD QUEST (WORDLE) המעודכן ---
+// --- WORD QUEST ---
 function startWordQuest() {
     const pool = shuffle(state.words.filter(w => w.eng.length >= 2 && !w.eng.includes(' ')));
     state.screen = 'wordquest'; state.winner = null;
@@ -423,6 +427,20 @@ function renderWordQuest(app) {
     else if (baseBoxSize < 40) fontSizeClass = 'text-sm';
     else if (baseBoxSize < 50) fontSizeClass = 'text-lg';
 
+    const legendHtml = `
+        <div class="flex justify-center gap-3 mb-4 p-3 bg-white/50 rounded-2xl border border-emerald-100 shadow-sm w-full max-w-sm">
+            <div class="flex items-center gap-1 text-sm font-black text-gray-700">
+                <div class="w-4 h-4 bg-[#ffd700] rounded-sm border border-yellow-600"></div> זהב: בול
+            </div>
+            <div class="flex items-center gap-1 text-sm font-black text-gray-700">
+                <div class="w-4 h-4 bg-[#c0c0c0] rounded-sm border border-gray-400"></div> כסף: במילה
+            </div>
+             <div class="flex items-center gap-1 text-sm font-black text-gray-400">
+                <div class="w-4 h-4 border border-gray-200 rounded-sm"></div> שקוף: לא פה
+            </div>
+        </div>
+    `;
+
     let gridHtml = `<div class="word-grid" style="grid-template-columns: repeat(${wordLen}, 1fr); width: fit-content; max-width: 100%; gap: ${gapSize}px; margin: 0 auto; display: grid;">`;
     for (let i = 0; i < w.maxAttempts; i++) {
         const g = w.guesses[i];
@@ -430,9 +448,7 @@ function renderWordQuest(app) {
             const commonStyle = `width: ${baseBoxSize}px; height: ${baseBoxSize}px; display: flex; align-items: center; justify-content: center; border-width: 2px; border-radius: 12px; font-weight: 900;`;
             if (g) {
                 const status = getLetterStatus(g.text, j, w.target);
-                let bgColor = '';
-                let borderColor = '';
-                let textColor = 'black';
+                let bgColor = ''; let borderColor = ''; let textColor = 'black';
                 if (status === 'correct') { bgColor = '#ffd700'; borderColor = '#d4af37'; }
                 else if (status === 'present') { bgColor = '#c0c0c0'; borderColor = '#a9a9a9'; }
                 else { bgColor = 'transparent'; borderColor = '#e2e8f0'; textColor = '#4a5568'; }
@@ -444,27 +460,24 @@ function renderWordQuest(app) {
     }
     gridHtml += `</div>`;
 
-    // מקרא צבעים קבוע
-    const legendHtml = `
-        <div class="flex justify-center gap-4 mt-4 text-[10px] font-bold text-gray-600">
-            <div class="flex items-center gap-1"><div class="w-3 h-3 bg-[#ffd700] rounded-sm border border-yellow-600"></div> זהב = בול</div>
-            <div class="flex items-center gap-1"><div class="w-3 h-3 bg-[#c0c0c0] rounded-sm border border-gray-400"></div> כסף = במילה</div>
-            <div class="flex items-center gap-1"><div class="w-3 h-3 border border-gray-300 rounded-sm"></div> ללא צבע = לא פה</div>
-        </div>
-    `;
-
     app.innerHTML = `
         <div class="flex flex-col items-center w-full px-2 mt-2 word-quest-container">
-            <div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card" style="direction:rtl">
-                <button onclick="state.screen='menu'; render()" class="bg-red-50 text-red-600 px-4 py-1 rounded-full font-black text-sm border border-red-100">יציאה</button>
-                <div class="flex flex-col items-end">
-                    <div class="font-black text-lg text-emerald-700 flex items-center gap-2">רמז: ${w.hint} <button onclick="speak('${w.target}')" class="text-2xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div>
-                    <div class="text-xs font-bold text-gray-500">${w.roundIndex+1}/${w.pool.length} | ניסיון ${w.guesses.length+1}/${w.maxAttempts}</div>
+            <div class="w-full flex justify-between items-center mb-2 bg-white p-3 rounded-2xl shadow-sm max-w-sm welcome-card" style="direction:rtl">
+                <button onclick="state.screen='menu'; render()" class="bg-red-50 text-red-600 px-4 py-1 rounded-full font-black text-xs border border-red-100">יציאה</button>
+                <div class="text-xs font-bold text-gray-500">${w.roundIndex+1}/${w.pool.length} | ניסיון ${w.guesses.length+1}/${w.maxAttempts}</div>
+            </div>
+
+            ${legendHtml}
+
+            <div class="w-full bg-emerald-50 p-4 rounded-2xl mb-4 border-2 border-emerald-200 max-w-sm shadow-inner">
+                <div class="font-black text-xl text-emerald-800 text-center flex items-center justify-center gap-3">
+                    רמז: ${w.hint} 
+                    <button onclick="speak('${w.target}')" class="text-3xl bg-white rounded-full w-10 h-10 flex items-center justify-center shadow-sm cursor-pointer">🔊</button>
                 </div>
             </div>
+
             <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
                 ${gridHtml}
-                ${legendHtml}
             </div>
             <div class="w-full max-w-md mt-6">${renderQwerty()}</div>
         </div>`;
@@ -480,7 +493,6 @@ function renderQwerty() {
     const rows = [['q','w','e','r','t','y','u','i','o','p'], ['a','s','d','f','g','h','j','k','l', '⌫'], ['z','x','c','v','b','n','m', 'ENTER']]; 
     return rows.map(r => `<div class="qwerty-row">${r.map(k => {
         let keyClass = state.wordQuest.keyStates[k] || '';
-        // עדכון צבעים למקלדת
         let style = "";
         if (keyClass === 'correct') style = "background-color: #ffd700 !important; color: black;";
         else if (keyClass === 'present') style = "background-color: #c0c0c0 !important; color: black;";
@@ -508,7 +520,9 @@ function renderWinScreen(app) {
         </div>`;
 }
 
-document.getElementById('toggleNight').onclick = () => { state.nightMode = !state.nightMode; render(); };
+const toggleBtn = document.getElementById('toggleNight');
+if (toggleBtn) toggleBtn.onclick = () => { state.nightMode = !state.nightMode; render(); };
+
 window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && !state.wordQuest.showTutorial) { if (e.key === 'Enter') handleKey('ENTER'); else if (e.key === 'Backspace') handleKey('⌫'); else if (/^[a-z]$/i.test(e.key)) handleKey(e.key.toLowerCase()); } });
 
 loadFromLocal();

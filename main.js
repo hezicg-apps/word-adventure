@@ -23,7 +23,6 @@ function triggerConfetti() { confetti({ particleCount: 150, spread: 70, origin: 
 function speak(text) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.8; window.speechSynthesis.speak(u); }
 function shuffle(a) { return [...a].sort(() => Math.random() - 0.5); }
 
-// --- ניהול נתונים (תיקון למקצרי כתובות) ---
 function saveToLocal() {
     localStorage.setItem('wm_words', JSON.stringify(state.words));
     localStorage.setItem('wm_input', state.inputText);
@@ -34,30 +33,21 @@ function saveToLocal() {
 function loadFromLocal() {
     const params = new URLSearchParams(window.location.search);
     let sharedData = params.get('w');
-    
     if (sharedData) {
         try {
-            // שחזור תווים שייתכן ושובשו ע"י מקצרי כתובות
             sharedData = sharedData.replace(/-/g, '+').replace(/_/g, '/');
             const decoded = decodeURIComponent(escape(atob(sharedData)));
-            
             if (decoded && decoded.includes('-')) {
                 state.inputText = decoded;
                 processInput(false); 
                 state.masteryScore = 0; 
-                state.screen = 'flashcards'; // תמיד נשלח ללימוד בקישור חיצוני
-                
-                // ניקוי ה-URL כדי שרענון דף לא יתקע אותנו
+                state.screen = 'flashcards';
                 window.history.replaceState({}, document.title, window.location.pathname);
                 render();
                 return;
             }
-        } catch(e) { 
-            console.error("Link decode error - possible corruption by shortener", e); 
-        }
+        } catch(e) { console.error("Link decode error", e); }
     }
-    
-    // אם אין קישור או שהפענוח נכשל - טעינה מהזיכרון המקומי
     const savedWords = localStorage.getItem('wm_words');
     if (savedWords) {
         state.words = JSON.parse(savedWords);
@@ -74,15 +64,12 @@ function shareList() {
         return;
     }
     try {
-        // קידוד בטוח יותר ל-URL (URL Safe Base64)
         let encodedData = btoa(unescape(encodeURIComponent(state.inputText)));
         encodedData = encodedData.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-        
         const shareUrl = `${window.location.origin}${window.location.pathname}?w=${encodedData}`;
-        
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(shareUrl).then(() => {
-                alert("הקישור הועתק! 🚀 עכשיו אפשר לקצר אותו בבטחה.");
+                alert("הועתק!"); // הודעה מקוצרת לבקשתך
             });
         } else {
             prompt("העתיקו את הקישור:", shareUrl);
@@ -98,7 +85,6 @@ function resetAllData() {
     }
 }
 
-// --- ליבת המערכת ---
 function render() {
     document.body.classList.toggle('night-mode', state.nightMode);
     document.getElementById('toggleNight').innerText = state.nightMode ? '🌙' : '☀️';
@@ -118,7 +104,6 @@ function render() {
     }
 }
 
-// כותרת מודגשת (Bold) כפי שביקשת
 function renderHeader(subtext) {
     return `
         <div class="mb-4">
@@ -126,8 +111,6 @@ function renderHeader(subtext) {
             ${subtext ? `<p class="text-lg font-bold text-blue-600 mt-1">${subtext}</p>` : ''}
         </div>`;
 }
-
-// ... שאר הפונקציות נשארות ללא שינוי מהגרסה היציבה שלך ...
 
 function renderWelcome(app) {
     const isDark = state.nightMode;
@@ -187,7 +170,6 @@ function renderFlashcards(app) {
     if (unknown.length === 0) { state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render(); return; }
     const cur = unknown[0];
     const tutorialColor = state.nightMode ? 'bg-white text-black' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
-
     app.innerHTML = `
         <div class="text-center space-y-4 w-full max-sm px-2 mt-4 relative">
             ${renderHeader(`לימוד מילים (${state.words.filter(w=>w.known).length}/${state.words.length})`)}
@@ -251,7 +233,14 @@ function renderMenu(app) {
     const shareBtnStyle = state.nightMode ? 'bg-white text-black border-gray-200' : 'bg-blue-50 text-blue-700 border-blue-200';
 
     app.innerHTML = `
-        <div class="text-center space-y-6 w-full max-w-md px-2 mt-6">
+        <div class="text-center space-y-6 w-full max-w-md px-2 mt-6 animate-fade-in">
+            <div class="w-full flex justify-start mb-2">
+                <button onclick="window.location.href='https://hezicg-apps.github.io/wa-website/'" 
+                    class="bg-white text-gray-700 px-5 py-2 rounded-full font-black text-sm border-2 border-gray-200 shadow-sm flex items-center gap-2 hover:bg-gray-50 transition-all active:scale-95">
+                    <span class="text-lg">🏠</span> חזרה לאתר הראשי
+                </button>
+            </div>
+
             <div class="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-blue-100 welcome-card">
                 ${renderHeader(isLocked ? 'צריך 70% כדי לפתוח משחקים' : 'המשחקים פתוחים!')}
                 <p class="text-xl font-bold text-gray-700 mb-4">הציון הנוכחי: ${state.masteryScore.toFixed(0)}%</p>
@@ -269,7 +258,7 @@ function renderMenu(app) {
         </div>`;
 }
 
-// ... יתר הפונקציות (זיכרון, 4 בשורה, wordquest) ...
+// --- משחקים ---
 function startMemory() {
     state.screen = 'memory'; state.winner = null;
     const pairsCount = Math.min(state.words.length, 8);
@@ -284,8 +273,8 @@ function renderMemory(app) {
     app.innerHTML = `
         <div class="flex flex-col items-center w-full max-w-sm px-2 mt-4">
             <div class="flex justify-between items-center w-full mb-4 bg-white p-4 rounded-2xl shadow-md welcome-card">
-                <button onclick="state.screen='menu'; render()" class="text-red-600 font-black">יציאה</button>
-                <span class="text-lg font-black text-gray-800">צעדים: ${g.steps} | זוגות: ${g.pairs} / ${g.cards.length / 2}</span>
+                <button onclick="state.screen='menu'; render()" class="text-red-600 font-black px-4 py-1 rounded-full border border-red-100 bg-red-50 text-sm">יציאה</button>
+                <span class="text-lg font-black text-gray-800">צעדים: ${g.steps} | זוגות: ${g.pairs}</span>
             </div>
             <div class="grid grid-cols-4 gap-2 w-full">
                 ${g.cards.map(c => `
@@ -324,7 +313,6 @@ function renderC4Menu(app) {
                 <div class="grid gap-4">
                     <button onclick="startC4(true)" class="p-6 bg-blue-700 text-white rounded-2xl shadow-lg flex flex-col items-center justify-center">
                         <span class="text-xl font-black">משחק זוגי</span>
-                        <span class="text-sm font-bold opacity-90">(אותו מכשיר)</span>
                     </button>
                     <button onclick="startC4(false)" class="p-6 bg-orange-700 text-white rounded-2xl text-xl font-black shadow-lg flex items-center justify-center">
                         <span>נגד המחשב</span>
@@ -352,7 +340,7 @@ function renderConnect4(app) {
     app.innerHTML = `
         <div class="flex flex-col items-center w-full px-2 mt-4">
             <div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card">
-                <button onclick="state.screen='menu'; render()" class="text-red-600 font-black">יציאה</button>
+                <button onclick="state.screen='menu'; render()" class="text-red-600 font-black px-4 py-1 rounded-full border border-red-100 bg-red-50 text-sm">יציאה</button>
                 <div class="font-black text-lg text-gray-800">תור: ${c.turn===1?'אדום 🔴':'צהוב 🟡'}</div>
             </div>
             <div class="h-16 mb-2">
@@ -399,6 +387,7 @@ function checkWin(b) {
     for (let r=0; r<3; r++) for (let c=0; c<4; c++) { if (b[r][c] && b[r][c]==b[r+1][c+1] && b[r][c]==b[r+2][c+2] && b[r][c]==b[r+3][c+3]) return true; if (b[r][c+3] && b[r][c+3]==b[r+1][c+2] && b[r][c+3]==b[r+2][c+1] && b[r][c+3]==b[r+3][c]) return true; } return false;
 }
 
+// --- WORD QUEST (WORDLE) המעודכן ---
 function startWordQuest() {
     const pool = shuffle(state.words.filter(w => w.eng.length >= 2 && !w.eng.includes(' ')));
     state.screen = 'wordquest'; state.winner = null;
@@ -409,7 +398,18 @@ function startWordQuest() {
 function renderWordQuest(app) {
     const w = state.wordQuest;
     if (w.showTutorial) { 
-        app.innerHTML = `<div class="text-center space-y-6 w-full max-w-md animate-fade-in mt-6"><div class="bg-white p-8 rounded-[2.5rem] border-4 border-emerald-400 shadow-xl welcome-card"><h2 class="text-3xl font-black text-emerald-600 mb-6">איך משחקים? 🔐</h2><div class="space-y-4 text-right"><p class="text-lg font-bold text-gray-800">נחשו את המילה לפי הרמז.</p><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-[#38bdf8]"></div> <p class="text-gray-800">אות נכונה ובמקום (תכלת)</p></div><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-[#a855f7]"></div> <p class="text-gray-800">אות נכונה במקום הלא נכון (סגול)</p></div></div><button onclick="state.wordQuest.showTutorial=false; render();" class="mt-8 bg-emerald-600 text-white px-8 py-4 rounded-full text-xl font-black w-full shadow-lg">בואו נתחיל!</button></div></div>`; 
+        app.innerHTML = `
+            <div class="text-center space-y-6 w-full max-w-md animate-fade-in mt-6">
+                <div class="bg-white p-8 rounded-[2.5rem] border-4 border-emerald-400 shadow-xl welcome-card">
+                    <h2 class="text-3xl font-black text-emerald-600 mb-6">איך משחקים? 🔐</h2>
+                    <div class="space-y-4 text-right">
+                        <p class="text-lg font-bold text-gray-800">נחשו את המילה לפי הרמז.</p>
+                        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-[#ffd700] border shadow-sm"></div> <p class="text-gray-800">אות נכונה ובמקום (זהב)</p></div>
+                        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-[#c0c0c0] border shadow-sm"></div> <p class="text-gray-800">אות נכונה במקום הלא נכון (כסף)</p></div>
+                    </div>
+                    <button onclick="state.wordQuest.showTutorial=false; render();" class="mt-8 bg-emerald-600 text-white px-8 py-4 rounded-full text-xl font-black w-full shadow-lg">בואו נתחיל!</button>
+                </div>
+            </div>`; 
         return; 
     }
 
@@ -427,19 +427,69 @@ function renderWordQuest(app) {
     for (let i = 0; i < w.maxAttempts; i++) {
         const g = w.guesses[i];
         for (let j = 0; j < wordLen; j++) {
-            const commonStyle = `width: ${baseBoxSize}px; height: ${baseBoxSize}px; display: flex; align-items: center; justify-content: center;`;
-            if (g) gridHtml += `<div class="word-cell ${getLetterStatus(g.text, j, w.target)} ${fontSizeClass}" style="${commonStyle}">${g.text[j]}</div>`;
+            const commonStyle = `width: ${baseBoxSize}px; height: ${baseBoxSize}px; display: flex; align-items: center; justify-content: center; border-width: 2px; border-radius: 12px; font-weight: 900;`;
+            if (g) {
+                const status = getLetterStatus(g.text, j, w.target);
+                let bgColor = '';
+                let borderColor = '';
+                let textColor = 'black';
+                if (status === 'correct') { bgColor = '#ffd700'; borderColor = '#d4af37'; }
+                else if (status === 'present') { bgColor = '#c0c0c0'; borderColor = '#a9a9a9'; }
+                else { bgColor = 'transparent'; borderColor = '#e2e8f0'; textColor = '#4a5568'; }
+                gridHtml += `<div class="word-cell ${fontSizeClass}" style="${commonStyle} background-color: ${bgColor}; border-color: ${borderColor}; color: ${textColor};">${g.text[j]}</div>`;
+            }
             else if (i === w.guesses.length && !w.isGameOver) gridHtml += `<div class="word-cell border-blue-400 text-gray-800 ${fontSizeClass}" style="${commonStyle}">${w.currentGuess[j] || ''}</div>`;
-            else gridHtml += `<div class="word-cell opacity-40" style="${commonStyle}"></div>`;
+            else gridHtml += `<div class="word-cell border-gray-100 opacity-20" style="${commonStyle}"></div>`;
         }
     }
     gridHtml += `</div>`;
 
-    app.innerHTML = `<div class="flex flex-col items-center w-full px-2 mt-2 word-quest-container"><div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card" style="direction:rtl"><button onclick="state.screen='menu'; render()" class="text-red-600 font-black">יציאה</button><div class="flex flex-col items-end"><div class="font-black text-lg text-emerald-700 flex items-center gap-2">רמז: ${w.hint} <button onclick="speak('${w.target}')" class="text-2xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div><div class="text-xs font-bold text-gray-500">${w.roundIndex+1}/${w.pool.length} | ניסיון ${w.guesses.length+1}/${w.maxAttempts}</div></div></div><div style="width: 100%; display: flex; justify-content: center;">${gridHtml}</div><div class="w-full max-w-md mt-6">${renderQwerty()}</div></div>`;
+    // מקרא צבעים קבוע
+    const legendHtml = `
+        <div class="flex justify-center gap-4 mt-4 text-[10px] font-bold text-gray-600">
+            <div class="flex items-center gap-1"><div class="w-3 h-3 bg-[#ffd700] rounded-sm border border-yellow-600"></div> זהב = בול</div>
+            <div class="flex items-center gap-1"><div class="w-3 h-3 bg-[#c0c0c0] rounded-sm border border-gray-400"></div> כסף = במילה</div>
+            <div class="flex items-center gap-1"><div class="w-3 h-3 border border-gray-300 rounded-sm"></div> ללא צבע = לא פה</div>
+        </div>
+    `;
+
+    app.innerHTML = `
+        <div class="flex flex-col items-center w-full px-2 mt-2 word-quest-container">
+            <div class="w-full flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-md max-w-sm welcome-card" style="direction:rtl">
+                <button onclick="state.screen='menu'; render()" class="bg-red-50 text-red-600 px-4 py-1 rounded-full font-black text-sm border border-red-100">יציאה</button>
+                <div class="flex flex-col items-end">
+                    <div class="font-black text-lg text-emerald-700 flex items-center gap-2">רמז: ${w.hint} <button onclick="speak('${w.target}')" class="text-2xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div>
+                    <div class="text-xs font-bold text-gray-500">${w.roundIndex+1}/${w.pool.length} | ניסיון ${w.guesses.length+1}/${w.maxAttempts}</div>
+                </div>
+            </div>
+            <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+                ${gridHtml}
+                ${legendHtml}
+            </div>
+            <div class="w-full max-w-md mt-6">${renderQwerty()}</div>
+        </div>`;
 }
 
-function getLetterStatus(guess, idx, target) { if (guess[idx] === target[idx]) return 'correct'; if (target.includes(guess[idx])) return 'present'; return 'absent'; }
-function renderQwerty() { const rows = [['q','w','e','r','t','y','u','i','o','p'], ['a','s','d','f','g','h','j','k','l', '⌫'], ['z','x','c','v','b','n','m', 'ENTER']]; return rows.map(r => `<div class="qwerty-row">${r.map(k => `<button onclick="handleKey('${k}')" class="key ${state.wordQuest.keyStates[k] || ''} ${k==='ENTER'||k==='⌫'?'key-wide !bg-blue-600 !text-white':''} text-gray-800">${k==='ENTER'?'ENT':k}</button>`).join('')}</div>`).join(''); }
+function getLetterStatus(guess, idx, target) { 
+    if (guess[idx] === target[idx]) return 'correct'; 
+    if (target.includes(guess[idx])) return 'present'; 
+    return 'absent'; 
+}
+
+function renderQwerty() { 
+    const rows = [['q','w','e','r','t','y','u','i','o','p'], ['a','s','d','f','g','h','j','k','l', '⌫'], ['z','x','c','v','b','n','m', 'ENTER']]; 
+    return rows.map(r => `<div class="qwerty-row">${r.map(k => {
+        let keyClass = state.wordQuest.keyStates[k] || '';
+        // עדכון צבעים למקלדת
+        let style = "";
+        if (keyClass === 'correct') style = "background-color: #ffd700 !important; color: black;";
+        else if (keyClass === 'present') style = "background-color: #c0c0c0 !important; color: black;";
+        else if (keyClass === 'absent') style = "background-color: #e2e8f0 !important; color: #a0aec0; opacity: 0.6;";
+        
+        return `<button onclick="handleKey('${k}')" class="key ${keyClass} ${k==='ENTER'||k==='⌫'?'key-wide !bg-blue-600 !text-white':''} text-gray-800" style="${style}">${k==='ENTER'?'ENT':k}</button>`;
+    }).join('')}</div>`).join(''); 
+}
+
 function handleKey(k) { const w = state.wordQuest; if (w.isGameOver) return; if (k === '⌫') w.currentGuess = w.currentGuess.slice(0, -1); else if (k === 'ENTER') { if (w.currentGuess.length === w.target.length) submitGuess(); } else if (w.currentGuess.length < w.target.length && k.length === 1) w.currentGuess += k.toLowerCase(); render(); }
 function submitGuess() { const w = state.wordQuest; const g = w.currentGuess; w.guesses.push({ text: g }); for (let i = 0; i < g.length; i++) { const s = getLetterStatus(g, i, w.target); if (w.keyStates[g[i]] !== 'correct') w.keyStates[g[i]] = s; } if (g === w.target) { w.isGameOver = true; w.completedCount++; triggerConfetti(); setTimeout(() => { w.roundIndex++; if (w.roundIndex >= w.pool.length) { state.winner = { type:'wq', msg:'ניצחון!', subMsg:'סיימת הכל!', glowClass:'win-glow-emerald' }; } else { const next = w.pool[w.roundIndex]; w.target = next.eng.toLowerCase(); w.hint = next.heb; w.guesses = []; w.keyStates = {}; w.isGameOver = false; } render(); }, 1200); } else if (w.guesses.length >= w.maxAttempts) { w.isGameOver = true; setTimeout(() => { state.winner = { type:'wq', msg:'הפסד', subMsg:`המילה: ${w.target.toUpperCase()}`, glowClass:'win-glow-red' }; render(); }, 500); } w.currentGuess = ''; render(); }
 
@@ -463,5 +513,3 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
-
-

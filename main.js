@@ -33,12 +33,13 @@ function saveToLocal() {
 
 function highlightPhonics(word) {
     if (!word) return "";
+    // הפיכה לטקסט רגיל כדי למנוע בעיות של אותיות גדולות/קטנות
     let h = word.toLowerCase();
 
-    // 1. צביעת Blends (צירופי אותיות) בכחול
-    // הוספתי כאן את כל הצירופים הנפוצים: ch, sh, th, wh, ph, ck, kn, wr, qu
-    const blends = ['ch', 'sh', 'th', 'wh', 'ph', 'ck', 'kn', 'wr', 'qu'];
+    // 1. צביעת Blends (צירופי אותיות) בכחול - כולל sh
+    const blends = ['sh', 'ch', 'th', 'wh', 'ph', 'ck', 'kn', 'wr', 'qu'];
     blends.forEach(b => {
+        // ה-g דואג שזה יצבע את כל המופעים במילה, ה-i דואג שזה לא ישנה אם זה גדול או קטן
         const reg = new RegExp(b, 'gi');
         h = h.replace(reg, `<span style="color: #2563eb; font-weight: bold;">${b}</span>`);
     });
@@ -628,6 +629,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

@@ -160,19 +160,25 @@ function resetAllData() {
 }
 
 function render() {
+    // 1. מציאת האלמנט המרכזי בדף
     const app = document.getElementById('app');
-    if (!app) return;
+    
+    // הגנה: אם האלמנט לא נמצא, אל תמשיך (כדי למנוע קריסה)
+    if (!app) {
+        console.error("Critical: Could not find 'app' element");
+        return;
+    }
 
-    // מנקה את המסך לפני הציור החדש
+    // 2. ניקוי המסך לפני הציור החדש
     app.innerHTML = '';
 
-    // מנהל העבודה בודק באיזה מסך אנחנו
+    // 3. ניתוב למסך המתאים לפי מצב האפליקציה (state.screen)
     if (state.screen === 'welcome') {
         renderWelcome(app);
     } else if (state.screen === 'quiz') {
         renderQuiz(app);
     } else if (state.screen === 'results') {
-        renderResults(app); // השורה שמעבירה לסיכום!
+        renderResults(app);
     }
 }
 
@@ -654,6 +660,7 @@ function renderResults(app) {
             </button>
         </div>`;
 }
+
 
 
 

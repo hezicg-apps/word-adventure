@@ -31,6 +31,33 @@ function saveToLocal() {
     localStorage.setItem('wm_listName', state.listName);
 }
 
+function highlightPhonics(word) {
+    if (!word) return "";
+    let h = word.toLowerCase();
+
+    // 1. צביעת Blends (כחול)
+    const blends = ['sh', 'ch', 'th', 'ck', 'wh', 'ph', 'kn', 'wr'];
+    blends.forEach(b => {
+        const reg = new RegExp(b, 'gi');
+        h = h.replace(reg, `<span style="color: #2563eb; font-weight: bold;">${b}</span>`);
+    });
+
+    // 2. צביעת Vowel Teams (ירוק)
+    const vowels = ['ee', 'ai', 'ay', 'ea', 'oo', 'ou', 'oa'];
+    vowels.forEach(v => {
+        const reg = new RegExp(v, 'gi');
+        h = h.replace(reg, `<span style="color: #16a34a; font-weight: bold;">${v}</span>`);
+    });
+
+    // 3. לוגיקה ל-Magic E (אדום)
+    // צובע את התנועה ואת ה-e שבסוף המילה
+    h = h.replace(/([aio])([a-z])(e)\b/gi, (match, v, c, e) => {
+        return `<span style="color: #dc2626; font-weight: bold;">${v}</span>${c}<span style="color: #dc2626; font-weight: bold;">${e}</span>`;
+    });
+
+    return h;
+}
+
 function loadFromLocal() {
     const params = new URLSearchParams(window.location.search);
     let sharedData = params.get('w');
@@ -228,7 +255,7 @@ function renderFlashcards(app) {
             </div>
             <div onclick="this.classList.toggle('card-flipped')" class="relative w-full h-80 perspective-1000 cursor-pointer mt-2">
                 <div class="card-inner">
-                    <div class="card-front bg-white border-4 border-blue-200 flex-col"><span class="text-5xl font-black text-blue-600 eng-text mb-6">${cur.eng}</span><button onclick="event.stopPropagation(); speak('${cur.eng}')" class="text-5xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div>
+                    <div class="card-front bg-white border-4 border-blue-200 flex-col"><span class="text-5xl font-black text-blue-600 eng-text mb-6">${highlightPhonics(cur.eng)}</span><button onclick="event.stopPropagation(); speak('${highlightPhonics(cur.eng)}')" class="text-5xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div>
                     <div class="card-back bg-blue-600 border-4 border-blue-700 text-white"><span class="text-4xl font-black px-4 text-center">${cur.heb}</span></div>
                 </div>
             </div>
@@ -401,7 +428,7 @@ function renderConnect4(app) {
                 <div class="arrows-row">${[0,1,2,3,4,5,6].map(i => `<button onclick="dropC4(${i})" class="flex flex-col items-center ${!c.canDrop || c.board[0][i] || c.isAiTurn ? 'opacity-20 pointer-events-none' : 'text-white'}"><span class="text-lg font-black">${i+1}</span><div class="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-white mt-1"></div></button>`).join('')}</div>
                 <div class="c4-board">${c.board.map((row, r) => row.map((cell, col) => `<div class="c4-slot">${cell ? `<div class="token-fixed ${cell===1?'token-red':'token-yellow'}"></div>` : ''}${c.fallingToken && c.fallingToken.row === r && c.fallingToken.col === col ? `<div class="token-fixed ${c.fallingToken.color === 1 ? 'token-red' : 'token-yellow'}"></div>` : ''}</div>`).join('')).join('')}</div>
             </div>
-            ${c.isAnswering ? `<div class="fixed inset-0 bg-black/80 flex items-center justify-center z-[200] px-4"><div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center welcome-card"><h3 class="text-4xl font-black mb-8 text-blue-700 eng-text flex items-center justify-center gap-4">${c.q.prompt}<button onclick="speak('${c.q.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button></h3><div class="grid gap-4">${c.q.opts.map((o, idx) => { let sClass = ''; if (c.feedback.status) { if (o === c.q.correct) sClass = 'correct-ans'; else if (idx === c.feedback.selectedIdx && c.feedback.status === 'wrong') sClass = 'wrong-ans'; } return `<button onclick="ansC4('${o}', ${idx})" class="p-4 border-2 rounded-xl font-black text-gray-800 text-2xl hover:bg-blue-50 transition-all ${sClass}">${o}</button>`; }).join('')}</div></div></div>` : ''}
+            ${c.isAnswering ? `<div class="fixed inset-0 bg-black/80 flex items-center justify-center z-[200] px-4"><div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center welcome-card"><h3 class="text-4xl font-black mb-8 text-blue-700 eng-text flex items-center justify-center gap-4">${highlightPhonics(c.q.prompt)}<button onclick="speak('${c.q.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button></h3><div class="grid gap-4">${c.q.opts.map((o, idx) => { let sClass = ''; if (c.feedback.status) { if (o === c.q.correct) sClass = 'correct-ans'; else if (idx === c.feedback.selectedIdx && c.feedback.status === 'wrong') sClass = 'wrong-ans'; } return `<button onclick="ansC4('${o}', ${idx})" class="p-4 border-2 rounded-xl font-black text-gray-800 text-2xl hover:bg-blue-50 transition-all ${sClass}">${o}</button>`; }).join('')}</div></div></div>` : ''}
         </div>`;
 }
 
@@ -571,3 +598,4 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+

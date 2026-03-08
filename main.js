@@ -275,8 +275,8 @@ function renderFlashcards(app) {
                         <span class="text-5xl font-black text-blue-600 eng-text mb-6">
                             ${highlightPhonics(cur.eng)}
                         </span>
-                        <button onclick="event.stopPropagation(); speak('${cur.eng.replace(/'/g, "\\'")}')" class="p-4 bg-blue-50 rounded-full text-blue-600 hover:scale-110 transition-transform">
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button onclick="event.stopPropagation(); speak('${cur.eng.replace(/'/g, "\\'")}')" class="p-2 text-blue-500 hover:scale-125 transition-transform bg-transparent border-none outline-none">
+                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
                             </svg>
                         </button>
@@ -628,6 +628,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

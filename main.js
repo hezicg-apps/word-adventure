@@ -286,17 +286,16 @@ function renderQuiz(app) {
         return;
     }
     
-    const cur = state.words[state.quizIndex];
-    
-    // בדיקת חירום - אם אין אפשרויות, נציג הודעה
+    let cur = state.words[state.quizIndex];
+
+    // מנגנון הגנה: אם אין אפשרויות למילה (כמו ב-birthday), ניצור אותן עכשיו!
     if (!cur.options || cur.options.length === 0) {
-        app.innerHTML = `
-            <div class="p-10 text-red-600 bg-red-50 rounded-xl border-2 border-red-200">
-                <h2 class="text-2xl font-bold">שגיאת נתונים!</h2>
-                <p>המערכת לא מוצאת תשובות למילה: <b>${cur.eng}</b></p>
-                <button onclick="state.screen='welcome'; render()" class="mt-4 p-2 bg-gray-500 text-white rounded">חזור להתחלה</button>
-            </div>`;
-        return;
+        const correct = cur.heb;
+        const others = state.words
+            .filter(w => w.heb !== correct)
+            .map(w => w.heb);
+        const shuffledOthers = others.sort(() => 0.5 - Math.random()).slice(0, 3);
+        cur.options = [correct, ...shuffledOthers].sort(() => 0.5 - Math.random());
     }
 
     const isAnswered = state.quizFeedback.index !== -1;
@@ -309,11 +308,34 @@ function renderQuiz(app) {
                 <div class="text-6xl font-black text-gray-900 eng-text tracking-tight">
                     ${highlightPhonics(cur.eng)}
                 </div>
+                
+                <button onclick="speak('${cur.eng.replace(/'/g, "\\'")}')" class="p-2 text-blue-500 hover:scale-110 transition-transform bg-transparent border-none cursor-pointer">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    </svg>
+                </button>
             </div>
 
             <div class="grid grid-cols-1 gap-4 mt-6">
                 ${cur.options.map((opt, i) => {
-                    return `<button onclick="checkAnswer(${i})" class="bg-blue-500 text-white py-6 px-8 rounded-2xl text-2xl font-black">${opt}</button>`;
+                    let btnClass = "bg-white text-gray-800 border-2 border-gray-100 py-6 px-8 rounded-2xl text-2xl font-black transition-all shadow-sm active:scale-95";
+                    
+                    if (isAnswered) {
+                        // אם זו התשובה הנכונה - צבע בירוק
+                        if (opt === cur.heb) {
+                            btnClass = "bg-green-500 text-white border-green-500 scale-[1.02] shadow-lg py-6 px-8 rounded-2xl text-2xl font-black";
+                        } 
+                        // אם המשתמש טעה ולחץ כאן - צבע באדום
+                        else if (i === state.quizFeedback.index) {
+                            btnClass = "bg-red-500 text-white border-red-500 opacity-90 py-6 px-8 rounded-2xl text-2xl font-black";
+                        } 
+                        // כל השאר הופכים לשקופים מעט
+                        else {
+                            btnClass = "opacity-40 border-gray-100 py-6 px-8 rounded-2xl text-2xl font-black";
+                        }
+                    }
+
+                    return `<button onclick="!${isAnswered} && checkAnswer(${i})" class="${btnClass}">${opt}</button>`;
                 }).join('')}
             </div>
         </div>`;
@@ -613,6 +635,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

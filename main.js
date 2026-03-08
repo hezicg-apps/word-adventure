@@ -160,24 +160,20 @@ function resetAllData() {
 }
 
 function render() {
-    document.body.classList.toggle('night-mode', state.nightMode);
-    const toggleBtn = document.getElementById('toggleNight');
-    if (toggleBtn) toggleBtn.innerText = state.nightMode ? '🌙' : '☀️';
     const app = document.getElementById('app');
+    if (!app) return;
+
+    // מנקה את המסך לפני הציור החדש
     app.innerHTML = '';
-    if (state.winner) { renderWinScreen(app); return; }
-    switch(state.screen) {
-        case 'welcome': renderWelcome(app); break;
-        case 'input': renderInput(app); break;
-        case 'flashcards': renderFlashcards(app); break;
-        case 'quiz': renderQuiz(app); break;
-        case 'menu': renderMenu(app); break;
-        case 'memory': renderMemory(app); break;
-        case 'c4_menu': renderC4Menu(app); break;
-        case 'connect4': renderConnect4(app); break;
-        case 'wordquest': renderWordQuest(app); break;
+
+    // מנהל העבודה בודק באיזה מסך אנחנו
+    if (state.screen === 'welcome') {
+        renderWelcome(app);
+    } else if (state.screen === 'quiz') {
+        renderQuiz(app);
+    } else if (state.screen === 'results') {
+        renderResults(app); // השורה שמעבירה לסיכום!
     }
-    if (state.showShareModal) renderShareModal(app);
 }
 
 // צמצום רווח בכותרת
@@ -287,22 +283,13 @@ function renderQuiz(app) {
     }
     
     let cur = state.words[state.quizIndex];
-
-    // יצירת אפשרויות אם הן חסרות
-    if (!cur.options || cur.options.length === 0) {
-        const correct = cur.heb;
-        const others = state.words.filter(w => w.heb !== correct).map(w => w.heb);
-        const shuffledOthers = others.sort(() => 0.5 - Math.random()).slice(0, 3);
-        cur.options = [correct, ...shuffledOthers].sort(() => 0.5 - Math.random());
-    }
-
     const isAnswered = state.quizFeedback.index !== -1;
 
     app.innerHTML = `
-        <div class="text-center space-y-8 w-full max-w-xl px-4">
+        <div class="text-center space-y-8 w-full max-w-xl px-4 mx-auto">
             ${renderHeader(`בוחן: ${state.quizIndex + 1}/${state.words.length}`)}
             
-            <div class="bg-white p-12 rounded-[3rem] shadow-xl border-4 border-blue-50 flex flex-col items-center gap-6">
+            <div class="bg-white p-12 rounded-[3rem] shadow-xl border-4 border-blue-50 flex flex-col items-center justify-center gap-6 min-h-[250px]">
                 <div class="text-6xl font-black text-gray-900 eng-text tracking-tight">
                     ${highlightPhonics(cur.eng)}
                 </div>
@@ -315,13 +302,21 @@ function renderQuiz(app) {
 
             <div class="grid grid-cols-1 gap-4 mt-6">
                 ${cur.options.map((opt, i) => {
-                    let btnClass = "bg-white text-gray-800 border-2 border-gray-100 py-6 px-8 rounded-2xl text-2xl font-black transition-all shadow-sm active:scale-95 cursor-pointer";
+                    let btnClass = "py-6 px-8 rounded-2xl text-2xl font-black transition-all shadow-sm border-2 w-full ";
+                    
                     if (isAnswered) {
-                        if (opt === cur.heb) btnClass = "bg-green-500 text-white border-green-500 scale-[1.02] shadow-lg py-6 px-8 rounded-2xl text-2xl font-black";
-                        else if (i === state.quizFeedback.index) btnClass = "bg-red-500 text-white border-red-500 opacity-90 py-6 px-8 rounded-2xl text-2xl font-black";
-                        else btnClass = "opacity-40 border-gray-100 py-6 px-8 rounded-2xl text-2xl font-black";
+                        if (opt === cur.heb) {
+                            btnClass += "bg-green-500 text-white border-green-600 scale-[1.02] shadow-md";
+                        } else if (i === state.quizFeedback.index) {
+                            btnClass += "bg-red-500 text-white border-red-600";
+                        } else {
+                            btnClass += "bg-white text-gray-300 border-gray-100 opacity-50";
+                        }
+                    } else {
+                        btnClass += "bg-white text-gray-800 border-gray-100 hover:border-blue-200 active:scale-95 cursor-pointer";
                     }
-                    return '<button onclick="checkAnswer(' + i + ')" class="' + btnClass + '">' + opt + '</button>';
+
+                    return `<button onclick="checkAnswer(${i})" class="${btnClass}">${opt}</button>`;
                 }).join('')}
             </div>
         </div>`;
@@ -641,6 +636,25 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
+function renderResults(app) {
+    const percent = Math.round((state.correctAnswers / state.words.length) * 100);
+    
+    app.innerHTML = `
+        <div class="text-center space-y-8 w-full max-w-xl px-4 mx-auto">
+            <h1 class="text-5xl font-black text-blue-600">כל הכבוד!</h1>
+            <div class="bg-white p-12 rounded-[3rem] shadow-xl border-4 border-green-400">
+                <p class="text-2xl mb-4">סיימת את המשימה בהצלחה</p>
+                <div class="text-7xl font-black text-gray-900 mb-6">${percent}%</div>
+                <p class="text-xl text-gray-600">צדקת ב-${state.correctAnswers} מתוך ${state.words.length} מילים</p>
+            </div>
+            <button onclick="state.screen='welcome'; state.quizIndex=0; state.correctAnswers=0; render();" 
+                    class="bg-blue-600 text-white py-6 px-12 rounded-2xl text-2xl font-black shadow-lg hover:bg-blue-700 transition-all">
+                שחק שוב
+            </button>
+        </div>`;
+}
+
 
 
 

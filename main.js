@@ -280,28 +280,48 @@ function renderFlashcards(app) {
 
 
 function renderQuiz(app) {
-    if (state.quizIndex >= state.words.length) { state.screen = 'results'; render(); return; }
+    if (state.quizIndex >= state.words.length) {
+        state.screen = 'results';
+        render();
+        return;
+    }
+    
     const cur = state.words[state.quizIndex];
     const isAnswered = state.quizFeedback.index !== -1;
 
     app.innerHTML = `
         <div class="text-center space-y-8 w-full max-w-xl px-4">
             ${renderHeader(`בוחן: ${state.quizIndex + 1}/${state.words.length}`)}
+            
             <div class="bg-white p-12 rounded-[3rem] shadow-xl border-4 border-blue-50 flex flex-col items-center gap-6">
-                <div class="text-6xl font-black text-gray-900 eng-text tracking-tight">${highlightPhonics(cur.eng)}</div>
+                <div class="text-6xl font-black text-gray-900 eng-text tracking-tight">
+                    ${highlightPhonics(cur.eng)}
+                </div>
                 <button onclick="speak('${cur.eng.replace(/'/g, "\\'")}')" class="p-2 text-blue-500 hover:scale-110 transition-transform bg-transparent border-none cursor-pointer">
-                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    </svg>
                 </button>
             </div>
-            <div class="grid grid-cols-1 gap-4">
+
+            <div class="grid grid-cols-1 gap-4 mt-6">
                 ${cur.options.map((opt, i) => {
-                    let btnClass = "bg-white text-gray-800 border-2 border-gray-100 py-6 px-8 rounded-2xl text-2xl font-black transition-all";
+                    let btnStyle = "background-color: white; color: #1f2937; border: 2px solid #f3f4f6;";
                     if (isAnswered) {
-                        if (i === state.quizFeedback.correctIndex) btnClass = "bg-green-500 text-white border-green-500 scale-[1.02] shadow-lg py-6 px-8 rounded-2xl text-2xl font-black";
-                        else if (i === state.quizFeedback.index) btnClass = "bg-red-500 text-white border-red-500 opacity-90 py-6 px-8 rounded-2xl text-2xl font-black";
-                        else btnClass = "opacity-40 border-gray-100 py-6 px-8 rounded-2xl text-2xl font-black";
+                        if (i === state.quizFeedback.correctIndex) {
+                            btnStyle = "background-color: #10b981; color: white; border-color: #10b981;";
+                        } else if (i === state.quizFeedback.index) {
+                            btnStyle = "background-color: #ef4444; color: white; border-color: #ef4444;";
+                        } else {
+                            btnStyle = "opacity: 0.4; background-color: white; border-color: #f3f4f6;";
+                        }
                     }
-                    return `<button onclick="!${isAnswered} && checkAnswer(${i})" class="${btnClass}">${opt}</button>`;
+                    return `
+                        <button onclick="if(!${isAnswered}) checkAnswer(${i})" 
+                                style="${btnStyle}" 
+                                class="py-6 px-8 rounded-2xl text-2xl font-black transition-all shadow-sm active:scale-95">
+                            ${opt}
+                        </button>`;
                 }).join('')}
             </div>
         </div>`;
@@ -609,4 +629,5 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 

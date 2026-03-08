@@ -35,22 +35,22 @@ function highlightPhonics(word) {
     if (!word) return "";
     let h = word.toLowerCase();
 
-    // 1. צביעת Blends (כחול)
-    const blends = ['sh', 'ch', 'th', 'ck', 'wh', 'ph', 'kn', 'wr'];
+    // 1. צביעת Blends (צירופי אותיות) בכחול
+    // הוספתי כאן את כל הצירופים הנפוצים: ch, sh, th, wh, ph, ck, kn, wr, qu
+    const blends = ['ch', 'sh', 'th', 'wh', 'ph', 'ck', 'kn', 'wr', 'qu'];
     blends.forEach(b => {
         const reg = new RegExp(b, 'gi');
         h = h.replace(reg, `<span style="color: #2563eb; font-weight: bold;">${b}</span>`);
     });
 
-    // 2. צביעת Vowel Teams (ירוק)
-    const vowels = ['ee', 'ai', 'ay', 'ea', 'oo', 'ou', 'oa'];
+    // 2. צביעת Vowel Teams (צירופי תנועות) בירוק
+    const vowels = ['ee', 'ai', 'ay', 'ea', 'oo', 'ou', 'oa', 'ow'];
     vowels.forEach(v => {
         const reg = new RegExp(v, 'gi');
         h = h.replace(reg, `<span style="color: #16a34a; font-weight: bold;">${v}</span>`);
     });
 
     // 3. לוגיקה ל-Magic E (אדום)
-    // צובע את התנועה ואת ה-e שבסוף המילה
     h = h.replace(/([aio])([a-z])(e)\b/gi, (match, v, c, e) => {
         return `<span style="color: #dc2626; font-weight: bold;">${v}</span>${c}<span style="color: #dc2626; font-weight: bold;">${e}</span>`;
     });
@@ -628,6 +628,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

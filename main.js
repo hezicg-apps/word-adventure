@@ -273,7 +273,7 @@ function renderFlashcards(app) {
                     
                     <div class="card-front absolute inset-0 bg-white rounded-[2.5rem] shadow-2xl border-4 border-blue-100 flex flex-col items-center justify-center p-8 text-center"
                          style="backface-visibility: hidden; z-index: 2;">
-                        <span class="text-5xl font-black text-blue-600 eng-text mb-6">
+                        <span class="text-5xl font-black text-gray-900 eng-text mb-6">
                             ${highlightPhonics(cur.eng)}
                         </span>
                         <button onclick="event.stopPropagation(); speak('${cur.eng.replace(/'/g, "\\'")}')" class="p-2 text-blue-500 hover:scale-125 transition-transform bg-transparent border-none outline-none">
@@ -645,6 +645,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

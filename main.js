@@ -287,6 +287,18 @@ function renderQuiz(app) {
     }
     
     const cur = state.words[state.quizIndex];
+    
+    // בדיקת חירום - אם אין אפשרויות, נציג הודעה
+    if (!cur.options || cur.options.length === 0) {
+        app.innerHTML = `
+            <div class="p-10 text-red-600 bg-red-50 rounded-xl border-2 border-red-200">
+                <h2 class="text-2xl font-bold">שגיאת נתונים!</h2>
+                <p>המערכת לא מוצאת תשובות למילה: <b>${cur.eng}</b></p>
+                <button onclick="state.screen='welcome'; render()" class="mt-4 p-2 bg-gray-500 text-white rounded">חזור להתחלה</button>
+            </div>`;
+        return;
+    }
+
     const isAnswered = state.quizFeedback.index !== -1;
 
     app.innerHTML = `
@@ -297,42 +309,14 @@ function renderQuiz(app) {
                 <div class="text-6xl font-black text-gray-900 eng-text tracking-tight">
                     ${highlightPhonics(cur.eng)}
                 </div>
-                <button onclick="speak('${cur.eng.replace(/'/g, "\\'")}')" class="p-2 text-blue-500 hover:scale-110 transition-transform bg-transparent border-none cursor-pointer">
-                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                    </svg>
-                </button>
             </div>
 
             <div class="grid grid-cols-1 gap-4 mt-6">
                 ${cur.options.map((opt, i) => {
-                    let btnStyle = "background-color: white; color: #1f2937; border: 2px solid #f3f4f6;";
-                    if (isAnswered) {
-                        if (i === state.quizFeedback.correctIndex) {
-                            btnStyle = "background-color: #10b981; color: white; border-color: #10b981;";
-                        } else if (i === state.quizFeedback.index) {
-                            btnStyle = "background-color: #ef4444; color: white; border-color: #ef4444;";
-                        } else {
-                            btnStyle = "opacity: 0.4; background-color: white; border-color: #f3f4f6;";
-                        }
-                    }
-                    return `
-                        <button onclick="if(!${isAnswered}) checkAnswer(${i})" 
-                                style="${btnStyle}" 
-                                class="py-6 px-8 rounded-2xl text-2xl font-black transition-all shadow-sm active:scale-95">
-                            ${opt}
-                        </button>`;
+                    return `<button onclick="checkAnswer(${i})" class="bg-blue-500 text-white py-6 px-8 rounded-2xl text-2xl font-black">${opt}</button>`;
                 }).join('')}
             </div>
         </div>`;
-}
-function handleQuizAns(selected, correct, idx) {
-    if (state.quizFeedback.status) return;
-    const isCorrect = selected === correct;
-    state.quizFeedback = { index: idx, status: isCorrect ? 'correct' : 'wrong', correctIndex: state.quizOptions.indexOf(correct) };
-    if (isCorrect) state.correctAnswers++;
-    render();
-    setTimeout(() => { state.quizIndex++; state.quizOptions = null; state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; render(); }, 800);
 }
 
 // צמצום רווחים במסך התפריט
@@ -629,5 +613,6 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 

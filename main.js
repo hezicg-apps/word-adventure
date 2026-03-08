@@ -160,28 +160,31 @@ function resetAllData() {
 }
 
 function render() {
-    // 1. מציאת האלמנט המרכזי בדף
     const app = document.getElementById('app');
     
-    // הגנה: אם האלמנט לא נמצא, אל תמשיך (כדי למנוע קריסה)
+    // בדיקה שהאלמנט קיים ב-HTML
     if (!app) {
-        console.error("Critical: Could not find 'app' element");
+        console.error("לא נמצא אלמנט עם ה-ID בשם app");
         return;
     }
 
-    // 2. ניקוי המסך לפני הציור החדש
+    // ניקוי המסך לפני הציור
     app.innerHTML = '';
 
-    // 3. ניתוב למסך המתאים לפי מצב האפליקציה (state.screen)
+    // בדיקה באיזה מסך אנחנו נמצאים
     if (state.screen === 'welcome') {
-        renderWelcome(app);
-    } else if (state.screen === 'quiz') {
-        renderQuiz(app);
-    } else if (state.screen === 'results') {
-        renderResults(app);
+        if (typeof renderWelcome === 'function') renderWelcome(app);
+        else app.innerHTML = '<h1>שגיאה: מסך פתיחה לא נמצא</h1>';
+    } 
+    else if (state.screen === 'quiz') {
+        if (typeof renderQuiz === 'function') renderQuiz(app);
+        else app.innerHTML = '<h1>שגיאה: מסך חידון לא נמצא</h1>';
+    } 
+    else if (state.screen === 'results') {
+        if (typeof renderResults === 'function') renderResults(app);
+        else app.innerHTML = '<h1>שגיאה: מסך תוצאות לא נמצא</h1>';
     }
 }
-
 // צמצום רווח בכותרת
 function renderHeader(subtext) {
     const titleColor = state.nightMode ? 'text-yellow-500' : 'text-gray-800';
@@ -660,6 +663,7 @@ function renderResults(app) {
             </button>
         </div>`;
 }
+
 
 
 

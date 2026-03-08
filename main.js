@@ -262,10 +262,16 @@ function renderFlashcards(app) {
                 <span class="text-xl">🔄</span>
             </div>
 
-            <div onclick="this.classList.toggle('card-flipped')" class="relative w-full h-80 perspective-1000 cursor-pointer mt-2 group">
-                <div class="card-inner relative w-full h-full transition-transform duration-500 preserve-3d">
+            <div onclick="this.querySelector('.card-inner').style.transform = 
+                this.querySelector('.card-inner').style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)'" 
+                style="perspective: 1000px;" 
+                class="relative w-full h-80 cursor-pointer mt-2">
+                
+                <div class="card-inner relative w-full h-full transition-transform duration-500" 
+                     style="transform-style: preserve-3d; transition: transform 0.6s;">
                     
-                    <div class="card-front absolute inset-0 backface-hidden bg-white rounded-[2.5rem] shadow-2xl border-4 border-blue-50 flex flex-col items-center justify-center p-8 text-center z-10">
+                    <div class="card-front absolute inset-0 bg-white rounded-[2.5rem] shadow-2xl border-4 border-blue-100 flex flex-col items-center justify-center p-8 text-center"
+                         style="backface-visibility: hidden; z-index: 2;">
                         <span class="text-5xl font-black text-blue-600 eng-text mb-6">
                             ${highlightPhonics(cur.eng)}
                         </span>
@@ -276,7 +282,8 @@ function renderFlashcards(app) {
                         </button>
                     </div>
                     
-                    <div class="card-back absolute inset-0 backface-hidden bg-blue-600 rounded-[2.5rem] shadow-2xl border-4 border-blue-700 text-white flex items-center justify-center p-8 text-center rotate-y-180">
+                    <div class="card-back absolute inset-0 bg-blue-600 rounded-[2.5rem] shadow-2xl border-4 border-blue-700 text-white flex items-center justify-center p-8 text-center"
+                         style="backface-visibility: hidden; transform: rotateY(180deg); z-index: 1;">
                         <span class="text-4xl font-black">${cur.heb}</span>
                     </div>
                 </div>
@@ -621,6 +628,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

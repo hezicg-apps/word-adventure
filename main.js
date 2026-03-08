@@ -298,11 +298,18 @@ function renderFlashcards(app) {
 }
 
 function renderQuiz(app) {
+    if (state.words.length === 0) {
+        state.screen = 'welcome';
+        render();
+        return;
+    }
+
     if (state.quizIndex >= state.words.length) {
         state.screen = 'results';
         render();
         return;
     }
+    
     const cur = state.words[state.quizIndex];
     const isAnswered = state.quizFeedback.index !== -1;
 
@@ -645,6 +652,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

@@ -243,22 +243,44 @@ function processInput(shouldRender = true) {
 
 function renderFlashcards(app) {
     const unknown = state.words.filter(w => !w.known);
-    if (unknown.length === 0) { state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render(); return; }
+    if (unknown.length === 0) { 
+        state.quizIndex = 0; 
+        state.correctAnswers = 0; 
+        state.screen = 'quiz'; 
+        render(); 
+        return; 
+    }
     const cur = unknown[0];
     const tutorialColor = state.nightMode ? 'bg-white text-black' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+
     app.innerHTML = `
         <div class="text-center space-y-4 w-full max-sm px-2 mt-2 relative">
             ${renderHeader(`לימוד מילים (${state.words.filter(w=>w.known).length}/${state.words.length})`)}
+            
             <div class="${tutorialColor} py-2 px-6 rounded-full inline-flex items-center gap-2 font-black border mb-2 shadow-sm transition-colors">
                 <span>לחצו על הכרטיסייה לסיבוב</span>
                 <span class="text-xl">🔄</span>
             </div>
+
             <div onclick="this.classList.toggle('card-flipped')" class="relative w-full h-80 perspective-1000 cursor-pointer mt-2">
                 <div class="card-inner">
-                    <div class="card-front bg-white border-4 border-blue-200 flex-col"><span class="text-5xl font-black text-blue-600 eng-text mb-6">${highlightPhonics(cur.eng)}</span><button onclick="event.stopPropagation(); speak('${highlightPhonics(cur.eng)}')" class="text-5xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div>
-                    <div class="card-back bg-blue-600 border-4 border-blue-700 text-white"><span class="text-4xl font-black px-4 text-center">${cur.heb}</span></div>
+                    <div class="card-front absolute inset-0 backface-hidden bg-white rounded-[2.5rem] shadow-2xl border-4 border-blue-50 flex flex-col items-center justify-center p-8 text-center">
+                        <span class="text-5xl font-black text-blue-600 eng-text mb-6">
+                            ${highlightPhonics(cur.eng)}
+                        </span>
+                        <button onclick="event.stopPropagation(); speak('${cur.eng.replace(/'/g, "\\'")}')" class="p-4 bg-blue-50 rounded-full text-blue-600 hover:scale-110 transition-transform">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="card-back absolute inset-0 backface-hidden bg-blue-600 rounded-[2.5rem] shadow-2xl border-4 border-blue-700 text-white flex items-center justify-center p-8 text-center transform rotate-y-180">
+                        <span class="text-4xl font-black">${cur.heb}</span>
+                    </div>
                 </div>
             </div>
+
             <div class="grid grid-cols-2 gap-4">
                  <button onclick="state.words.find(w=>w.id === '${cur.id}').known=true; render()" class="bg-green-600 text-white py-5 rounded-2xl font-black text-2xl shadow-md active:scale-95 transition-transform">יודע ✅</button>
                  <button onclick="state.words = shuffle(state.words); render()" class="bg-orange-600 text-white py-5 rounded-2xl font-black text-2xl shadow-md active:scale-95 transition-transform">עוד לא ⏳</button>
@@ -598,4 +620,5 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 

@@ -31,6 +31,34 @@ function saveToLocal() {
     localStorage.setItem('wm_listName', state.listName);
 }
 
+function highlightPhonics(word) {
+    if (!word) return "";
+    let h = word.toLowerCase();
+
+    // 1. צביעת Blends (כחול)
+    const blends = ['ch', 'sh', 'th', 'wh', 'ph', 'ck', 'kn', 'wr', 'qu'];
+    blends.forEach(b => {
+        const reg = new RegExp(b, 'gi');
+        h = h.replace(reg, `<span style="color: #2563eb; font-weight: bold;">${b}</span>`);
+    });
+
+    // 2. צביעת Vowel Teams (ירוק)
+    const vowels = ['ee', 'ai', 'ay', 'ea', 'oo', 'ou', 'oa', 'ow'];
+    vowels.forEach(v => {
+        const reg = new RegExp(v, 'gi');
+        h = h.replace(reg, `<span style="color: #16a34a; font-weight: bold;">${v}</span>`);
+    });
+
+    // 3. לוגיקה ל-Magic E (אדום)
+    h = h.replace(/([aio])([a-z])(e)\b/gi, (match, v, c, e) => {
+        return `<span style="color: #dc2626; font-weight: bold;">${v}</span>${c}<span style="color: #dc2626; font-weight: bold;">${e}</span>`;
+    });
+
+    return h;
+}
+
+
+
 function loadFromLocal() {
     const params = new URLSearchParams(window.location.search);
     let sharedData = params.get('w');
@@ -219,6 +247,7 @@ function renderFlashcards(app) {
     if (unknown.length === 0) { state.quizIndex = 0; state.correctAnswers = 0; state.screen = 'quiz'; render(); return; }
     const cur = unknown[0];
     const tutorialColor = state.nightMode ? 'bg-white text-black' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+
     app.innerHTML = `
         <div class="text-center space-y-4 w-full max-sm px-2 mt-2 relative">
             ${renderHeader(`לימוד מילים (${state.words.filter(w=>w.known).length}/${state.words.length})`)}
@@ -226,12 +255,22 @@ function renderFlashcards(app) {
                 <span>לחצו על הכרטיסייה לסיבוב</span>
                 <span class="text-xl">🔄</span>
             </div>
-            <div onclick="this.classList.toggle('card-flipped')" class="relative w-full h-80 perspective-1000 cursor-pointer mt-2">
-                <div class="card-inner">
-                    <div class="card-front bg-white border-4 border-blue-200 flex-col"><span class="text-5xl font-black text-blue-600 eng-text mb-6">${cur.eng}</span><button onclick="event.stopPropagation(); speak('${cur.eng}')" class="text-5xl bg-transparent border-none p-0 cursor-pointer">🔊</button></div>
-                    <div class="card-back bg-blue-600 border-4 border-blue-700 text-white"><span class="text-4xl font-black px-4 text-center">${cur.heb}</span></div>
+
+            <div onclick="const inner = this.querySelector('.card-inner'); inner.style.transform = inner.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)'" 
+                 style="perspective: 1000px;" class="relative w-full h-80 cursor-pointer mt-2">
+                <div class="card-inner relative w-full h-full transition-transform duration-500" style="transform-style: preserve-3d;">
+                    <div class="card-front absolute inset-0 bg-white rounded-[2.5rem] shadow-2xl border-4 border-blue-100 flex flex-col items-center justify-center p-8 text-center" style="backface-visibility: hidden; z-index: 2;">
+                        <span class="text-5xl font-black text-gray-900 eng-text mb-6">${highlightPhonics(cur.eng)}</span>
+                        <button onclick="event.stopPropagation(); speak('${cur.eng.replace(/'/g, "\\'")}')" class="p-2 text-blue-500 hover:scale-125 transition-transform bg-transparent border-none outline-none cursor-pointer">
+                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                        </button>
+                    </div>
+                    <div class="card-back absolute inset-0 bg-blue-600 rounded-[2.5rem] shadow-2xl border-4 border-blue-700 text-white flex items-center justify-center p-8 text-center" style="backface-visibility: hidden; transform: rotateY(180deg);">
+                        <span class="text-4xl font-black">${cur.heb}</span>
+                    </div>
                 </div>
             </div>
+
             <div class="grid grid-cols-2 gap-4">
                  <button onclick="state.words.find(w=>w.id === '${cur.id}').known=true; render()" class="bg-green-600 text-white py-5 rounded-2xl font-black text-2xl shadow-md active:scale-95 transition-transform">יודע ✅</button>
                  <button onclick="state.words = shuffle(state.words); render()" class="bg-orange-600 text-white py-5 rounded-2xl font-black text-2xl shadow-md active:scale-95 transition-transform">עוד לא ⏳</button>
@@ -239,35 +278,34 @@ function renderFlashcards(app) {
         </div>`;
 }
 
+
 function renderQuiz(app) {
-    if (state.quizIndex >= state.words.length) {
-        state.masteryScore = (state.correctAnswers / state.words.length) * 100;
-        saveToLocal(); triggerConfetti(); state.screen = 'menu'; render(); return;
-    }
+    if (state.quizIndex >= state.words.length) { state.screen = 'results'; render(); return; }
     const cur = state.words[state.quizIndex];
-    if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
+    const isAnswered = state.quizFeedback.index !== -1;
+
     app.innerHTML = `
-        <div class="text-center space-y-4 w-full max-w-sm px-2 mt-2">
-            ${renderHeader(`אתגר: ${state.quizIndex + 1}/${state.words.length}`)}
-            <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative">
-                <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4 text-gray-800">
-                    ${cur.eng}
-                    <button onclick="speak('${cur.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button>
-                </div>
-                <div class="grid gap-4">
-                    ${state.quizOptions.map((o, idx) => {
-                        let statusClass = '';
-                        if (state.quizFeedback.status) {
-                            if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans';
-                            else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans';
-                        }
-                        return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" class="py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 ${statusClass}">${o}</button>`;
-                    }).join('')}
-                </div>
+        <div class="text-center space-y-8 w-full max-w-xl px-4">
+            ${renderHeader(`בוחן: ${state.quizIndex + 1}/${state.words.length}`)}
+            <div class="bg-white p-12 rounded-[3rem] shadow-xl border-4 border-blue-50 flex flex-col items-center gap-6">
+                <div class="text-6xl font-black text-gray-900 eng-text tracking-tight">${highlightPhonics(cur.eng)}</div>
+                <button onclick="speak('${cur.eng.replace(/'/g, "\\'")}')" class="p-2 text-blue-500 hover:scale-110 transition-transform bg-transparent border-none cursor-pointer">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 gap-4">
+                ${cur.options.map((opt, i) => {
+                    let btnClass = "bg-white text-gray-800 border-2 border-gray-100 py-6 px-8 rounded-2xl text-2xl font-black transition-all";
+                    if (isAnswered) {
+                        if (i === state.quizFeedback.correctIndex) btnClass = "bg-green-500 text-white border-green-500 scale-[1.02] shadow-lg py-6 px-8 rounded-2xl text-2xl font-black";
+                        else if (i === state.quizFeedback.index) btnClass = "bg-red-500 text-white border-red-500 opacity-90 py-6 px-8 rounded-2xl text-2xl font-black";
+                        else btnClass = "opacity-40 border-gray-100 py-6 px-8 rounded-2xl text-2xl font-black";
+                    }
+                    return `<button onclick="!${isAnswered} && checkAnswer(${i})" class="${btnClass}">${opt}</button>`;
+                }).join('')}
             </div>
         </div>`;
 }
-
 function handleQuizAns(selected, correct, idx) {
     if (state.quizFeedback.status) return;
     const isCorrect = selected === correct;
@@ -571,3 +609,4 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+

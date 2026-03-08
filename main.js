@@ -314,7 +314,7 @@ function renderQuiz(app) {
                 <div class="absolute top-0 left-0 w-2 h-full bg-blue-500"></div>
                 
                 <div class="flex flex-col items-center gap-6">
-                    <div class="text-6xl font-black text-blue-700 eng-text tracking-tight">
+                    <div class="text-6xl font-black text-gray-900 eng-text tracking-tight">
                         ${highlightPhonics(cur.eng)}
                     </div>
                     
@@ -645,6 +645,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

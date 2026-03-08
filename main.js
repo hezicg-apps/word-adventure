@@ -299,29 +299,45 @@ function renderFlashcards(app) {
 
 function renderQuiz(app) {
     if (state.quizIndex >= state.words.length) {
-        state.masteryScore = (state.correctAnswers / state.words.length) * 100;
-        saveToLocal(); triggerConfetti(); state.screen = 'menu'; render(); return;
+        state.screen = 'results';
+        render();
+        return;
     }
     const cur = state.words[state.quizIndex];
-    if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
+    const isAnswered = state.quizFeedback.index !== -1;
+
     app.innerHTML = `
-        <div class="text-center space-y-4 w-full max-w-sm px-2 mt-2">
-            ${renderHeader(`אתגר: ${state.quizIndex + 1}/${state.words.length}`)}
-            <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative">
-                <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4 text-gray-800">
-                    ${cur.eng}
-                    <button onclick="speak('${cur.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button>
+        <div class="text-center space-y-8 w-full max-w-xl px-4">
+            ${renderHeader(`בוחן: ${state.quizIndex + 1}/${state.words.length}`)}
+            
+            <div class="bg-white p-12 rounded-[3rem] shadow-xl border-4 border-blue-50 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-blue-500"></div>
+                
+                <div class="flex flex-col items-center gap-6">
+                    <div class="text-6xl font-black text-blue-700 eng-text tracking-tight">
+                        ${highlightPhonics(cur.eng)}
+                    </div>
+                    
+                    <button onclick="speak('${cur.eng.replace(/'/g, "\\'")}')" class="p-3 text-blue-500 hover:scale-110 transition-transform bg-transparent border-none cursor-pointer outline-none">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        </svg>
+                    </button>
                 </div>
-                <div class="grid gap-4">
-                    ${state.quizOptions.map((o, idx) => {
-                        let statusClass = '';
-                        if (state.quizFeedback.status) {
-                            if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans';
-                            else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans';
-                        }
-                        return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" class="py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 ${statusClass}">${o}</button>`;
-                    }).join('')}
-                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                ${cur.options.map((opt, i) => {
+                    let btnClass = "bg-white text-gray-800 border-2 border-gray-100";
+                    if (isAnswered) {
+                        if (i === state.quizFeedback.correctIndex) btnClass = "bg-green-500 text-white border-green-500 scale-[1.02] shadow-lg";
+                        else if (i === state.quizFeedback.index) btnClass = "bg-red-500 text-white border-red-500 opacity-90";
+                        else btnClass = "opacity-40 border-gray-100";
+                    } else {
+                        btnClass += " hover:border-blue-300 hover:bg-blue-50 active:scale-95";
+                    }
+                    return `<button onclick="!${isAnswered} && checkAnswer(${i})" class="${btnClass} py-6 px-8 rounded-2xl text-2xl font-black transition-all duration-200 text-center">${opt}</button>`;
+                }).join('')}
             </div>
         </div>`;
 }
@@ -629,6 +645,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

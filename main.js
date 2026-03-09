@@ -32,22 +32,67 @@ function saveToLocal() {
 }
 
 function loadFromLocal() {
+    // שלב א': בדיקה אם הגענו דרך קישור עם מילים (כמו הקישור ששלחת)
+    const params = new URLSearchParams(window.location.search);
+    const encodedData = params.get('w');
+
+    if (encodedData) {
+        try {
+            // פענוח הטקסט המוצפן (Base64) ותמיכה בעברית
+            const decodedText = decodeURIComponent(escape(atob(encodedData)));
+            const lines = decodedText.split('\n').filter(l => l.trim());
+            
+            if (lines.length > 0) {
+                // השורה הראשונה היא שם היחידה
+                state.listName = lines[0].trim();
+                
+                // הפיכת שאר השורות למערך של מילים
+                state.words = lines.slice(1).map((l, i) => {
+                    const parts = l.split('-').map(p => p.trim());
+                    return { 
+                        id: Date.now() + i, 
+                        eng: parts[0], 
+                        heb: parts[1] || '', 
+                        known: false 
+                    };
+                }).filter(w => w.heb);
+
+                if (state.words.length > 0) {
+                    state.screen = 'menu'; // מעבר ישיר לתפריט המשחקים
+                    state.quizIndex = 0;
+                    state.cardIndex = 0;
+                    saveToLocal(); // שמירה לשימוש עתידי
+                    render();
+                    return; // סיום הפונקציה - הצלחנו לטעון מהקישור
+                }
+            }
+        } catch (e) {
+            console.error("Link decode error:", e);
+        }
+    }
+
+    // שלב ב': אם אין קישור, ננסה לטעון מהזיכרון המקומי של הדפדפן
     const saved = localStorage.getItem('word_adventure_state');
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
-            // בדיקה שהמילים הן אכן מערך ולא ריקות
+            // בדיקה שהנתונים השמורים תקינים ומכילים מילים
             if (parsed.words && Array.isArray(parsed.words) && parsed.words.length > 0) {
                 Object.assign(state, parsed);
+                // וודא שאנחנו לא תקועים על מסך טעינה
+                if (state.screen === 'welcome') state.screen = 'menu';
             } else {
-                // אם המילים ריקות, וודא שהמסך הוא מסך הפתיחה
                 state.screen = 'welcome';
             }
         } catch (e) {
-            console.error("Error loading state", e);
+            console.error("Error parsing saved state:", e);
             state.screen = 'welcome';
         }
+    } else {
+        // שלב ג': אם אין כלום - חזרה למסך הפתיחה הריק
+        state.screen = 'welcome';
     }
+
     render();
 }
 
@@ -732,6 +777,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

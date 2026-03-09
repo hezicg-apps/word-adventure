@@ -72,13 +72,6 @@ function loadFromLocal() {
     // ... המשך הקוד של טעינה רגילה
 }
 
-function getShareUrl() {
-    if (!state.inputText || !state.inputText.includes('-')) return null;
-    let encodedData = btoa(unescape(encodeURIComponent(state.inputText)));
-    encodedData = encodedData.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    return `${window.location.origin}${window.location.pathname}?w=${encodedData}`;
-}
-
 function shareVia(platform) {
     const url = getShareUrl();
     if (!url) return;
@@ -217,27 +210,30 @@ function processInput() {
     const lines = state.inputText.split('\n').filter(l => l.trim());
     if (lines.length === 0) return;
 
-    // חילוץ שם הרשימה מהשורה הראשונה אם היא קיימת, או ברירת מחדל
+    // חילוץ כותרת
     const firstLine = lines[0].trim();
-    if (firstLine.includes('Epic') || firstLine.includes('Unit')) {
+    if (firstLine.includes('Unit') || firstLine.includes('Part')) {
         state.listName = firstLine;
-        lines.shift(); // מסיר את הכותרת מרשימת המילים
+        lines.shift();
     }
 
     const newWords = lines.map((l, i) => {
         const parts = l.split('-').map(p => p.trim());
-        return { id: Date.now() + i, eng: parts[0], heb: parts[1] || '' };
+        return { id: Date.now() + i, eng: parts[0], heb: parts[1] || '', known: false };
     }).filter(w => w.heb);
 
     if (newWords.length > 0) {
-        // --- החלק הקריטי: איפוס המערכת למילים החדשות ---
         state.words = newWords;
-        state.quizIndex = 0;           // מחזיר לשאלה הראשונה
-        state.correctAnswers = 0;      // מאפס ציונים
-        state.quizOptions = null;      // מוחק אפשרויות קודמות
+        
+        // --- איפוס מוחלט כאן ---
+        state.quizIndex = 0;
+        state.cardIndex = 0;
+        state.correctAnswers = 0;
+        state.masteryScore = null; // מוחק את הציון הישן
+        state.quizOptions = null;
         state.quizFeedback = { index: -1, status: null, correctIndex: -1 };
         
-        state.screen = 'menu';         // מעביר לתפריט המשחקים
+        state.screen = 'flashcards'; // מעביר ישר לתרגול
         saveToLocal();
         render();
     }
@@ -753,6 +749,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

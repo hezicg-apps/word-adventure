@@ -255,18 +255,97 @@ function renderFlashcards(app) {
 
 function renderQuiz(app) {
     if (state.quizIndex >= state.words.length) {
-        state.masteryScore = (state.correctAnswers / state.words.length) * 100;
-        saveToLocal(); triggerConfetti(); state.screen = 'menu'; render(); return;
+        const finalScore = Math.round((state.correctAnswers / state.words.length) * 100);
+        state.masteryScore = finalScore;
+        saveToLocal();
+        triggerConfetti();
+
+        app.innerHTML = `
+            <div class="text-center space-y-8 w-full max-w-sm px-4 mx-auto mt-10 animate-fade-in">
+                <div class="bg-white border-4 border-yellow-400 rounded-[3rem] p-10 shadow-2xl relative">
+                    <h2 class="text-3xl font-black text-gray-800 mb-2">כל הכבוד! 🏆</h2>
+                    <p class="text-lg text-gray-500 font-bold mb-6">${state.listName}</p>
+                    <div class="text-7xl font-black text-yellow-500 mb-4">${finalScore}%</div>
+                    <p class="text-xl font-bold text-gray-700">ענית נכון על ${state.correctAnswers} מתוך ${state.words.length}</p>
+                </div>
+
+                <div id="reportSection" class="bg-blue-50 p-6 rounded-[2rem] border-2 border-blue-200 space-y-4 shadow-inner text-right" dir="rtl">
+                    <p class="font-bold text-blue-800 text-center">שלח דיווח למורה:</p>
+                    
+                    <input type="text" id="studentName" placeholder="שם מלא" 
+                        class="w-full p-4 rounded-xl border-2 border-white text-center font-bold outline-none focus:border-blue-400 shadow-sm">
+                    
+                    <select id="studentClass" class="w-full p-4 rounded-xl border-2 border-white text-center font-bold outline-none focus:border-blue-400 bg-white shadow-sm">
+                        <option value="">בחר כיתה...</option>
+                        <option value="ג'1">ג'1</option>
+                        <option value="ד'1">ד'1</option>
+                        <option value="ה'1">ה'1</option>
+                        <option value="ה'2">ה'2</option>
+                        <option value="ו'1">ו'1</option>
+                        <option value="ו'2">ו'2</option>
+                    </select>
+
+                    <button id="sendBtn" class="w-full py-4 bg-green-500 text-white rounded-xl font-black shadow-md hover:bg-green-600 transition-all text-xl active:scale-95">שלח תוצאה ✅</button>
+                </div>
+
+                <div class="grid gap-4 pb-10">
+                    <button onclick="state.quizIndex=0; state.correctAnswers=0; state.masteryScore=0; render();" 
+                        class="py-5 bg-blue-600 text-white rounded-2xl text-xl font-black shadow-lg">תרגול חוזר 🔄</button>
+                    <button onclick="state.masteryScore=0; state.screen='menu'; render();" 
+                        class="py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold">חזרה לתפריט 🏠</button>
+                </div>
+            </div>`;
+
+        // לוגיקת השליחה לטופס הספציפי שלך
+        document.getElementById('sendBtn').onclick = function() {
+            const name = document.getElementById('studentName').value;
+            const sClass = document.getElementById('studentClass').value;
+
+            if (!name || !sClass) {
+                alert("נא למלא שם ולבחור כיתה");
+                return;
+            }
+
+            this.innerText = "שולח... ⏳";
+            this.disabled = true;
+
+            const formURL = "https://docs.google.com/forms/d/e/1Yf_7Q6kg6NeAl8Ym6fhth_xdnzL8TX7oeuW4hcP8VCw/formResponse";
+            
+            const formData = new FormData();
+            formData.append('entry.1353106362', name);       // שם מלא
+            formData.append('entry.1228495039', sClass);     // כיתה
+            formData.append('entry.1983088190', state.listName); // שם הספר/יחידה
+            formData.append('entry.1977755106', finalScore + "%"); // ציון
+
+            fetch(formURL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: formData
+            }).then(() => {
+                document.getElementById('reportSection').innerHTML = `
+                    <div class="p-6 bg-green-100 text-green-700 rounded-xl font-bold text-center animate-bounce">
+                        הדיווח נשלח בהצלחה למורה! 🚀
+                    </div>`;
+            }).catch(err => {
+                alert("שגיאה בשליחה. בדוק את החיבור.");
+                this.innerText = "שלח תוצאה ✅";
+                this.disabled = false;
+            });
+        };
+        return;
     }
+
+    // קוד הצגת השאלה
     const cur = state.words[state.quizIndex];
     if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
+    
     app.innerHTML = `
-        <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4">
+        <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4 mx-auto animate-fade-in">
             ${renderHeader(`אתגר: ${state.quizIndex + 1}/${state.words.length}`)}
             <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative">
                 <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4 text-gray-800">
                     ${cur.eng}
-                    <button onclick="speak('${cur.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button>
+                    <button onclick="speak('${cur.eng.replace(/'/g, "\\'")}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button>
                 </div>
                 <div class="grid gap-4">
                     ${state.quizOptions.map((o, idx) => {
@@ -589,3 +668,50 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
+window.submitFinalReport = (score) => {
+    const nameInput = document.getElementById('studentName');
+    const classInput = document.getElementById('studentClass');
+    
+    const name = nameInput ? nameInput.value : '';
+    const sClass = classInput ? classInput.value : '';
+
+    if (!name || !sClass) {
+        alert("נא למלא שם מלא וכיתה כדי לשלוח את הדיווח");
+        return;
+    }
+
+    const data = {
+        name: name,
+        class: sClass,
+        unit: state.listName,
+        score: score + "%",
+        date: new Date().toLocaleString('he-IL')
+    };
+
+    // הכתובת של ה-Google Script שלך
+    const scriptURL = 'YOUR_GOOGLE_SCRIPT_URL_HERE'; 
+
+    const btn = event.target;
+    const originalText = btn.innerText;
+    btn.innerText = "שולח... ⏳";
+    btn.disabled = true;
+
+    fetch(scriptURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        cache: 'no-cache',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    }).then(() => {
+        document.getElementById('reportSection').innerHTML = `
+            <div class="p-4 bg-green-100 text-green-700 rounded-xl font-bold animate-bounce">
+                הדיווח נשלח בהצלחה למורה! 🚀
+            </div>`;
+    }).catch(err => {
+        console.error(err);
+        alert("שגיאה בשליחה. וודא שחיבור האינטרנט תקין.");
+        btn.innerText = originalText;
+        btn.disabled = false;
+    });
+};

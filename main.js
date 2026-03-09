@@ -113,3 +113,177 @@ window.toggleKnown = () => {
     const cur = state.words[state.cardIndex];
     if (cur) { cur.known = !cur.known; saveToLocal(); render(); }
 };
+
+// 5. תפריט ראשי
+function renderMenu(app) {
+    app.innerHTML = `
+        <div class="text-center space-y-6 w-full max-w-sm px-4 mx-auto mt-10 animate-fade-in">
+            <h1 class="text-4xl font-black text-gray-800">${state.listName}</h1>
+            <p class="text-blue-500 font-bold italic">בחר פעילות:</p>
+            <div class="grid gap-4">
+                <button onclick="state.screen='flashcards'; render();" class="py-6 bg-white border-4 border-blue-400 rounded-3xl text-2xl font-black text-blue-600 shadow-xl hover:scale-105 transition-transform">🗂️ כרטיסיות</button>
+                <button onclick="state.screen='quiz'; state.quizIndex=0; state.correctAnswers=0; state.masteryScore=0; render();" class="py-6 bg-white border-4 border-purple-400 rounded-3xl text-2xl font-black text-purple-600 shadow-xl hover:scale-105 transition-transform">📝 בוחן מילים</button>
+            </div>
+            <button onclick="localStorage.clear(); location.reload();" class="text-gray-400 text-sm underline pt-4">טען רשימה חדשה ✍️</button>
+        </div>`;
+}
+
+// 6. בוחן מילים (Quiz)
+function renderQuiz(app) {
+    if (state.masteryScore > 0) { renderMastery(app); return; }
+    
+    const cur = state.words[state.quizIndex];
+    if (!state.quizOptions) {
+        let others = state.words.filter(w => w.id !== cur.id);
+        state.quizOptions = shuffle([cur, ...shuffle(others).slice(0, 3)]);
+    }
+
+    app.innerHTML = `
+        <div class="text-center space-y-8 w-full max-w-sm px-4 mx-auto mt-10 animate-fade-in">
+            <div class="flex justify-between items-center text-sm font-bold text-gray-400">
+                <span>שאלה ${state.quizIndex + 1} מתוך ${state.words.length}</span>
+                <span class="text-green-500">נכונות: ${state.correctAnswers}</span>
+            </div>
+            <div class="bg-white border-4 border-purple-400 rounded-[3rem] p-10 shadow-xl">
+                <h2 class="text-5xl font-black text-gray-800">${cur.eng}</h2>
+                <button onclick="speak('${cur.eng.replace(/'/g, "\\'")}')" class="mt-4 text-3xl">🔊</button>
+            </div>
+            <div class="grid gap-3">
+                ${state.quizOptions.map((opt, i) => {
+                    let style = "bg-white border-2 border-gray-100 text-gray-700";
+                    if (state.quizFeedback.index === i) {
+                        style = state.quizFeedback.status === 'correct' ? "bg-green-500 text-white border-green-500" : "bg-red-500 text-white border-red-500";
+                    } else if (state.quizFeedback.status === 'wrong' && i === state.quizFeedback.correctIndex) {
+                        style = "bg-green-500 text-white border-green-500";
+                    }
+                    return `<button onclick="checkAnswer(${i})" class="py-4 px-6 rounded-2xl text-xl font-bold shadow-sm transition-all ${style}">${opt.heb}</button>`;
+                }).join('')}
+            </div>
+        </div>`;
+}
+
+window.checkAnswer = (idx) => {
+    if (state.quizFeedback.index !== -1) return;
+    const correctIdx = state.quizOptions.findIndex(o => o.id === state.words[state.quizIndex].id);
+    const isCorrect = idx === correctIdx;
+
+    state.quizFeedback = { index: idx, status: isCorrect ? 'correct' : 'wrong', correctIndex: correctIdx };
+    if (isCorrect) { state.correctAnswers++; triggerConfetti(); }
+    render();
+
+    setTimeout(() => {
+        state.quizFeedback = { index: -1, status: null, correctIndex: -1 };
+        state.quizOptions = null;
+        if (state.quizIndex < state.words.length - 1) {
+            state.quizIndex++;
+        } else {
+            state.masteryScore = (state.correctAnswers / state.words.length) * 100;
+            saveToLocal();
+        }
+        render();
+    }, 1500);
+};
+
+// 7. מסך סיכום (Mastery)
+function renderMastery(app) {
+    app.innerHTML = `
+        <div class="text-center space-y-8 w-full max-w-sm px-4 mx-auto mt-10 animate-fade-in">
+            <div class="bg-white border-4 border-yellow-400 rounded-[3rem] p-10 shadow-2xl">
+                <h2 class="text-3xl font-black text-gray-800 mb-2">כל הכבוד! 🏆</h2>
+                <p class="text-lg text-gray-500 font-bold mb-6">${state.listName}</p>
+                <div class="text-7xl font-black text-yellow-500 mb-4">${Math.round(state.masteryScore)}%</div>
+                <p class="text-xl font-bold text-gray-700">ענית נכון על ${state.correctAnswers} מתוך ${state.words.length}</p>
+            </div>
+            <div class="grid gap-4">
+                <button onclick="state.masteryScore=0; state.quizIndex=0; state.correctAnswers=0; render();" class="py-5 bg-blue-600 text-white rounded-2xl text-xl font-black shadow-lg">תרגול חוזר 🔄</button>
+                <button onclick="state.screen='menu'; state.masteryScore=0; render();" class="py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold">חזרה לתפריט 🏠</button>
+            </div>
+        </div>`;
+}
+
+function shuffle(a) { return [...a].sort(() => Math.random() - 0.5); }
+
+// 8. פונקציית ה-Render המרכזית
+function render() {
+    const app = document.getElementById('app');
+    if (!app) return;
+    
+    // ניקוי המסך
+    app.innerHTML = '';
+
+    // הצגת המסך המתאים
+    switch (state.screen) {
+        case 'welcome': 
+            app.innerHTML = `<div class="p-10 text-center font-bold text-gray-400">טוען את היחידה...</div>`;
+            break;
+        case 'menu': renderMenu(app); break;
+        case 'flashcards': renderFlashcards(app); break;
+        case 'quiz': renderQuiz(app); break;
+        default: renderMenu(app);
+    }
+}
+
+// 9. הפעלה ראשונית
+loadFromLocal();
+// 10. מסך קבלת פנים (Welcome)
+function renderWelcome(app) {
+    app.innerHTML = `
+        <div class="text-center space-y-8 w-full max-w-sm px-4 mx-auto mt-20 animate-fade-in">
+            <div class="space-y-4">
+                <h1 class="text-5xl font-black text-gray-800 tracking-tight">Word Adventure</h1>
+                <p class="text-xl text-blue-500 font-bold">בואו נלמד מילים חדשות!</p>
+            </div>
+            <div class="bg-white p-8 rounded-[3rem] shadow-2xl border-4 border-blue-400">
+                <p class="text-gray-600 mb-6 font-medium">הדבק כאן את רשימת המילים שלך (אנגלית - עברית):</p>
+                <textarea id="wordInput" oninput="state.inputText = this.value" 
+                    class="w-full h-40 p-4 border-2 border-gray-100 rounded-2xl focus:border-blue-400 focus:ring-0 transition-all resize-none mb-6"
+                    placeholder="apple - תפוח\nbanana - בננה"></textarea>
+                <button onclick="processInput()" class="w-full py-5 bg-blue-600 text-white rounded-2xl text-2xl font-black shadow-lg hover:bg-blue-700 transition-all">התחל הרפתקה! 🚀</button>
+            </div>
+        </div>`;
+}
+
+// 11. עיבוד קלט ידני
+window.processInput = () => {
+    const lines = state.inputText.split('\n').filter(l => l.trim());
+    if (lines.length === 0) return;
+
+    // חילוץ שם יחידה אם קיים בשורה הראשונה
+    let listName = "אוצר המילים שלי";
+    if (lines[0].includes('-') === false) {
+        listName = lines.shift().trim();
+    }
+
+    const newWords = lines.map((l, i) => {
+        const parts = l.split('-').map(p => p.trim());
+        return { id: Date.now() + i, eng: parts[0], heb: parts[1] || '', known: false };
+    }).filter(w => w.heb);
+
+    if (newWords.length > 0) {
+        state.words = newWords;
+        state.listName = listName;
+        state.screen = 'flashcards'; // עובר ישר לכרטיסיות
+        state.masteryScore = 0;
+        state.quizIndex = 0;
+        saveToLocal();
+        render();
+    }
+};
+
+// 12. פונקציית ה-Render המרכזית (המעודכנת)
+function render() {
+    const app = document.getElementById('app');
+    if (!app) return;
+    app.innerHTML = ''; 
+
+    switch (state.screen) {
+        case 'welcome': renderWelcome(app); break;
+        case 'menu': renderMenu(app); break;
+        case 'flashcards': renderFlashcards(app); break;
+        case 'quiz': renderQuiz(app); break;
+        default: renderWelcome(app);
+    }
+}
+
+// 13. פקודת ההפעלה - השורה האחרונה בקובץ!
+loadFromLocal();

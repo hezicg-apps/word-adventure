@@ -295,9 +295,7 @@ function renderQuiz(app) {
         document.getElementById('sendBtn').onclick = function() {
             const name = document.getElementById('studentName').value;
             const sClass = document.getElementById('studentClass').value;
-
             if (!name || !sClass) { alert("נא למלא שם ולבחור כיתה"); return; }
-
             this.innerText = "מעבד... ✨";
             this.disabled = true;
 
@@ -311,12 +309,11 @@ function renderQuiz(app) {
             form.method = "POST";
             form.target = "hidden_iframe";
 
-            // המספרים המדויקים מהקישור הממולא החדש שלך:
             const fields = {
-                'entry.627334846': name,           // שם מלא
-                'entry.737005448': sClass,        // כיתה
-                'entry.803256071': state.listName, // שם היחידה
-                'entry.1607469246': finalScore     // ציון
+                'entry.627334846': name,
+                'entry.737005448': sClass,
+                'entry.803256071': state.listName,
+                'entry.1607469246': finalScore
             };
 
             for (let key in fields) {
@@ -326,7 +323,6 @@ function renderQuiz(app) {
                 input.value = fields[key];
                 form.appendChild(input);
             }
-
             document.body.appendChild(form);
             form.submit();
 
@@ -342,9 +338,11 @@ function renderQuiz(app) {
     }
 
     const cur = state.words[state.quizIndex];
-    if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
+    if (!state.quizOptions) {
+        state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x => x.id !== cur.id).map(x => x.heb)).slice(0, 3)]);
+    }
     
-    // שימוש ב-min-h למניעת קפיצות של המסך בזמן המעבר בין שאלות
+    // החלק שמתקן את הריצוד וצובע את הכפתורים:
     app.innerHTML = `
         <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4 mx-auto animate-fade-in min-h-[450px]">
             ${renderHeader(`אתגר: ${state.quizIndex + 1}/${state.words.length}`)}
@@ -355,13 +353,11 @@ function renderQuiz(app) {
                 </div>
                 <div class="grid gap-4">
                     ${state.quizOptions.map((o, idx) => {
-                        let statusClass = 'border-gray-200';
-                        if (state.quizFeedback.status) {
-                            if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans border-green-500';
-                            else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans border-red-500';
-                        }
-                        return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" 
-                            class="py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 ${statusClass}">${o}</button>`;
+                        return `<button 
+                            onclick="handleQuizAns('${o.replace(/'/g, "\\'")}', '${cur.heb.replace(/'/g, "\\'")}', ${idx})" 
+                            class="quiz-option-btn py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 active:scale-95">
+                            ${o}
+                        </button>`;
                     }).join('')}
                 </div>
             </div>
@@ -369,8 +365,9 @@ function renderQuiz(app) {
 }
 
 function handleQuizAns(selected, correct, idx) {
-    if (state.quizFeedback.status) return; // מונע לחיצות כפולות
+    if (state.quizFeedback.status) return; // מונע לחיצות נוספות בזמן ההשהיה
 
+    // מוצאים את כל הכפתורים של התשובות
     const buttons = document.querySelectorAll('.quiz-option-btn');
     const isCorrect = selected === correct;
     
@@ -380,23 +377,31 @@ function handleQuizAns(selected, correct, idx) {
         correctIndex: state.quizOptions.indexOf(correct)
     };
 
-    // עדכון ויזואלי מיידי של הכפתורים ללא ריצוד
+    if (isCorrect) state.correctAnswers++;
+
+    // צביעה מיידית של הכפתורים ללא ריצוד
     buttons.forEach((btn, i) => {
+        btn.style.transition = "all 0.2s ease"; // אנימציה חלקה לצבע
+        
         if (i === state.quizFeedback.correctIndex) {
-            btn.classList.add('correct-ans', 'border-green-500', 'bg-green-50');
+            // צובע את התשובה הנכונה בירוק
+            btn.style.backgroundColor = "#dcfce7"; // bg-green-100
+            btn.style.borderColor = "#22c55e";     // border-green-500
+            btn.style.color = "#166534";           // text-green-800
         } else if (i === idx && !isCorrect) {
-            btn.classList.add('wrong-ans', 'border-red-500', 'bg-red-50');
+            // אם השחקן טעה - צובע את הבחירה שלו באדום
+            btn.style.backgroundColor = "#fee2e2"; // bg-red-100
+            btn.style.borderColor = "#ef4444";     // border-red-500
+            btn.style.color = "#991b1b";           // text-red-800
         }
     });
 
-    if (isCorrect) state.correctAnswers++;
-
-    // מעבר לשאלה הבאה אחרי השהייה קלה
+    // השהייה של 1.2 שניות כדי שהשחקן יראה את הטעות/הצלחה
     setTimeout(() => {
         state.quizIndex++;
         state.quizOptions = null;
         state.quizFeedback = { status: null, index: null, correctIndex: null };
-        render(); // רק כאן אנחנו מרעננים את המסך לשאלה הבאה
+        render(); // רק עכשיו עוברים לשאלה הבאה
     }, 1200);
 }
 
@@ -745,6 +750,7 @@ window.submitFinalReport = (score) => {
         btn.disabled = false;
     });
 };
+
 
 
 

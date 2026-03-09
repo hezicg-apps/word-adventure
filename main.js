@@ -54,16 +54,16 @@ function loadFromLocal() {
                 }).filter(w => w.heb);
 
                 if (state.words.length > 0) {
-                    // --- RESET: איפוס מוחלט של מצב המשחק עבור הרשימה החדשה ---
-                    state.screen = 'menu';      // מעבר לתפריט הראשי
-                    state.quizIndex = 0;        // חזרה לשאלה הראשונה
-                    state.cardIndex = 0;        // חזרה לכרטיסייה הראשונה
-                    state.correctAnswers = 0;   // איפוס מונה תשובות נכונות
-                    state.masteryScore = 0;     // איפוס הציון הסופי (כדי שלא יקפוץ למסך סיכום)
-                    state.quizOptions = null;   // ניקוי אפשרויות התשובה הישנות
+                    // --- RESET & DIRECT START ---
+                    state.screen = 'flashcards'; // <--- זה השינוי! מעביר ישר לתרגול הכרטיסיות
+                    state.quizIndex = 0;        
+                    state.cardIndex = 0;        
+                    state.correctAnswers = 0;   
+                    state.masteryScore = 0;     
+                    state.quizOptions = null;   
                     state.quizFeedback = { index: -1, status: null, correctIndex: -1 };
                     
-                    saveToLocal(); // שמירת המצב הנקי
+                    saveToLocal(); 
                     render();
                     return; 
                 }
@@ -73,7 +73,7 @@ function loadFromLocal() {
         }
     }
 
-    // טעינה רגילה מהזיכרון אם אין קישור
+    // טעינה רגילה מהזיכרון אם אין קישור (כאן נשמור על תפריט או וולקם)
     const saved = localStorage.getItem('word_adventure_state');
     if (saved) {
         try {
@@ -774,6 +774,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

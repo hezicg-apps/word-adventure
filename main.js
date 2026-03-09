@@ -138,24 +138,21 @@ function resetAllData() {
 }
 
 function render() {
-    document.body.classList.toggle('night-mode', state.nightMode);
-    const toggleBtn = document.getElementById('toggleNight');
-    if (toggleBtn) toggleBtn.innerText = state.nightMode ? '🌙' : '☀️';
     const app = document.getElementById('app');
-    app.innerHTML = '';
-    if (state.winner) { renderWinScreen(app); return; }
-    switch(state.screen) {
+    if (!app) return;
+
+    // הסרת הציון מהמסך אם אנחנו לא במסך סיכום
+    if (state.screen !== 'quiz') {
+        // וודא שאין לוגיקה שדוחפת למסך סיכום אוטומטית
+    }
+
+    switch (state.screen) {
         case 'welcome': renderWelcome(app); break;
-        case 'input': renderInput(app); break;
+        case 'menu': renderMenu(app); break;
         case 'flashcards': renderFlashcards(app); break;
         case 'quiz': renderQuiz(app); break;
-        case 'menu': renderMenu(app); break;
-        case 'memory': renderMemory(app); break;
-        case 'c4_menu': renderC4Menu(app); break;
-        case 'connect4': renderConnect4(app); break;
-        case 'wordquest': renderWordQuest(app); break;
+        // ...
     }
-    if (state.showShareModal) renderShareModal(app);
 }
 
 // צמצום רווח בכותרת
@@ -749,6 +746,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

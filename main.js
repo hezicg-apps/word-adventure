@@ -41,56 +41,35 @@ function loadFromLocal() {
             const lines = decodedText.split('\n').filter(l => l.trim());
             
             if (lines.length > 0) {
+                // איפוס המצב הקיים בזיכרון לפני טעינת החדש
+                state.words = [];
                 state.listName = lines[0].trim();
                 
-                state.words = lines.slice(1).map((l, i) => {
+                const newWords = lines.slice(1).map((l, i) => {
                     const parts = l.split('-').map(p => p.trim());
-                    return { 
-                        id: Date.now() + i, 
-                        eng: parts[0], 
-                        heb: parts[1] || '', 
-                        known: false 
-                    };
+                    return { id: Date.now() + i, eng: parts[0], heb: parts[1] || '', known: false };
                 }).filter(w => w.heb);
 
-                if (state.words.length > 0) {
-                    // --- RESET & DIRECT START ---
-                    state.screen = 'flashcards'; // <--- זה השינוי! מעביר ישר לתרגול הכרטיסיות
-                    state.quizIndex = 0;        
-                    state.cardIndex = 0;        
-                    state.correctAnswers = 0;   
-                    state.masteryScore = 0;     
-                    state.quizOptions = null;   
+                if (newWords.length > 0) {
+                    state.words = newWords;
+                    
+                    // --- איפוס "אלים" למניעת מסך סיכום ---
+                    state.screen = 'flashcards'; 
+                    state.quizIndex = 0;
+                    state.cardIndex = 0;
+                    state.correctAnswers = 0;
+                    state.masteryScore = null; // שינוי ל-null כדי שלא יהיה ציון קיים
+                    state.quizOptions = null;
                     state.quizFeedback = { index: -1, status: null, correctIndex: -1 };
                     
-                    saveToLocal(); 
+                    saveToLocal();
                     render();
                     return; 
                 }
             }
-        } catch (e) {
-            console.error("Link decode error:", e);
-        }
+        } catch (e) { console.error("Link decode error", e); }
     }
-
-    // טעינה רגילה מהזיכרון אם אין קישור (כאן נשמור על תפריט או וולקם)
-    const saved = localStorage.getItem('word_adventure_state');
-    if (saved) {
-        try {
-            const parsed = JSON.parse(saved);
-            if (parsed.words && Array.isArray(parsed.words) && parsed.words.length > 0) {
-                Object.assign(state, parsed);
-            } else {
-                state.screen = 'welcome';
-            }
-        } catch (e) {
-            state.screen = 'welcome';
-        }
-    } else {
-        state.screen = 'welcome';
-    }
-
-    render();
+    // ... המשך הקוד של טעינה רגילה
 }
 
 function getShareUrl() {
@@ -774,6 +753,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

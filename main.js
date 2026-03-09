@@ -369,12 +369,35 @@ function renderQuiz(app) {
 }
 
 function handleQuizAns(selected, correct, idx) {
-    if (state.quizFeedback.status) return;
+    if (state.quizFeedback.status) return; // מונע לחיצות כפולות
+
+    const buttons = document.querySelectorAll('.quiz-option-btn');
     const isCorrect = selected === correct;
-    state.quizFeedback = { index: idx, status: isCorrect ? 'correct' : 'wrong', correctIndex: state.quizOptions.indexOf(correct) };
+    
+    state.quizFeedback = {
+        status: isCorrect ? 'correct' : 'wrong',
+        index: idx,
+        correctIndex: state.quizOptions.indexOf(correct)
+    };
+
+    // עדכון ויזואלי מיידי של הכפתורים ללא ריצוד
+    buttons.forEach((btn, i) => {
+        if (i === state.quizFeedback.correctIndex) {
+            btn.classList.add('correct-ans', 'border-green-500', 'bg-green-50');
+        } else if (i === idx && !isCorrect) {
+            btn.classList.add('wrong-ans', 'border-red-500', 'bg-red-50');
+        }
+    });
+
     if (isCorrect) state.correctAnswers++;
-    render();
-    setTimeout(() => { state.quizIndex++; state.quizOptions = null; state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; render(); }, 800);
+
+    // מעבר לשאלה הבאה אחרי השהייה קלה
+    setTimeout(() => {
+        state.quizIndex++;
+        state.quizOptions = null;
+        state.quizFeedback = { status: null, index: null, correctIndex: null };
+        render(); // רק כאן אנחנו מרעננים את המסך לשאלה הבאה
+    }, 1200);
 }
 
 function renderMenu(app) {
@@ -722,6 +745,7 @@ window.submitFinalReport = (score) => {
         btn.disabled = false;
     });
 };
+
 
 
 

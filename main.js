@@ -272,19 +272,16 @@ function renderQuiz(app) {
                 <div id="reportSection" class="bg-blue-50 p-6 rounded-[2rem] border-2 border-blue-200 space-y-4 shadow-inner text-right" dir="rtl">
                     <p class="font-bold text-blue-800 text-center">שלח דיווח למורה:</p>
                     <input type="text" id="studentName" placeholder="שם מלא" 
-                        class="w-full p-4 rounded-xl border-2 border-white text-center font-bold outline-none focus:border-blue-400 shadow-sm">
+                        class="w-full p-4 rounded-xl border-2 border-white text-center font-bold outline-none focus:border-blue-400">
                     
-                    <select id="studentClass" class="w-full p-4 rounded-xl border-2 border-white text-center font-bold outline-none focus:border-blue-400 bg-white shadow-sm">
+                    <select id="studentClass" class="w-full p-4 rounded-xl border-2 border-white text-center font-bold outline-none focus:border-blue-400 bg-white">
                         <option value="">בחר כיתה...</option>
-                        <option value="ג'1">ג'1</option>
-                        <option value="ד'1">ד'1</option>
-                        <option value="ה'1">ה'1</option>
-                        <option value="ה'2">ה'2</option>
-                        <option value="ו'1">ו'1</option>
-                        <option value="ו'2">ו'2</option>
+                        <option value="ג'1">ג'1</option><option value="ד'1">ד'1</option>
+                        <option value="ה'1">ה'1</option><option value="ה'2">ה'2</option>
+                        <option value="ו'1">ו'1</option><option value="ו'2">ו'2</option>
                     </select>
 
-                    <button id="sendBtn" class="w-full py-4 bg-green-500 text-white rounded-xl font-black shadow-md hover:bg-green-600 transition-all text-xl active:scale-95">שלח תוצאה ✅</button>
+                    <button id="sendBtn" class="w-full py-4 bg-green-500 text-white rounded-xl font-black shadow-md hover:bg-green-600 transition-all text-xl">שלח תוצאה ✅</button>
                 </div>
 
                 <div class="grid gap-4 pb-10">
@@ -299,38 +296,49 @@ function renderQuiz(app) {
             const name = document.getElementById('studentName').value;
             const sClass = document.getElementById('studentClass').value;
 
-            if (!name || !sClass) {
-                alert("נא למלא שם ולבחור כיתה");
-                return;
-            }
+            if (!name || !sClass) { alert("נא למלא שם ולבחור כיתה"); return; }
 
             this.innerText = "שולח... ⏳";
             this.disabled = true;
 
-            const formURL = "https://docs.google.com/forms/d/e/1Yf_7Q6kg6NeAl8Ym6fhth_xdnzL8TX7oeuW4hcP8VCw/formResponse";
-            
-            // שימוש בפורמט URLSearchParams שמבטיח תאימות גבוהה יותר לגוגל שיטס
-            const params = new URLSearchParams();
-            params.append('entry.1353106362', name);
-            params.append('entry.1228495039', sClass);
-            params.append('entry.1983088190', state.listName);
-            params.append('entry.1977755106', finalScore.toString()); // שלח רק את המספר בלי ה-%
+            // יצירת מנגנון שליחה נסתר (עוקף חסימות דפדפן)
+            const iframe = document.createElement('iframe');
+            iframe.name = 'hidden_iframe';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
 
-            fetch(formURL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params.toString()
-            }).then(() => {
+            const form = document.createElement('form');
+            form.action = "https://docs.google.com/forms/d/e/1FAIpQLSe5yaCbYBN4wTU0VCw9TXi3nawnT4fg_fhtVl4Uw0jD2X_T3g/formResponse";
+            form.method = "POST";
+            form.target = "hidden_iframe";
+
+            // המספרים המעודכנים מהלינק האחרון ששלחת
+            const fields = {
+                'entry.233513364': name,           // שם מלא
+                'entry.1746683884': sClass,        // כיתה
+                'entry.633519176': state.listName, // שם הספר/פרק
+                'entry.771900132': finalScore      // ציון
+            };
+
+            for (let key in fields) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = fields[key];
+                form.appendChild(input);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+
+            setTimeout(() => {
                 document.getElementById('reportSection').innerHTML = `
                     <div class="p-6 bg-green-100 text-green-700 rounded-xl font-bold text-center animate-bounce">
                         הדיווח נשלח בהצלחה למורה! 🚀
                     </div>`;
-            }).catch(err => {
-                alert("שגיאה בשליחה. בדוק את החיבור.");
-                this.innerText = "שלח תוצאה ✅";
-                this.disabled = false;
-            });
+                document.body.removeChild(form);
+                document.body.removeChild(iframe);
+            }, 1000);
         };
         return;
     }
@@ -714,4 +722,5 @@ window.submitFinalReport = (score) => {
         btn.disabled = false;
     });
 };
+
 

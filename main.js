@@ -32,31 +32,23 @@ function saveToLocal() {
 }
 
 function loadFromLocal() {
-    const params = new URLSearchParams(window.location.search);
-    let sharedData = params.get('w');
-    if (sharedData) {
+    const saved = localStorage.getItem('word_adventure_state');
+    if (saved) {
         try {
-            sharedData = sharedData.replace(/-/g, '+').replace(/_/g, '/');
-            const decoded = decodeURIComponent(escape(atob(sharedData)));
-            if (decoded && decoded.includes('-')) {
-                state.inputText = decoded;
-                processInput(false); 
-                state.masteryScore = 0; 
-                state.screen = 'flashcards';
-                window.history.replaceState({}, document.title, window.location.pathname);
-                render();
-                return;
+            const parsed = JSON.parse(saved);
+            // בדיקה שהמילים הן אכן מערך ולא ריקות
+            if (parsed.words && Array.isArray(parsed.words) && parsed.words.length > 0) {
+                Object.assign(state, parsed);
+            } else {
+                // אם המילים ריקות, וודא שהמסך הוא מסך הפתיחה
+                state.screen = 'welcome';
             }
-        } catch(e) { console.error("Link decode error", e); }
+        } catch (e) {
+            console.error("Error loading state", e);
+            state.screen = 'welcome';
+        }
     }
-    const savedWords = localStorage.getItem('wm_words');
-    if (savedWords) {
-        state.words = JSON.parse(savedWords);
-        state.inputText = localStorage.getItem('wm_input') || '';
-        state.masteryScore = parseFloat(localStorage.getItem('wm_mastery')) || 0;
-        state.listName = localStorage.getItem('wm_listName') || 'אוצר המילים שלי';
-        state.screen = state.masteryScore >= 70 ? 'menu' : 'flashcards';
-    }
+    render();
 }
 
 function getShareUrl() {
@@ -231,19 +223,28 @@ function processInput() {
 }
 
 function renderFlashcards(app) {
-    // הגנה: אם אין מילים, חזור למסך הראשי
+    // הגנה קריטית: אם אין מילים ב-State, אל תנסה להציג כלום
     if (!state.words || state.words.length === 0) {
+        console.warn("No words found, redirecting to welcome...");
         state.screen = 'welcome';
-        render();
+        // משתמשים ב-setTimeout כדי למנוע לופ של רינדור
+        setTimeout(() => render(), 0);
         return;
     }
 
-    // הגנה: אם האינדקס חורג (קורה כשעוברים מרשימה ארוכה לקצרה), אפס ל-0
-    if (state.cardIndex >= state.words.length) {
+    // הגנה נוספת: וודא שהאינדקס לא חורג מהמערך
+    if (state.cardIndex >= state.words.length || state.cardIndex < 0) {
         state.cardIndex = 0;
     }
 
     const cur = state.words[state.cardIndex];
+    
+    // בדיקה אחרונה שהמילה הנוכחית קיימת לפני שניגשים ל-eng
+    if (!cur) {
+        state.screen = 'welcome';
+        setTimeout(() => render(), 0);
+        return;
+    }
 
     app.innerHTML = `
         <div class="text-center space-y-8 w-full max-w-sm px-4 mt-10 mx-auto animate-fade-in">
@@ -253,7 +254,7 @@ function renderFlashcards(app) {
                 <div class="flashcard-inner shadow-2xl">
                     <div class="flashcard-front flex flex-col items-center justify-center p-10 bg-white border-4 border-blue-400 rounded-[3rem]">
                         <span class="text-5xl font-black text-gray-800 eng-text">${cur.eng}</span>
-                        <div class="mt-8 text-blue-300 text-sm font-bold animate-pulse">לחץ לתרגום 👆</div>
+                        <div class="mt-8 text-blue-300 text-sm font-bold">לחץ לתרגום 👆</div>
                     </div>
                     <div class="flashcard-back flex flex-col items-center justify-center p-10 bg-blue-50 border-4 border-blue-600 rounded-[3rem]">
                         <span class="text-5xl font-black text-blue-700">${cur.heb}</span>
@@ -264,8 +265,7 @@ function renderFlashcards(app) {
             </div>
 
             <div class="flex justify-between items-center gap-6 mt-12">
-                <button onclick="changeCard(-1)" 
-                        class="p-6 bg-gray-100 rounded-full shadow-md active:scale-90 transition-all">
+                <button onclick="changeCard(-1)" class="p-6 bg-gray-100 rounded-full shadow-md active:scale-90 transition-all">
                     <span class="text-3xl">⬅️</span>
                 </button>
                 
@@ -274,16 +274,14 @@ function renderFlashcards(app) {
                     ${cur.known ? 'יודע! ✅' : 'עדיין לומד...'}
                 </button>
 
-                <button onclick="changeCard(1)" 
-                        class="p-6 bg-gray-100 rounded-full shadow-md active:scale-90 transition-all">
+                <button onclick="changeCard(1)" class="p-6 bg-gray-100 rounded-full shadow-md active:scale-90 transition-all">
                     <span class="text-3xl">➡️</span>
                 </button>
             </div>
 
-            <button onclick="state.screen='menu'; render();" class="text-gray-400 font-bold underline mt-4 hover:text-gray-600">חזרה לתפריט</button>
+            <button onclick="state.screen='menu'; render();" class="text-gray-400 font-bold underline mt-4">חזרה לתפריט</button>
         </div>`;
 }
-
 // פונקציות עזר חדשות למניעת שגיאות Undefined
 function changeCard(step) {
     state.cardIndex = (state.cardIndex + step + state.words.length) % state.words.length;
@@ -733,6 +731,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

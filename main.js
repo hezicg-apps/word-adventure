@@ -271,7 +271,6 @@ function renderQuiz(app) {
 
                 <div id="reportSection" class="bg-blue-50 p-6 rounded-[2rem] border-2 border-blue-200 space-y-4 shadow-inner text-right" dir="rtl">
                     <p class="font-bold text-blue-800 text-center">שלח דיווח למורה:</p>
-                    
                     <input type="text" id="studentName" placeholder="שם מלא" 
                         class="w-full p-4 rounded-xl border-2 border-white text-center font-bold outline-none focus:border-blue-400 shadow-sm">
                     
@@ -296,7 +295,6 @@ function renderQuiz(app) {
                 </div>
             </div>`;
 
-        // לוגיקת השליחה לטופס הספציפי שלך
         document.getElementById('sendBtn').onclick = function() {
             const name = document.getElementById('studentName').value;
             const sClass = document.getElementById('studentClass').value;
@@ -311,16 +309,18 @@ function renderQuiz(app) {
 
             const formURL = "https://docs.google.com/forms/d/e/1Yf_7Q6kg6NeAl8Ym6fhth_xdnzL8TX7oeuW4hcP8VCw/formResponse";
             
-            const formData = new FormData();
-            formData.append('entry.1353106362', name);       // שם מלא
-            formData.append('entry.1228495039', sClass);     // כיתה
-            formData.append('entry.1983088190', state.listName); // שם הספר/יחידה
-            formData.append('entry.1977755106', finalScore + "%"); // ציון
+            // שימוש בפורמט URLSearchParams שמבטיח תאימות גבוהה יותר לגוגל שיטס
+            const params = new URLSearchParams();
+            params.append('entry.1353106362', name);
+            params.append('entry.1228495039', sClass);
+            params.append('entry.1983088190', state.listName);
+            params.append('entry.1977755106', finalScore.toString()); // שלח רק את המספר בלי ה-%
 
             fetch(formURL, {
                 method: 'POST',
                 mode: 'no-cors',
-                body: formData
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
             }).then(() => {
                 document.getElementById('reportSection').innerHTML = `
                     <div class="p-6 bg-green-100 text-green-700 rounded-xl font-bold text-center animate-bounce">
@@ -335,7 +335,6 @@ function renderQuiz(app) {
         return;
     }
 
-    // קוד הצגת השאלה
     const cur = state.words[state.quizIndex];
     if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
     
@@ -715,3 +714,4 @@ window.submitFinalReport = (score) => {
         btn.disabled = false;
     });
 };
+

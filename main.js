@@ -282,6 +282,7 @@ function renderFlashcards(app) {
             <button onclick="state.screen='menu'; render();" class="text-gray-400 font-bold underline mt-4">חזרה לתפריט</button>
         </div>`;
 }
+
 // פונקציות עזר חדשות למניעת שגיאות Undefined
 function changeCard(step) {
     state.cardIndex = (state.cardIndex + step + state.words.length) % state.words.length;
@@ -731,6 +732,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

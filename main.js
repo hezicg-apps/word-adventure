@@ -263,18 +263,18 @@ function renderQuiz(app) {
         app.innerHTML = `
             <div class="text-center space-y-8 w-full max-w-sm px-4 mx-auto mt-10 animate-fade-in">
                 <div class="bg-white border-4 border-yellow-400 rounded-[3rem] p-10 shadow-2xl relative">
-                    <h2 class="text-3xl font-black text-gray-800 mb-2">כל הכבוד! 🏆</h2>
+                    <h2 class="text-3xl font-black text-gray-800 mb-2">כל הכבוד! ✨</h2>
                     <p class="text-lg text-gray-500 font-bold mb-6">${state.listName}</p>
-                    <div class="text-7xl font-black text-yellow-500 mb-4">${finalScore}%</div>
+                    <div class="text-7xl font-black text-yellow-400 mb-4">${finalScore}%</div>
                     <p class="text-xl font-bold text-gray-700">ענית נכון על ${state.correctAnswers} מתוך ${state.words.length}</p>
                 </div>
 
                 <div id="reportSection" class="bg-blue-50 p-6 rounded-[2rem] border-2 border-blue-200 space-y-4 shadow-inner text-right" dir="rtl">
-                    <p class="font-bold text-blue-800 text-center">שלח דיווח למורה:</p>
+                    <p class="font-bold text-blue-800 text-center">דיווח למורה:</p>
                     <input type="text" id="studentName" placeholder="שם מלא" 
-                        class="w-full p-4 rounded-xl border-2 border-white text-center font-bold outline-none focus:border-blue-400">
+                        class="w-full p-4 rounded-xl border-2 border-white text-center font-bold outline-none focus:border-blue-400 shadow-sm">
                     
-                    <select id="studentClass" class="w-full p-4 rounded-xl border-2 border-white text-center font-bold outline-none focus:border-blue-400 bg-white">
+                    <select id="studentClass" class="w-full p-4 rounded-xl border-2 border-white text-center font-bold outline-none focus:border-blue-400 bg-white shadow-sm">
                         <option value="">בחר כיתה...</option>
                         <option value="ג'1">ג'1</option><option value="ד'1">ד'1</option>
                         <option value="ה'1">ה'1</option><option value="ה'2">ה'2</option>
@@ -298,10 +298,9 @@ function renderQuiz(app) {
 
             if (!name || !sClass) { alert("נא למלא שם ולבחור כיתה"); return; }
 
-            this.innerText = "שולח... ⏳";
+            this.innerText = "מעבד... ✨";
             this.disabled = true;
 
-            // יצירת מנגנון שליחה נסתר (עוקף חסימות דפדפן)
             const iframe = document.createElement('iframe');
             iframe.name = 'hidden_iframe';
             iframe.style.display = 'none';
@@ -312,12 +311,12 @@ function renderQuiz(app) {
             form.method = "POST";
             form.target = "hidden_iframe";
 
-            // המספרים המעודכנים מהלינק האחרון ששלחת
+            // המספרים המדויקים מהקישור הממולא החדש שלך:
             const fields = {
-                'entry.233513364': name,           // שם מלא
-                'entry.1746683884': sClass,        // כיתה
-                'entry.633519176': state.listName, // שם הספר/פרק
-                'entry.771900132': finalScore      // ציון
+                'entry.627334846': name,           // שם מלא
+                'entry.737005448': sClass,        // כיתה
+                'entry.803256071': state.listName, // שם היחידה
+                'entry.1607469246': finalScore     // ציון
             };
 
             for (let key in fields) {
@@ -333,11 +332,10 @@ function renderQuiz(app) {
 
             setTimeout(() => {
                 document.getElementById('reportSection').innerHTML = `
-                    <div class="p-6 bg-green-100 text-green-700 rounded-xl font-bold text-center animate-bounce">
-                        הדיווח נשלח בהצלחה למורה! 🚀
+                    <div class="p-6 bg-green-100 text-green-700 rounded-xl font-bold text-center animate-fade-in">
+                        הדיווח נשלח בהצלחה למורה 🕊️
                     </div>`;
-                document.body.removeChild(form);
-                document.body.removeChild(iframe);
+                if (form.parentNode) document.body.removeChild(form);
             }, 1000);
         };
         return;
@@ -346,8 +344,9 @@ function renderQuiz(app) {
     const cur = state.words[state.quizIndex];
     if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
     
+    // שימוש ב-min-h למניעת קפיצות של המסך בזמן המעבר בין שאלות
     app.innerHTML = `
-        <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4 mx-auto animate-fade-in">
+        <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4 mx-auto animate-fade-in min-h-[450px]">
             ${renderHeader(`אתגר: ${state.quizIndex + 1}/${state.words.length}`)}
             <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative">
                 <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4 text-gray-800">
@@ -356,12 +355,13 @@ function renderQuiz(app) {
                 </div>
                 <div class="grid gap-4">
                     ${state.quizOptions.map((o, idx) => {
-                        let statusClass = '';
+                        let statusClass = 'border-gray-200';
                         if (state.quizFeedback.status) {
-                            if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans';
-                            else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans';
+                            if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans border-green-500';
+                            else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans border-red-500';
                         }
-                        return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" class="py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 ${statusClass}">${o}</button>`;
+                        return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" 
+                            class="py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 ${statusClass}">${o}</button>`;
                     }).join('')}
                 </div>
             </div>
@@ -722,5 +722,6 @@ window.submitFinalReport = (score) => {
         btn.disabled = false;
     });
 };
+
 
 

@@ -200,18 +200,34 @@ function renderInput(app) {
     const area = document.getElementById('wordInput'); area.oninput = (e) => state.inputText = e.target.value; area.focus();
 }
 
-function processInput(shouldRender = true) {
-    const lines = state.inputText.split('\n').filter(l => l.includes('-'));
+function processInput() {
+    const lines = state.inputText.split('\n').filter(l => l.trim());
     if (lines.length === 0) return;
-    const firstLine = state.inputText.split('\n')[0];
-    state.listName = firstLine.includes('-') ? 'אוצר המילים שלי' : firstLine;
-    state.words = lines.map(l => {
-        const parts = l.split('-');
-        return { eng: parts[0].trim(), heb: parts.slice(1).join('-').trim(), known: false, id: crypto.randomUUID() };
-    });
-    if (state.words.length < 2) return;
-    saveToLocal();
-    if (shouldRender) { state.screen = 'flashcards'; render(); }
+
+    // חילוץ שם הרשימה מהשורה הראשונה אם היא קיימת, או ברירת מחדל
+    const firstLine = lines[0].trim();
+    if (firstLine.includes('Epic') || firstLine.includes('Unit')) {
+        state.listName = firstLine;
+        lines.shift(); // מסיר את הכותרת מרשימת המילים
+    }
+
+    const newWords = lines.map((l, i) => {
+        const parts = l.split('-').map(p => p.trim());
+        return { id: Date.now() + i, eng: parts[0], heb: parts[1] || '' };
+    }).filter(w => w.heb);
+
+    if (newWords.length > 0) {
+        // --- החלק הקריטי: איפוס המערכת למילים החדשות ---
+        state.words = newWords;
+        state.quizIndex = 0;           // מחזיר לשאלה הראשונה
+        state.correctAnswers = 0;      // מאפס ציונים
+        state.quizOptions = null;      // מוחק אפשרויות קודמות
+        state.quizFeedback = { index: -1, status: null, correctIndex: -1 };
+        
+        state.screen = 'menu';         // מעביר לתפריט המשחקים
+        saveToLocal();
+        render();
+    }
 }
 
 function renderFlashcards(app) {
@@ -663,6 +679,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

@@ -240,7 +240,6 @@ function renderFlashcards(app) {
 }
 
 function renderQuiz(app) {
-    // --- חלק 1: מסך סיום עם דיווח לגוגל פורמס ---
     if (state.quizIndex >= state.words.length) {
         state.masteryScore = (state.correctAnswers / state.words.length) * 100;
         saveToLocal(); 
@@ -249,9 +248,11 @@ function renderQuiz(app) {
         const percent = Math.round(state.masteryScore);
         const unitName = state.listName;
 
-        // הקישור המדויק עם הנתונים שלך
+        // הכתובת הישירה והנקייה ביותר
         const formBase = "https://docs.google.com/forms/d/e/1FAIpQLSe5yaCbYBN4wTU0VCw9TXi3nawnT4fg_fhtVl4Uw0jD2X_T3g/viewform";
-        const finalUrl = `${formBase}?usp=pp_url&entry.803256071=${encodeURIComponent(unitName)}&entry.1607469246=${percent}`;
+        const finalUrl = formBase + "?usp=pp_url" + 
+                         "&entry.803256071=" + encodeURIComponent(unitName) + 
+                         "&entry.1607469246=" + percent;
 
         app.innerHTML = `
             <div class="text-center space-y-8 w-full max-w-sm px-4 mt-10 animate-fade-in">
@@ -260,7 +261,6 @@ function renderQuiz(app) {
                 <div class="bg-white p-8 rounded-[3rem] border-4 border-green-400 shadow-xl">
                     <p class="text-7xl font-black mb-2 text-gray-900">${percent}%</p>
                     <p class="text-xl font-bold text-gray-600">${unitName}</p>
-                    <p class="text-lg text-gray-400 mt-2">צדקת ב-${state.correctAnswers} מתוך ${state.words.length}</p>
                 </div>
                 
                 <div class="flex flex-col gap-4">
@@ -270,15 +270,14 @@ function renderQuiz(app) {
                     </button>
                     
                     <button onclick="state.quizIndex=0; state.correctAnswers=0; state.screen='menu'; render();" 
-                            class="bg-gray-100 text-gray-600 py-4 rounded-2xl font-bold shadow-sm">
-                        חזרה לתפריט המשחקים 🏠
+                            class="bg-gray-100 text-gray-600 py-4 rounded-2xl font-bold">
+                        חזרה לתפריט 🏠
                     </button>
                 </div>
             </div>`;
         return;
     }
 
-    // --- חלק 2: הצגת השאלה (נשאר כפי שהיה) ---
     const cur = state.words[state.quizIndex];
     if (!state.quizOptions) {
         state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x => x.id !== cur.id).map(x => x.heb)).slice(0, 3)]);
@@ -299,21 +298,12 @@ function renderQuiz(app) {
                             if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans';
                             else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans';
                         }
-                        return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" 
-                                class="py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 ${statusClass}">${o}</button>`;
+                        return \`<button onclick="handleQuizAns('\${o}', '\${cur.heb}', \${idx})" 
+                                class="py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 \${statusClass}">\${o}</button>\`;
                     }).join('')}
                 </div>
             </div>
-        </div>`;
-}
-
-function handleQuizAns(selected, correct, idx) {
-    if (state.quizFeedback.status) return;
-    const isCorrect = selected === correct;
-    state.quizFeedback = { index: idx, status: isCorrect ? 'correct' : 'wrong', correctIndex: state.quizOptions.indexOf(correct) };
-    if (isCorrect) state.correctAnswers++;
-    render();
-    setTimeout(() => { state.quizIndex++; state.quizOptions = null; state.quizFeedback = { index: -1, status: null, correctIndex: -1 }; render(); }, 800);
+        </div>\`;
 }
 
 // צמצום רווחים במסך התפריט
@@ -610,4 +600,5 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 

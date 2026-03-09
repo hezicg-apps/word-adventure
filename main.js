@@ -240,6 +240,7 @@ function renderFlashcards(app) {
 }
 
 function renderQuiz(app) {
+    // --- מסך סיום עם מילוי פרטים ושליחה ---
     if (state.quizIndex >= state.words.length) {
         state.masteryScore = (state.correctAnswers / state.words.length) * 100;
         saveToLocal(); 
@@ -248,43 +249,53 @@ function renderQuiz(app) {
         const percent = Math.round(state.masteryScore);
         const unitName = state.listName;
 
-        // הכתובת הישירה והנקייה ביותר
-        const formBase = "https://docs.google.com/forms/d/e/1FAIpQLSe5yaCbYBN4wTU0VCw9TXi3nawnT4fg_fhtVl4Uw0jD2X_T3g/viewform";
-        const finalUrl = formBase + "?usp=pp_url" + 
-                         "&entry.803256071=" + encodeURIComponent(unitName) + 
-                         "&entry.1607469246=" + percent;
-
         app.innerHTML = `
-            <div class="text-center space-y-8 w-full max-w-sm px-4 mt-10 animate-fade-in">
+            <div class="text-center space-y-6 w-full max-w-sm px-4 mt-6 animate-fade-in mx-auto">
                 <h2 class="text-5xl font-black text-blue-600">כל הכבוד! 🏆</h2>
                 
-                <div class="bg-white p-8 rounded-[3rem] border-4 border-green-400 shadow-xl">
-                    <p class="text-7xl font-black mb-2 text-gray-900">${percent}%</p>
-                    <p class="text-xl font-bold text-gray-600">${unitName}</p>
+                <div class="bg-white p-6 rounded-[2.5rem] border-4 border-green-400 shadow-xl">
+                    <p class="text-6xl font-black mb-1 text-gray-900">${percent}%</p>
+                    <p class="text-lg font-bold text-gray-600">${unitName}</p>
+                </div>
+
+                <div class="bg-blue-50 p-6 rounded-[2rem] border-2 border-blue-200 space-y-4 shadow-inner text-right" dir="rtl">
+                    <p class="font-bold text-blue-800 text-center mb-2 text-xl">דיווח ציון למורה</p>
+                    
+                    <label class="block text-sm font-bold text-gray-600 mr-2">שם מלא:</label>
+                    <input type="text" id="studentName" placeholder="הקלד שם ושם משפחה" 
+                           class="w-full p-4 rounded-xl border-2 border-gray-200 text-center font-bold focus:border-purple-500 outline-none transition-colors">
+                    
+                    <label class="block text-sm font-bold text-gray-600 mr-2">הכיתה שלי:</label>
+                    <select id="studentClass" class="w-full p-4 rounded-xl border-2 border-gray-200 text-center font-bold bg-white focus:border-purple-500 outline-none">
+                        <option value="">-- בחר כיתה --</option>
+                        <option value="ג'1">ג'1</option>
+                        <option value="ד'1">ד'1</option>
+                        <option value="ה'1">ה'1</option>
+                        <option value="ה'2">ה'2</option>
+                        <option value="ו'1">ו'1</option>
+                        <option value="ו'2">ו'2</option>
+                    </select>
+
+                    <button onclick="submitToGoogle(this, ${percent}, '${unitName}')" 
+                            class="w-full bg-purple-600 text-white py-5 rounded-2xl text-xl font-black shadow-lg hover:bg-purple-700 active:scale-95 transition-all mt-2">
+                        שלח ציון עכשיו 🚀
+                    </button>
                 </div>
                 
-                <div class="flex flex-col gap-4">
-                    <button onclick="window.open('${finalUrl}', '_blank')" 
-                            class="bg-purple-600 text-white py-5 rounded-2xl text-xl font-black shadow-lg hover:scale-105 transition-transform">
-                        שדר ציון לטבלת המורה 📋
-                    </button>
-                    
-                    <button onclick="state.quizIndex=0; state.correctAnswers=0; state.screen='menu'; render();" 
-                            class="bg-gray-100 text-gray-600 py-4 rounded-2xl font-bold">
-                        חזרה לתפריט 🏠
-                    </button>
-                </div>
+                <button onclick="state.quizIndex=0; state.correctAnswers=0; state.screen='menu'; render();" 
+                        class="text-gray-400 font-bold underline text-sm">
+                    חזרה לתפריט ללא שליחה
+                </button>
             </div>`;
         return;
     }
 
+    // --- קוד המשחק הרגיל (ללא שינוי) ---
     const cur = state.words[state.quizIndex];
-    if (!state.quizOptions) {
-        state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x => x.id !== cur.id).map(x => x.heb)).slice(0, 3)]);
-    }
-
+    if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
+    
     app.innerHTML = `
-        <div class="text-center space-y-4 w-full max-w-sm px-2 mt-2">
+        <div class="text-center space-y-4 w-full max-w-sm px-2 mt-2 mx-auto">
             ${renderHeader(`אתגר: ${state.quizIndex + 1}/${state.words.length}`)}
             <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative">
                 <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4 text-gray-800">
@@ -298,12 +309,54 @@ function renderQuiz(app) {
                             if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans';
                             else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans';
                         }
-                        return \`<button onclick="handleQuizAns('\${o}', '\${cur.heb}', \${idx})" 
-                                class="py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 \${statusClass}">\${o}</button>\`;
+                        return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" class="py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 ${statusClass}">${o}</button>`;
                     }).join('')}
                 </div>
             </div>
-        </div>\`;
+        </div>`;
+}
+
+// --- פונקציית שליחה שקטה לגוגל - הדבק בסוף הקובץ ---
+function submitToGoogle(btn, score, unit) {
+    const name = document.getElementById('studentName').value.trim();
+    const klass = document.getElementById('studentClass').value;
+
+    if (!name || name.length < 2) {
+        alert("נא להזין שם מלא");
+        return;
+    }
+    if (!klass) {
+        alert("נא לבחור כיתה מהרשימה");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = `<span>שולח... ⏳</span>`;
+
+    const formID = "1FAIpQLSe5yaCbYBN4wTU0VCw9TXi3nawnT4fg_fhtVl4Uw0jD2X_T3g";
+    // שליחה ל-formResponse מבצעת שליחה שקטה
+    const url = `https://docs.google.com/forms/d/e/${formID}/formResponse?entry.627334846=${encodeURIComponent(name)}&entry.737005448=${encodeURIComponent(klass)}&entry.803256071=${encodeURIComponent(unit)}&entry.1607469246=${score}&submit=Submit`;
+
+    // שימוש ב-fetch עם מצב 'no-cors' מאפשר שליחה מבלי שהדפדפן יחסום את הבקשה
+    fetch(url, { mode: 'no-cors' })
+    .then(() => {
+        btn.parentElement.innerHTML = `
+            <div class="text-green-600 font-black text-2xl animate-bounce py-4 text-center">
+                ✅ הציון נשלח בהצלחה!
+            </div>`;
+        setTimeout(() => {
+            state.quizIndex = 0;
+            state.correctAnswers = 0;
+            state.screen = 'menu';
+            render();
+        }, 2500);
+    })
+    .catch(err => {
+        console.error(err);
+        alert("הייתה תקלה בשליחה. נסה שוב או צלם מסך.");
+        btn.disabled = false;
+        btn.innerText = "שלח ציון עכשיו 🚀";
+    });
 }
 
 // צמצום רווחים במסך התפריט
@@ -600,5 +653,6 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 

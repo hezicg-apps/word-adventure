@@ -231,20 +231,20 @@ function processInput() {
 }
 
 function renderFlashcards(app) {
-    // בדיקה שהרשימה לא ריקה ושאין חריגה מהאינדקס
+    // הגנה: אם אין מילים, חזור למסך הראשי
     if (!state.words || state.words.length === 0) {
         state.screen = 'welcome';
         render();
         return;
     }
-    
-    // אם האינדקס הנוכחי גדול מדי (בגלל רשימה חדשה קצרה יותר), נאפס אותו
+
+    // הגנה: אם האינדקס חורג (קורה כשעוברים מרשימה ארוכה לקצרה), אפס ל-0
     if (state.cardIndex >= state.words.length) {
         state.cardIndex = 0;
     }
 
     const cur = state.words[state.cardIndex];
-    
+
     app.innerHTML = `
         <div class="text-center space-y-8 w-full max-w-sm px-4 mt-10 mx-auto animate-fade-in">
             ${renderHeader(state.listName)}
@@ -253,34 +253,50 @@ function renderFlashcards(app) {
                 <div class="flashcard-inner shadow-2xl">
                     <div class="flashcard-front flex flex-col items-center justify-center p-10 bg-white border-4 border-blue-400 rounded-[3rem]">
                         <span class="text-5xl font-black text-gray-800 eng-text">${cur.eng}</span>
-                        <div class="mt-8 text-blue-300 text-sm font-bold">לחץ כדי לראות תרגום 👆</div>
+                        <div class="mt-8 text-blue-300 text-sm font-bold animate-pulse">לחץ לתרגום 👆</div>
                     </div>
                     <div class="flashcard-back flex flex-col items-center justify-center p-10 bg-blue-50 border-4 border-blue-600 rounded-[3rem]">
                         <span class="text-5xl font-black text-blue-700">${cur.heb}</span>
-                        <button onclick="event.stopPropagation(); speak('${cur.eng.replace(/'/g, "\\'")}')" class="mt-6 text-4xl">🔊</button>
+                        <button onclick="event.stopPropagation(); speak('${cur.eng.replace(/'/g, "\\'")}')" 
+                                class="mt-6 text-4xl hover:scale-110 transition-transform">🔊</button>
                     </div>
                 </div>
             </div>
 
             <div class="flex justify-between items-center gap-6 mt-12">
-                <button onclick="state.cardIndex = (state.cardIndex - 1 + state.words.length) % state.words.length; render();" 
-                        class="p-6 bg-gray-100 rounded-full shadow-md active:scale-90 transition-transform">
+                <button onclick="changeCard(-1)" 
+                        class="p-6 bg-gray-100 rounded-full shadow-md active:scale-90 transition-all">
                     <span class="text-3xl">⬅️</span>
                 </button>
                 
-                <button onclick="toggleKnown(${cur.id})" 
+                <button onclick="toggleKnown()" 
                         class="flex-1 py-5 rounded-2xl text-xl font-black shadow-lg transition-all active:scale-95 ${cur.known ? 'bg-green-500 text-white' : 'bg-white text-gray-400 border-2 border-gray-100'}">
                     ${cur.known ? 'יודע! ✅' : 'עדיין לומד...'}
                 </button>
 
-                <button onclick="state.cardIndex = (state.cardIndex + 1) % state.words.length; render();" 
-                        class="p-6 bg-gray-100 rounded-full shadow-md active:scale-90 transition-transform">
+                <button onclick="changeCard(1)" 
+                        class="p-6 bg-gray-100 rounded-full shadow-md active:scale-90 transition-all">
                     <span class="text-3xl">➡️</span>
                 </button>
             </div>
 
-            <button onclick="state.screen='menu'; render();" class="text-gray-400 font-bold underline mt-4">חזרה לתפריט</button>
+            <button onclick="state.screen='menu'; render();" class="text-gray-400 font-bold underline mt-4 hover:text-gray-600">חזרה לתפריט</button>
         </div>`;
+}
+
+// פונקציות עזר חדשות למניעת שגיאות Undefined
+function changeCard(step) {
+    state.cardIndex = (state.cardIndex + step + state.words.length) % state.words.length;
+    render();
+}
+
+function toggleKnown() {
+    const cur = state.words[state.cardIndex];
+    if (cur) {
+        cur.known = !cur.known;
+        saveToLocal();
+        render();
+    }
 }
 
 // פונקציית העזר שמתקנת את השגיאה של ה-Undefined
@@ -717,6 +733,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

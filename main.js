@@ -239,8 +239,8 @@ function renderFlashcards(app) {
         </div>`;
 }
 
+// 1. פונקציית הצגת החידון - כולל מסך הסיום החדש
 function renderQuiz(app) {
-    // --- מסך סיום עם מילוי פרטים ושליחה ---
     if (state.quizIndex >= state.words.length) {
         state.masteryScore = (state.correctAnswers / state.words.length) * 100;
         saveToLocal(); 
@@ -261,11 +261,9 @@ function renderQuiz(app) {
                 <div class="bg-blue-50 p-6 rounded-[2rem] border-2 border-blue-200 space-y-4 shadow-inner text-right" dir="rtl">
                     <p class="font-bold text-blue-800 text-center mb-2 text-xl">דיווח ציון למורה</p>
                     
-                    <label class="block text-sm font-bold text-gray-600 mr-2">שם מלא:</label>
-                    <input type="text" id="studentName" placeholder="הקלד שם ושם משפחה" 
-                           class="w-full p-4 rounded-xl border-2 border-gray-200 text-center font-bold focus:border-purple-500 outline-none transition-colors">
+                    <input type="text" id="studentName" placeholder="שם מלא (למשל: ישראל ישראלי)" 
+                           class="w-full p-4 rounded-xl border-2 border-gray-200 text-center font-bold focus:border-purple-500 outline-none bg-white">
                     
-                    <label class="block text-sm font-bold text-gray-600 mr-2">הכיתה שלי:</label>
                     <select id="studentClass" class="w-full p-4 rounded-xl border-2 border-gray-200 text-center font-bold bg-white focus:border-purple-500 outline-none">
                         <option value="">-- בחר כיתה --</option>
                         <option value="ג'1">ג'1</option>
@@ -276,23 +274,24 @@ function renderQuiz(app) {
                         <option value="ו'2">ו'2</option>
                     </select>
 
-                    <button onclick="submitToGoogle(this, ${percent}, '${unitName}')" 
+                    <button onclick="submitToGoogle(this, ${percent}, '${unitName.replace(/'/g, "\\'")}')" 
                             class="w-full bg-purple-600 text-white py-5 rounded-2xl text-xl font-black shadow-lg hover:bg-purple-700 active:scale-95 transition-all mt-2">
                         שלח ציון עכשיו 🚀
                     </button>
                 </div>
                 
                 <button onclick="state.quizIndex=0; state.correctAnswers=0; state.screen='menu'; render();" 
-                        class="text-gray-400 font-bold underline text-sm">
+                        class="text-gray-400 font-bold underline text-sm cursor-pointer">
                     חזרה לתפריט ללא שליחה
                 </button>
             </div>`;
         return;
     }
 
-    // --- קוד המשחק הרגיל (ללא שינוי) ---
     const cur = state.words[state.quizIndex];
-    if (!state.quizOptions) state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x=>x.id!==cur.id).map(x=>x.heb)).slice(0,3)]);
+    if (!state.quizOptions) {
+        state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x => x.id !== cur.id).map(x => x.heb)).slice(0, 3)]);
+    }
     
     app.innerHTML = `
         <div class="text-center space-y-4 w-full max-w-sm px-2 mt-2 mx-auto">
@@ -300,7 +299,7 @@ function renderQuiz(app) {
             <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative">
                 <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4 text-gray-800">
                     ${cur.eng}
-                    <button onclick="speak('${cur.eng}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button>
+                    <button onclick="speak('${cur.eng.replace(/'/g, "\\'")}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button>
                 </div>
                 <div class="grid gap-4">
                     ${state.quizOptions.map((o, idx) => {
@@ -309,41 +308,53 @@ function renderQuiz(app) {
                             if (idx === state.quizFeedback.correctIndex) statusClass = 'correct-ans';
                             else if (idx === state.quizFeedback.index && state.quizFeedback.status === 'wrong') statusClass = 'wrong-ans';
                         }
-                        return `<button onclick="handleQuizAns('${o}', '${cur.heb}', ${idx})" class="py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 ${statusClass}">${o}</button>`;
+                        // הגנה מפני גרשיים במילים בעברית
+                        const safeOpt = o.replace(/'/g, "\\'");
+                        const safeCorrect = cur.heb.replace(/'/g, "\\'");
+                        return `<button onclick="handleQuizAns('${safeOpt}', '${safeCorrect}', ${idx})" 
+                                class="py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 ${statusClass}">${o}</button>`;
                     }).join('')}
                 </div>
             </div>
         </div>`;
 }
 
-// --- פונקציית שליחה שקטה לגוגל - הדבק בסוף הקובץ ---
+// 2. פונקציית הטיפול בלחיצה על תשובה בחידון
+function handleQuizAns(selected, correct, index) {
+    if (state.quizFeedback.status) return;
+    const isCorrect = selected === correct;
+    const correctIdx = state.quizOptions.indexOf(correct);
+    
+    state.quizFeedback = { index, status: isCorrect ? 'correct' : 'wrong', correctIndex: correctIdx };
+    if (isCorrect) state.correctAnswers++;
+    
+    render();
+    
+    setTimeout(() => {
+        state.quizIndex++;
+        state.quizOptions = null;
+        state.quizFeedback = { index: -1, status: null, correctIndex: -1 };
+        render();
+    }, 1200);
+}
+
+// 3. פונקציית השליחה השקטה לגוגל פורמס
 function submitToGoogle(btn, score, unit) {
     const name = document.getElementById('studentName').value.trim();
     const klass = document.getElementById('studentClass').value;
 
-    if (!name || name.length < 2) {
-        alert("נא להזין שם מלא");
-        return;
-    }
-    if (!klass) {
-        alert("נא לבחור כיתה מהרשימה");
-        return;
-    }
+    if (!name || name.length < 2) { alert("נא להזין שם מלא"); return; }
+    if (!klass) { alert("נא לבחור כיתה"); return; }
 
     btn.disabled = true;
-    btn.innerHTML = `<span>שולח... ⏳</span>`;
+    btn.innerHTML = "שולח... ⏳";
 
     const formID = "1FAIpQLSe5yaCbYBN4wTU0VCw9TXi3nawnT4fg_fhtVl4Uw0jD2X_T3g";
-    // שליחה ל-formResponse מבצעת שליחה שקטה
     const url = `https://docs.google.com/forms/d/e/${formID}/formResponse?entry.627334846=${encodeURIComponent(name)}&entry.737005448=${encodeURIComponent(klass)}&entry.803256071=${encodeURIComponent(unit)}&entry.1607469246=${score}&submit=Submit`;
 
-    // שימוש ב-fetch עם מצב 'no-cors' מאפשר שליחה מבלי שהדפדפן יחסום את הבקשה
     fetch(url, { mode: 'no-cors' })
     .then(() => {
-        btn.parentElement.innerHTML = `
-            <div class="text-green-600 font-black text-2xl animate-bounce py-4 text-center">
-                ✅ הציון נשלח בהצלחה!
-            </div>`;
+        btn.parentElement.innerHTML = `<div class="text-green-600 font-black text-2xl py-4 text-center animate-bounce">✅ הציון נשלח בהצלחה!</div>`;
         setTimeout(() => {
             state.quizIndex = 0;
             state.correctAnswers = 0;
@@ -351,9 +362,8 @@ function submitToGoogle(btn, score, unit) {
             render();
         }, 2500);
     })
-    .catch(err => {
-        console.error(err);
-        alert("הייתה תקלה בשליחה. נסה שוב או צלם מסך.");
+    .catch(() => {
+        alert("תקלה בשליחה. בדוק חיבור לאינטרנט.");
         btn.disabled = false;
         btn.innerText = "שלח ציון עכשיו 🚀";
     });
@@ -653,6 +663,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

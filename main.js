@@ -253,116 +253,138 @@ function renderFlashcards(app) {
         </div>`;
 }
 
-function renderQuiz(app) {
-    if (state.quizIndex >= state.words.length) {
-        const finalScore = Math.round((state.correctAnswers / state.words.length) * 100);
-        state.masteryScore = finalScore;
-        saveToLocal();
-        triggerConfetti();
+function renderQuiz() {
+    const app = document.getElementById('app');
+    
+    // יצירת רשימת שאלות במידה ולא קיימת או שהתחלנו מחדש
+    if (!state.quizList || state.quizList.length === 0) {
+        state.quizList = [...state.words].sort(() => Math.random() - 0.5);
+    }
+
+    // מסך סיום הבוחן
+    if (state.quizIndex >= state.quizList.length) {
+        const score = Math.round((state.correctAnswers / state.quizList.length) * 100);
+        state.masteryScore = score; // עדכון הציון ב-state
+        saveToLocal(); // שמירה כדי שהמשחקים ייפתחו
+
+        if (score >= 70) triggerConfetti();
 
         app.innerHTML = `
-            <div class="text-center space-y-8 w-full max-w-sm px-4 mx-auto mt-10 animate-fade-in">
-                <div class="bg-white border-4 border-yellow-400 rounded-[3rem] p-10 shadow-2xl relative">
-                    <h2 class="text-3xl font-black text-gray-800 mb-2">כל הכבוד! ✨</h2>
-                    <p class="text-lg text-gray-500 font-bold mb-6">${state.listName}</p>
-                    <div class="text-7xl font-black text-yellow-400 mb-4">${finalScore}%</div>
-                    <p class="text-xl font-bold text-gray-700">ענית נכון על ${state.correctAnswers} מתוך ${state.words.length}</p>
+            <div class="max-w-md mx-auto bg-white min-h-[80vh] rounded-3xl shadow-2xl p-8 flex flex-col text-center border-4 border-blue-50">
+                <div class="text-6xl mb-4">${score >= 70 ? '🏆' : '💪'}</div>
+                <h2 class="text-3xl font-black text-gray-800 mb-2">כל הכבוד!</h2>
+                <p class="text-gray-500 mb-8 font-medium">סיימת את אתגר המילים</p>
+                
+                <div class="bg-blue-50 rounded-2xl p-6 mb-8">
+                    <div class="text-sm text-blue-400 font-bold uppercase tracking-wider mb-1">הציון שלך</div>
+                    <div class="text-5xl font-black text-blue-600">${score}%</div>
                 </div>
 
-                <div id="reportSection" class="bg-blue-50 p-6 rounded-[2rem] border-2 border-blue-200 space-y-4 shadow-inner text-right" dir="rtl">
-                    <p class="font-bold text-blue-800 text-center">דיווח למורה:</p>
-                    <input type="text" id="studentName" placeholder="שם מלא" 
-                        class="w-full p-4 rounded-xl border-2 border-white text-center font-bold outline-none focus:border-blue-400 shadow-sm">
+                <div id="reportSection" class="space-y-4 mb-8 text-right" dir="rtl">
+                    <p class="text-sm font-bold text-gray-600 mb-2">שלח דיווח למורה:</p>
+                    <input type="text" id="studentName" placeholder="שם מלא" class="w-full p-3 border-2 border-gray-100 rounded-xl focus:border-blue-400 outline-none transition-all">
+                    <input type="text" id="studentClass" placeholder="כיתה (למשל: ג'1)" class="w-full p-3 border-2 border-gray-100 rounded-xl focus:border-blue-400 outline-none transition-all">
+                    <button onclick="window.submitFinalReport(${score})" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all">שליחת דיווח 📤</button>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3">
+                    <button onclick="state.quizIndex=0; state.correctAnswers=0; state.quizList=[]; render();" 
+                        class="py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all">אימון חוזר 🔄</button>
                     
-                    <select id="studentClass" class="w-full p-4 rounded-xl border-2 border-white text-center font-bold outline-none focus:border-blue-400 bg-white shadow-sm">
-                        <option value="">בחר כיתה...</option>
-                        <option value="ג'1">ג'1</option><option value="ד'1">ד'1</option>
-                        <option value="ה'1">ה'1</option><option value="ה'2">ה'2</option>
-                        <option value="ו'1">ו'1</option><option value="ו'2">ו'2</option>
-                    </select>
-
-                    <button id="sendBtn" class="w-full py-4 bg-green-500 text-white rounded-xl font-black shadow-md hover:bg-green-600 transition-all text-xl">שלח תוצאה ✅</button>
+                    <button onclick="state.screen='menu'; render();" 
+                        class="py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 active:scale-95 transition-all">חזרה לתפריט 🏠</button>
                 </div>
-
-                <div class="grid gap-4 pb-10">
-                    <button onclick="state.quizIndex=0; state.correctAnswers=0; state.masteryScore=0; render();" 
-                        class="py-5 bg-blue-600 text-white rounded-2xl text-xl font-black shadow-lg">תרגול חוזר 🔄</button>
-                    <button onclick="state.masteryScore=0; state.screen='menu'; render();" 
-                        class="py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold">חזרה לתפריט 🏠</button>
-                </div>
-            </div>`;
-
-        document.getElementById('sendBtn').onclick = function() {
-            const name = document.getElementById('studentName').value;
-            const sClass = document.getElementById('studentClass').value;
-            if (!name || !sClass) { alert("נא למלא שם ולבחור כיתה"); return; }
-            this.innerText = "מעבד... ✨";
-            this.disabled = true;
-
-            const iframe = document.createElement('iframe');
-            iframe.name = 'hidden_iframe';
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-
-            const form = document.createElement('form');
-            form.action = "https://docs.google.com/forms/d/e/1FAIpQLSe5yaCbYBN4wTU0VCw9TXi3nawnT4fg_fhtVl4Uw0jD2X_T3g/formResponse";
-            form.method = "POST";
-            form.target = "hidden_iframe";
-
-            const fields = {
-                'entry.627334846': name,
-                'entry.737005448': sClass,
-                'entry.803256071': state.listName,
-                'entry.1607469246': finalScore
-            };
-
-            for (let key in fields) {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = key;
-                input.value = fields[key];
-                form.appendChild(input);
-            }
-            document.body.appendChild(form);
-            form.submit();
-
-            setTimeout(() => {
-                document.getElementById('reportSection').innerHTML = `
-                    <div class="p-6 bg-green-100 text-green-700 rounded-xl font-bold text-center animate-fade-in">
-                        הדיווח נשלח בהצלחה למורה 🕊️
-                    </div>`;
-                if (form.parentNode) document.body.removeChild(form);
-            }, 1000);
-        };
+            </div>
+        `;
         return;
     }
 
-    const cur = state.words[state.quizIndex];
-    if (!state.quizOptions) {
-        state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x => x.id !== cur.id).map(x => x.heb)).slice(0, 3)]);
-    }
+    // הגדרת השאלה הנוכחית
+    const currentWord = state.quizList[state.quizIndex];
     
-    // החלק שמתקן את הריצוד וצובע את הכפתורים:
+    // יצירת מסיחים (תשובות שגויות)
+    if (state.quizFeedback.index === -1) {
+        const distractors = state.words
+            .filter(w => w.he !== currentWord.he)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 3);
+        
+        state.quizOptions = [currentWord, ...distractors].sort(() => Math.random() - 0.5);
+    }
+
+    const progress = ((state.quizIndex) / state.quizList.length) * 100;
+
     app.innerHTML = `
-        <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4 mx-auto animate-fade-in min-h-[450px]">
-            ${renderHeader(`אתגר: ${state.quizIndex + 1}/${state.words.length}`)}
-            <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative">
-                <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4 text-gray-800">
-                    ${cur.eng}
-                    <button onclick="speak('${cur.eng.replace(/'/g, "\\'")}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button>
+        <div class="max-w-md mx-auto bg-white min-h-[80vh] rounded-3xl shadow-2xl p-6 flex flex-col border-4 border-blue-50">
+            <div class="flex items-center gap-4 mb-8">
+                <button onclick="state.screen='menu'; render();" class="text-gray-400 hover:text-gray-600 transition-colors text-2xl">✕</button>
+                <div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-500 transition-all duration-500" style="width: ${progress}%"></div>
                 </div>
-                <div class="grid gap-4">
-                    ${state.quizOptions.map((o, idx) => {
-                        return `<button 
-                            onclick="handleQuizAns('${o.replace(/'/g, "\\'")}', '${cur.heb.replace(/'/g, "\\'")}', ${idx})" 
-                            class="quiz-option-btn py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 active:scale-95">
-                            ${o}
-                        </button>`;
+                <span class="text-sm font-bold text-gray-400">${state.quizIndex + 1}/${state.quizList.length}</span>
+            </div>
+
+            <div class="flex-1 flex flex-col items-center justify-center text-center">
+                <div class="text-sm font-bold text-blue-400 uppercase tracking-widest mb-2">איך אומרים באנגלית?</div>
+                <h2 class="text-5xl font-black text-gray-800 mb-8">${currentWord.he}</h2>
+                
+                <div class="grid grid-cols-1 gap-4 w-full">
+                    ${state.quizOptions.map((opt, i) => {
+                        let statusClass = "border-gray-100 hover:border-blue-200 hover:bg-blue-50";
+                        if (state.quizFeedback.index !== -1) {
+                            if (opt.en === currentWord.en) statusClass = "bg-green-100 border-green-500 text-green-700 shadow-sm shadow-green-200 scale-[1.02]";
+                            else if (state.quizFeedback.index === i) statusClass = "bg-red-50 border-red-500 text-red-700 opacity-70";
+                            else statusClass = "opacity-40 border-gray-100";
+                        }
+
+                        return `
+                            <button 
+                                onclick="checkQuizAnswer(${i})"
+                                ${state.quizFeedback.index !== -1 ? 'disabled' : ''}
+                                class="group relative py-5 px-6 border-2 rounded-2xl font-bold text-xl transition-all duration-200 flex items-center justify-center ${statusClass}"
+                            >
+                                ${opt.en.toLowerCase()}
+                                ${state.quizFeedback.index !== -1 && opt.en === currentWord.en ? '<span class="absolute right-4 text-2xl">✓</span>' : ''}
+                            </button>
+                        `;
                     }).join('')}
                 </div>
             </div>
-        </div>`;
+
+            <div class="mt-8 h-16">
+                ${state.quizFeedback.index !== -1 ? `
+                    <button onclick="nextQuizStep()" class="w-full py-4 bg-gray-800 text-white rounded-2xl font-bold text-lg shadow-xl hover:bg-gray-900 active:scale-95 transition-all animate-bounce-subtle">
+                        המשך למילה הבאה ⮕
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `;
 }
+
+// פונקציית העזר לבדיקת תשובה
+window.checkQuizAnswer = (idx) => {
+    if (state.quizFeedback.index !== -1) return;
+    
+    const currentWord = state.quizList[state.quizIndex];
+    const isCorrect = state.quizOptions[idx].en === currentWord.en;
+    
+    state.quizFeedback = { index: idx, status: isCorrect ? 'correct' : 'wrong' };
+    if (isCorrect) {
+        state.correctAnswers++;
+        speak(currentWord.en);
+    } else {
+        // אופציונלי: צליל טעות קצר
+    }
+    render();
+};
+
+// פונקציית העזר למעבר לשאלה הבאה
+window.nextQuizStep = () => {
+    state.quizIndex++;
+    state.quizFeedback = { index: -1, status: null };
+    render();
+};
 
 function handleQuizAns(selected, correct, idx) {
     if (state.quizFeedback.status) return; // מונע לחיצות נוספות בזמן ההשהיה
@@ -750,6 +772,7 @@ window.submitFinalReport = (score) => {
         btn.disabled = false;
     });
 };
+
 
 
 

@@ -27,11 +27,16 @@ function loadFromLocal() {
     const saved = localStorage.getItem('wa_state_v2');
     if (saved) {
         const parsed = JSON.parse(saved);
-        state.words = parsed.words || [];
-        state.listName = parsed.listName || 'אוצר המילים שלי';
-        state.masteryScore = parsed.masteryScore || 0;
+        if (parsed.words && parsed.words.length > 0) {
+            state.words = parsed.words;
+            state.listName = parsed.listName || 'אוצר המילים שלי';
+            state.masteryScore = parsed.masteryScore || 0;
+            // אם יש מילים, דלג ישר לתפריט המשחקים
+            state.screen = 'menu'; 
+        }
     }
 }
+
 function resetAllData() { if (confirm('בטוח שרוצים למחוק הכל?')) { localStorage.removeItem('wa_state_v2'); location.reload(); } }
 
 // --- ניהול מסכים ---
@@ -233,3 +238,4 @@ window.submitFinalReport = (score) => {
 
 loadFromLocal();
 render();
+

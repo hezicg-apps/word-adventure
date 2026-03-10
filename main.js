@@ -256,16 +256,18 @@ function renderFlashcards(app) {
 function renderQuiz() {
     const app = document.getElementById('app');
     
-    // יצירת רשימת שאלות במידה ולא קיימת או שהתחלנו מחדש
+    // אתחול רשימת השאלות אם צריך
     if (!state.quizList || state.quizList.length === 0) {
         state.quizList = [...state.words].sort(() => Math.random() - 0.5);
+        state.quizIndex = 0;
+        state.correctAnswers = 0;
     }
 
     // מסך סיום הבוחן
     if (state.quizIndex >= state.quizList.length) {
         const score = Math.round((state.correctAnswers / state.quizList.length) * 100);
-        state.masteryScore = score; // עדכון הציון ב-state
-        saveToLocal(); // שמירה כדי שהמשחקים ייפתחו
+        state.masteryScore = score; 
+        saveToLocal(); 
 
         if (score >= 70) triggerConfetti();
 
@@ -284,7 +286,7 @@ function renderQuiz() {
                     <p class="text-sm font-bold text-gray-600 mb-2">שלח דיווח למורה:</p>
                     <input type="text" id="studentName" placeholder="שם מלא" class="w-full p-3 border-2 border-gray-100 rounded-xl focus:border-blue-400 outline-none transition-all">
                     <input type="text" id="studentClass" placeholder="כיתה (למשל: ג'1)" class="w-full p-3 border-2 border-gray-100 rounded-xl focus:border-blue-400 outline-none transition-all">
-                    <button onclick="window.submitFinalReport(${score})" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all">שליחת דיווח 📤</button>
+                    <button onclick="submitFinalReport(${score})" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all">שליחת דיווח 📤</button>
                 </div>
 
                 <div class="grid grid-cols-1 gap-3">
@@ -302,22 +304,22 @@ function renderQuiz() {
     // הגדרת השאלה הנוכחית
     const currentWord = state.quizList[state.quizIndex];
     
-    // יצירת מסיחים (תשובות שגויות)
-    if (state.quizFeedback.index === -1) {
+    // יצירת אפשרויות בחירה (רק אם עוד לא נוצרו לשאלה הנוכחית)
+    if (state.quizFeedback.index === -1 && (!state.quizOptions || state.quizOptions.length === 0 || !state.quizOptions.find(o => o.en === currentWord.en))) {
         const distractors = state.words
-            .filter(w => w.he !== currentWord.he)
+            .filter(w => w.en !== currentWord.en)
             .sort(() => Math.random() - 0.5)
             .slice(0, 3);
         
         state.quizOptions = [currentWord, ...distractors].sort(() => Math.random() - 0.5);
     }
 
-    const progress = ((state.quizIndex) / state.quizList.length) * 100;
+    const progress = (state.quizIndex / state.quizList.length) * 100;
 
     app.innerHTML = `
         <div class="max-w-md mx-auto bg-white min-h-[80vh] rounded-3xl shadow-2xl p-6 flex flex-col border-4 border-blue-50">
             <div class="flex items-center gap-4 mb-8">
-                <button onclick="state.screen='menu'; render();" class="text-gray-400 hover:text-gray-600 transition-colors text-2xl">✕</button>
+                <button onclick="state.screen='menu'; state.quizList=[]; render();" class="text-gray-400 hover:text-gray-600 transition-colors text-2xl">✕</button>
                 <div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
                     <div class="h-full bg-blue-500 transition-all duration-500" style="width: ${progress}%"></div>
                 </div>
@@ -353,7 +355,7 @@ function renderQuiz() {
 
             <div class="mt-8 h-16">
                 ${state.quizFeedback.index !== -1 ? `
-                    <button onclick="nextQuizStep()" class="w-full py-4 bg-gray-800 text-white rounded-2xl font-bold text-lg shadow-xl hover:bg-gray-900 active:scale-95 transition-all animate-bounce-subtle">
+                    <button onclick="nextQuizStep()" class="w-full py-4 bg-gray-800 text-white rounded-2xl font-bold text-lg shadow-xl hover:bg-gray-900 active:scale-95 transition-all">
                         המשך למילה הבאה ⮕
                     </button>
                 ` : ''}
@@ -362,27 +364,23 @@ function renderQuiz() {
     `;
 }
 
-// פונקציית העזר לבדיקת תשובה
+// וודא שהפעלים האלו קיימים מחוץ ל-renderQuiz כדי שהכפתורים יוכלו לקרוא להם:
 window.checkQuizAnswer = (idx) => {
     if (state.quizFeedback.index !== -1) return;
-    
     const currentWord = state.quizList[state.quizIndex];
     const isCorrect = state.quizOptions[idx].en === currentWord.en;
-    
     state.quizFeedback = { index: idx, status: isCorrect ? 'correct' : 'wrong' };
     if (isCorrect) {
         state.correctAnswers++;
         speak(currentWord.en);
-    } else {
-        // אופציונלי: צליל טעות קצר
     }
     render();
 };
 
-// פונקציית העזר למעבר לשאלה הבאה
 window.nextQuizStep = () => {
     state.quizIndex++;
     state.quizFeedback = { index: -1, status: null };
+    state.quizOptions = []; // איפוס האפשרויות לשאלה הבאה
     render();
 };
 
@@ -772,6 +770,7 @@ window.submitFinalReport = (score) => {
         btn.disabled = false;
     });
 };
+
 
 
 

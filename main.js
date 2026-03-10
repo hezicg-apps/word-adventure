@@ -254,7 +254,6 @@ function renderFlashcards(app) {
 }
 
 function renderQuiz(app) {
-    // חלק 1: מסך סיום (כשהשאלות נגמרו)
     if (state.quizIndex >= state.words.length) {
         const finalScore = Math.round((state.correctAnswers / state.words.length) * 100);
         state.masteryScore = finalScore;
@@ -293,68 +292,62 @@ function renderQuiz(app) {
                 </div>
             </div>`;
 
-        // לוגיקה של כפתור השליחה (עם התיקון לכפתור הכחול שדיברנו עליו)
-        const btn = document.getElementById('sendBtn');
-        if (btn) {
-            btn.onclick = function() {
-                const name = document.getElementById('studentName').value;
-                const sClass = document.getElementById('studentClass').value;
-                if (!name || !sClass) { alert("נא למלא שם ולבחור כיתה"); return; }
-                this.innerText = "מעבד... ✨";
-                this.disabled = true;
+        document.getElementById('sendBtn').onclick = function() {
+            const name = document.getElementById('studentName').value;
+            const sClass = document.getElementById('studentClass').value;
+            if (!name || !sClass) { alert("נא למלא שם ולבחור כיתה"); return; }
+            this.innerText = "מעבד... ✨";
+            this.disabled = true;
 
-                // יצירת טופס נסתר לגוגל
-                const iframe = document.createElement('iframe');
-                iframe.name = 'hidden_iframe';
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
+            const iframe = document.createElement('iframe');
+            iframe.name = 'hidden_iframe';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
 
-                const form = document.createElement('form');
-                form.action = "https://docs.google.com/forms/d/e/1FAIpQLSe5yaCbYBN4wTU0VCw9TXi3nawnT4fg_fhtVl4Uw0jD2X_T3g/formResponse";
-                form.method = "POST";
-                form.target = "hidden_iframe";
+            const form = document.createElement('form');
+            form.action = "https://docs.google.com/forms/d/e/1FAIpQLSe5yaCbYBN4wTU0VCw9TXi3nawnT4fg_fhtVl4Uw0jD2X_T3g/formResponse";
+            form.method = "POST";
+            form.target = "hidden_iframe";
 
-                const fields = {
-                    'entry.627334846': name,
-                    'entry.737005448': sClass,
-                    'entry.803256071': state.listName,
-                    'entry.1607469246': finalScore
-                };
-
-                for (let key in fields) {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = fields[key];
-                    form.appendChild(input);
-                }
-                document.body.appendChild(form);
-                form.submit();
-
-                setTimeout(() => {
-                    document.getElementById('reportSection').innerHTML = `
-                        <div class="space-y-4 animate-fade-in text-center">
-                            <div class="p-4 bg-green-100 text-green-700 rounded-xl font-bold border-2 border-green-200">
-                                הדיווח נשלח בהצלחה למורה 🕊️
-                            </div>
-                            <button onclick="state.screen='menu'; render();" 
-                                class="w-full py-5 bg-blue-600 text-white rounded-2xl text-2xl font-black shadow-xl hover:bg-blue-700 active:scale-95 transition-all">
-                                המשך למשחקים 🎮 ⮕
-                            </button>
-                        </div>`;
-                    if (form.parentNode) document.body.removeChild(form);
-                }, 1000);
+            const fields = {
+                'entry.627334846': name,
+                'entry.737005448': sClass,
+                'entry.803256071': state.listName,
+                'entry.1607469246': finalScore
             };
-        }
+
+            for (let key in fields) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = fields[key];
+                form.appendChild(input);
+            }
+            document.body.appendChild(form);
+            form.submit();
+
+            setTimeout(() => {
+                document.getElementById('reportSection').innerHTML = `
+                    <div class="space-y-4 animate-fade-in text-center">
+                        <div class="p-4 bg-green-100 text-green-700 rounded-xl font-bold border-2 border-green-200">
+                            הדיווח נשלח בהצלחה למורה 🕊️
+                        </div>
+                        <button onclick="state.screen='menu'; render();" 
+                            class="w-full py-5 bg-blue-600 text-white rounded-2xl text-2xl font-black shadow-xl hover:bg-blue-700 active:scale-95 transition-all">
+                            המשך למשחקים 🎮 ⮕
+                        </button>
+                    </div>`;
+                if (form.parentNode) document.body.removeChild(form);
+            }, 1000);
+        };
         return;
     }
 
-    // חלק 2: המבחן עצמו (כאן תיקנו את הקפיצות)
     const cur = state.words[state.quizIndex];
     if (!state.quizOptions) {
         state.quizOptions = shuffle([cur.heb, ...shuffle(state.words.filter(x => x.id !== cur.id).map(x => x.heb)).slice(0, 3)]);
     }
-
+    
     app.innerHTML = `
         <div class="text-center space-y-4 w-full max-w-sm px-2 mt-2 mx-auto animate-fade-in">
             ${renderHeader(`אתגר: ${state.quizIndex + 1}/${state.words.length}`)}
@@ -368,7 +361,7 @@ function renderQuiz(app) {
                     <button onclick="speak('${cur.eng.replace(/'/g, "\\'")}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button>
                 </div>
 
-                <div class="grid gap-3 mt-2">
+                <div class="grid gap-3">
                     ${state.quizOptions.map((o, idx) => {
                         return `<button 
                             onclick="handleQuizAns('${o.replace(/'/g, "\\'")}', '${cur.heb.replace(/'/g, "\\'")}', ${idx})" 
@@ -729,6 +722,7 @@ function submitFinalReport(score) {
 
 // חיבור הפונקציה לחלון הגלובלי
 window.submitFinalReport = submitFinalReport;
+
 
 
 

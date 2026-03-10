@@ -326,7 +326,6 @@ function renderQuiz(app) {
             document.body.appendChild(form);
             form.submit();
 
-            // --- כאן התיקון הקריטי: הזרקת כפתור ההמשך למשחקים ---
             setTimeout(() => {
                 document.getElementById('reportSection').innerHTML = `
                     <div class="space-y-4 animate-fade-in text-center">
@@ -350,65 +349,29 @@ function renderQuiz(app) {
     }
     
     app.innerHTML = `
-        <div class="text-center space-y-6 w-full max-w-sm px-2 mt-4 mx-auto animate-fade-in min-h-[450px]">
+        <div class="text-center space-y-4 w-full max-w-sm px-2 mt-2 mx-auto animate-fade-in">
             ${renderHeader(`אתגר: ${state.quizIndex + 1}/${state.words.length}`)}
-            <div class="bg-white p-8 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative">
-                <div class="text-4xl font-black mb-8 eng-text flex items-center justify-center gap-4 text-gray-800">
-                    ${cur.eng}
+            
+            <div class="bg-white p-6 rounded-[2.5rem] border-4 border-blue-400 shadow-xl relative min-h-[440px] flex flex-col justify-between">
+                
+                <div class="h-28 flex items-center justify-center gap-4">
+                    <div class="text-3xl font-black eng-text text-gray-800">
+                        ${cur.eng}
+                    </div>
                     <button onclick="speak('${cur.eng.replace(/'/g, "\\'")}')" class="text-3xl bg-transparent border-none p-0 cursor-pointer">🔊</button>
                 </div>
-                <div class="grid gap-4">
+
+                <div class="grid gap-3">
                     ${state.quizOptions.map((o, idx) => {
                         return `<button 
                             onclick="handleQuizAns('${o.replace(/'/g, "\\'")}', '${cur.heb.replace(/'/g, "\\'")}', ${idx})" 
-                            class="quiz-option-btn py-4 border-2 rounded-2xl font-black text-2xl transition-all text-gray-800 border-gray-200 active:scale-95">
+                            class="quiz-option-btn py-4 border-2 rounded-2xl font-black text-xl transition-all text-gray-800 border-gray-100 bg-gray-50 active:scale-95 h-[68px] flex items-center justify-center">
                             ${o}
                         </button>`;
                     }).join('')}
                 </div>
             </div>
         </div>`;
-}
-
-function handleQuizAns(selected, correct, idx) {
-    if (state.quizFeedback.status) return; // מונע לחיצות נוספות בזמן ההשהיה
-
-    // מוצאים את כל הכפתורים של התשובות
-    const buttons = document.querySelectorAll('.quiz-option-btn');
-    const isCorrect = selected === correct;
-    
-    state.quizFeedback = {
-        status: isCorrect ? 'correct' : 'wrong',
-        index: idx,
-        correctIndex: state.quizOptions.indexOf(correct)
-    };
-
-    if (isCorrect) state.correctAnswers++;
-
-    // צביעה מיידית של הכפתורים ללא ריצוד
-    buttons.forEach((btn, i) => {
-        btn.style.transition = "all 0.2s ease"; // אנימציה חלקה לצבע
-        
-        if (i === state.quizFeedback.correctIndex) {
-            // צובע את התשובה הנכונה בירוק
-            btn.style.backgroundColor = "#dcfce7"; // bg-green-100
-            btn.style.borderColor = "#22c55e";     // border-green-500
-            btn.style.color = "#166534";           // text-green-800
-        } else if (i === idx && !isCorrect) {
-            // אם השחקן טעה - צובע את הבחירה שלו באדום
-            btn.style.backgroundColor = "#fee2e2"; // bg-red-100
-            btn.style.borderColor = "#ef4444";     // border-red-500
-            btn.style.color = "#991b1b";           // text-red-800
-        }
-    });
-
-    // השהייה של 1.2 שניות כדי שהשחקן יראה את הטעות/הצלחה
-    setTimeout(() => {
-        state.quizIndex++;
-        state.quizOptions = null;
-        state.quizFeedback = { status: null, index: null, correctIndex: null };
-        render(); // רק עכשיו עוברים לשאלה הבאה
-    }, 1200);
 }
 
 function renderMenu(app) {
@@ -759,6 +722,7 @@ function submitFinalReport(score) {
 
 // חיבור הפונקציה לחלון הגלובלי
 window.submitFinalReport = submitFinalReport;
+
 
 
 

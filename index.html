@@ -95,10 +95,24 @@
             }
         }
 
+      // --- פונקציה למצב לילה שחסרה ---
+        document.getElementById('toggleNight').addEventListener('click', () => {
+            state.nightMode = !state.nightMode;
+            if (typeof saveToLocal === 'function') saveToLocal();
+            render();
+        });
+
+        function resetToInput() {
+            if(confirm("האם לאפס את הרשימה ולהזין מילים חדשות?")) {
+                state.words = [];
+                state.screen = 'input';
+                render();
+            }
+        }
+
         // פונקציית רענון לוגו למקרה של Cache של GitHub
         window.addEventListener('load', () => {
             const img = document.getElementById('logo-img');
-            // אם התמונה לא נטענה (גובה 0), ננסה להכריח אותה עם Timestamp
             if (img && img.naturalHeight === 0) {
                 img.src = "logo.png?t=" + new Date().getTime();
             }
@@ -112,6 +126,7 @@
     </script>
 </body>
 </html>
+
 
 
 

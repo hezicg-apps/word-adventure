@@ -439,6 +439,7 @@ function checkWin(b) {
 }
 
 // 1. התחלת המשחק - בחירת מילה מהמאגר
+// 1. התחלת המשחק - בחירת מילה מהמאגר
 function startWordQuest() {
     // בדיקה אם יש מילים במאגר - תומך גם ב-en וגם ב-eng
     if (!state.words || state.words.length === 0) {
@@ -617,6 +618,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

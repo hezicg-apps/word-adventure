@@ -144,27 +144,25 @@ function resetAllData() {
 }
 
 function render() {
-    // 1. עדכון קלאס על ה-Body למצב לילה
+    // 1. עדכון ה-Class על ה-body (זה מה שמשנה את הצבעים ב-CSS)
     document.body.classList.toggle('night-mode', state.nightMode);
-    
-    // 2. טיפול בכפתור (לוודא שהוא מגיב ללחיצה ומראה את האייקון הנכון)
+
+    // 2. טיפול בכפתור השמש/ירח
     const toggleBtn = document.getElementById('toggleNight');
     if (toggleBtn) {
+        // עדכון האייקון
         toggleBtn.innerText = state.nightMode ? '🌙' : '☀️';
-        // הוספת הפעולה בלחיצה - זה מה שהיה חסר!
+        
+        // הוספת פעולת הלחיצה (זה החלק שהיה חסר או לא עבד)
         toggleBtn.onclick = () => { 
             state.nightMode = !state.nightMode; 
-            render(); 
+            render(); // הרצה מחדש כדי לעדכן את התצוגה
         };
     }
 
     const app = document.getElementById('app');
-    app.innerHTML = '';
+    // ... מכאן המשך הקוד שלך בדיוק כפי שהוא (app.innerHTML = '' וכו')
     
-    // ... שאר הקוד של ה-render ממשיך כאן כרגיל ...
-    if (state.winner) { renderWinScreen(app); return; }
-    // וכו'
-}
 function renderHeader(subtext) {
     return `
         <div class="mb-4">
@@ -757,6 +755,7 @@ function submitFinalReport(score) {
 
 // חיבור הפונקציה לחלון הגלובלי
 window.submitFinalReport = submitFinalReport;
+
 
 
 

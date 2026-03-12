@@ -221,3 +221,20 @@ header img {
     touch-action: manipulation;
 }
 
+.word-grid {
+    direction: ltr !important;
+    display: grid !important;
+    justify-content: center;
+    gap: 5px;
+    max-width: 95vw; /* שומר שהלוח לא יצא מהמסך */
+    margin: 10px auto;
+}
+
+/* התאמת גודל הריבועים למילים ארוכות */
+.word-grid div {
+    width: clamp(30px, 10vw, 50px) !important;
+    height: clamp(30px, 10vw, 50px) !important;
+    font-size: clamp(1rem, 4vw, 1.5rem) !important;
+}
+
+

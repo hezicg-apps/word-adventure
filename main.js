@@ -438,9 +438,9 @@ function checkWin(b) {
     for (let r=0; r<3; r++) for (let c=0; c<4; c++) { if (b[r][c] && b[r][c]==b[r+1][c+1] && b[r][c]==b[r+2][c+2] && b[r][c]==b[r+3][c+3]) return true; if (b[r][c+3] && b[r][c+3]==b[r+1][c+2] && b[r][c+3]==b[r+2][c+1] && b[r][c+3]==b[r+3][c]) return true; } return false;
 }
 
-// 1. אתחול המשחק - פונקציה חסינת תקלות
+// 1. אתחול המשחק - בחירת מילה ואיפוס נתונים
 function startWordQuest() {
-    // 1. בדיקה אם יש מילים
+    // בדיקה אם יש מילים במאגר
     if (!state.words || state.words.length === 0) {
         alert("אוצר המילים ריק. אנא הוסף מילים בדף הבית.");
         state.screen = 'menu';
@@ -448,7 +448,7 @@ function startWordQuest() {
         return;
     }
 
-    // 2. פילטר שתומך גם ב-eng וגם ב-en ומנקה רווחים
+    // סינון מילים תקינות (תומך בשדות en ו-eng)
     const pool = state.words.filter(w => {
         const word = (w.eng || w.en || "").trim();
         return word.length >= 2 && !word.includes(' ');
@@ -461,12 +461,12 @@ function startWordQuest() {
         return;
     }
 
-    // 3. בחירת מילה אקראית
+    // בחירת מילה אקראית
     const item = pool[Math.floor(Math.random() * pool.length)];
     const target = (item.eng || item.en).toLowerCase().trim();
     const hint = (item.heb || item.he || "רמז חסר");
 
-    // 4. עדכון ה-State - שים לב ל-wordquest באותיות קטנות!
+    // עדכון ה-State - שימוש ב-'wordquest' באותיות קטנות לתיאום עם ה-render
     state.screen = 'wordquest'; 
     state.winner = null;
     state.wordQuest = {
@@ -477,48 +477,20 @@ function startWordQuest() {
         maxAttempts: 6,
         isGameOver: false,
         keyStates: {},
-        showTutorial: false,
-        pool: pool,
-        roundIndex: 0
+        roundIndex: 0,
+        pool: pool
     };
 
-    // 5. הפעלה מחדש של התצוגה
     render();
 }
 
-// 2. המקלדת (מיושרת לשמאל - LTR)
-function renderQwerty() { 
-    const rows = [
-        ['q','w','e','r','t','y','u','i','o','p'], 
-        ['a','s','d','f','g','h','j','k','l', '⌫'], 
-        ['z','x','c','v','b','n','m', 'ENTER']
-    ]; 
-    
-    return rows.map(r => `
-        <div class="qwerty-row" style="direction: ltr; display: flex; justify-content: center; gap: 4px; margin-bottom: 5px;">
-            ${r.map(k => {
-                let colorClass = "bg-gray-200 text-gray-800";
-                const s = state.wordQuest.keyStates[k];
-                if (s === 'correct') colorClass = "bg-green-500 text-white";
-                else if (s === 'present') colorClass = "bg-yellow-500 text-white";
-                else if (s === 'absent') colorClass = "bg-gray-400 text-white";
-                
-                const isWide = k === 'ENTER' || k === '⌫';
-                return `<button onclick="handleKey('${k}')" 
-                    class="key ${isWide ? 'px-3 py-3 text-xs' : 'w-9 h-12'} rounded-lg font-bold uppercase transition-all active:scale-90 ${colorClass}">
-                    ${k === 'ENTER' ? 'ENT' : k}
-                </button>`;
-            }).join('')}
-        </div>
-    `).join(''); 
-}
-
-// 3. תצוגת הגריד (מתואם למילים ארוכות כמו bicycle)
+// 2. תצוגת המשחק (הגריד)
 function renderWordQuest(app) {
     const w = state.wordQuest;
-    const wordLen = w.target.length;
+    if (!w) return;
     
-    // התאמת גודל התא לפי אורך המילה
+    const wordLen = w.target.length;
+    // התאמת גודל המשבצות למילים ארוכות
     const boxSize = wordLen > 6 ? "w-9 h-9 text-lg" : "w-12 h-12 text-2xl";
 
     let gridHtml = `<div class="word-grid" style="display: grid; grid-template-columns: repeat(${wordLen}, 1fr); gap: 6px; direction: ltr; margin: 20px auto; width: fit-content;">`;
@@ -532,11 +504,10 @@ function renderWordQuest(app) {
             if (w.guesses[i]) {
                 if (char === w.target[j]) style = "bg-green-500 border-green-500 text-white";
                 else if (w.target.includes(char)) style = "bg-yellow-500 border-yellow-500 text-white";
-                else style = "bg-gray-500 border-gray-500 text-white";
+                else style = "bg-gray-400 border-gray-400 text-white";
             } else if (i === w.guesses.length && char) {
-                style = "border-blue-500 text-black shadow-inner";
+                style = "border-blue-500 text-black shadow-sm";
             }
-
             gridHtml += `<div class="${boxSize} flex items-center justify-center rounded-lg font-black uppercase transition-all ${style}">${char}</div>`;
         }
     }
@@ -558,10 +529,38 @@ function renderWordQuest(app) {
     `;
 }
 
-// 4. טיפול במקשים
+// 3. תצוגת המקלדת
+function renderQwerty() { 
+    const rows = [
+        ['q','w','e','r','t','y','u','i','o','p'], 
+        ['a','s','d','f','g','h','j','k','l', '⌫'], 
+        ['z','x','c','v','b','n','m', 'ENTER']
+    ]; 
+    
+    return rows.map(r => `
+        <div class="qwerty-row" style="direction: ltr; display: flex; justify-content: center; gap: 4px; margin-bottom: 5px;">
+            ${r.map(k => {
+                let colorClass = "bg-gray-200 text-gray-800";
+                const s = state.wordQuest.keyStates[k];
+                if (s === 'correct') colorClass = "bg-green-500 text-white";
+                else if (s === 'present') colorClass = "bg-yellow-500 text-white";
+                else if (s === 'absent') colorClass = "bg-gray-400 text-white opacity-50";
+                
+                const isWide = k === 'ENTER' || k === '⌫';
+                return `<button onclick="handleKey('${k}')" 
+                    class="${isWide ? 'px-3 py-3 text-xs font-black' : 'w-9 h-12'} rounded-lg font-bold uppercase transition-all active:scale-90 ${colorClass}">
+                    ${k === 'ENTER' ? 'ENT' : k}
+                </button>`;
+            }).join('')}
+        </div>
+    `).join(''); 
+}
+
+// 4. ניהול הקלדה
 function handleKey(k) {
     const w = state.wordQuest;
-    if (w.isGameOver) return;
+    if (!w || w.isGameOver) return;
+
     if (k === 'ENTER') {
         if (w.currentGuess.length === w.target.length) submitGuess();
     } else if (k === '⌫') {
@@ -572,11 +571,12 @@ function handleKey(k) {
     render();
 }
 
-// 5. בדיקת ניחוש
+// 5. בדיקת הניחוש וסיום
 function submitGuess() {
     const w = state.wordQuest;
     const guess = w.currentGuess;
     
+    // עדכון מצב המקלדת
     for (let i = 0; i < guess.length; i++) {
         const char = guess[i];
         if (char === w.target[i]) w.keyStates[char] = 'correct';
@@ -590,23 +590,34 @@ function submitGuess() {
         w.isGameOver = true;
         setTimeout(() => {
             triggerConfetti();
-            state.winner = { type:'wq', msg:'כל הכבוד!', subMsg: `המילה הייתה: ${w.target.toUpperCase()}` };
+            state.winner = { 
+                type: 'wq', 
+                msg: 'כל הכבוד!', 
+                subMsg: `גילית את המילה: ${w.target.toUpperCase()}` 
+            };
             render();
         }, 500);
     } else if (w.guesses.length >= w.maxAttempts) {
         w.isGameOver = true;
-        state.winner = { type:'wq', msg:'לא נורא...', subMsg: `המילה הייתה: ${w.target.toUpperCase()}` };
-        render();
+        setTimeout(() => {
+            state.winner = { 
+                type: 'wq', 
+                msg: 'לא נורא...', 
+                subMsg: `המילה הייתה: ${w.target.toUpperCase()}` 
+            };
+            render();
+        }, 500);
     }
+    
     w.currentGuess = '';
     render();
 }
-
 
 window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && !state.wordQuest.showTutorial) { if (e.key === 'Enter') handleKey('ENTER'); else if (e.key === 'Backspace') handleKey('⌫'); else if (/^[a-z]$/i.test(e.key)) handleKey(e.key.toLowerCase()); } });
 
 loadFromLocal();
 render();
+
 
 
 

@@ -162,10 +162,25 @@ body:not(.night-mode) .word-cell.absent { background-color: #94a3b8 !important; 
     color: #facc15 !important;
 }
 
-/* הפיכת הרמקול לשקוף באופן גורף */
-button:has(> span:contains('🔊')), 
-button[onclick*="speak"] {
+/* --- פתרון סופי לרמקול שקוף --- */
+button[onclick*="speak"], 
+.speaker-btn,
+button:has(span), 
+button:contains('🔊') {
+    background-color: transparent !important;
     background: transparent !important;
     border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    appearance: none;
+    -webkit-appearance: none;
 }
+
+/* הגנה נוספת למצב לילה */
+body.night-mode button[onclick*="speak"] {
+    background-color: transparent !important;
+    color: inherit;
+}
+}
+
 

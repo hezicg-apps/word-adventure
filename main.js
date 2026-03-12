@@ -144,24 +144,54 @@ function resetAllData() {
 }
 
 function render() {
-    // 1. עדכון ה-Class על ה-body (זה מה שמשנה את הצבעים ב-CSS)
+    // 1. עדכון מצב לילה על ה-Body
     document.body.classList.toggle('night-mode', state.nightMode);
-
-    // 2. טיפול בכפתור השמש/ירח
-    const toggleBtn = document.getElementById('toggleNight');
+    
+    // 2. עדכון כפתור השמש/ירח - שימוש ב-var למניעת שגיאת "Already declared"
+    var toggleBtn = document.getElementById('toggleNight');
     if (toggleBtn) {
-        // עדכון האייקון
         toggleBtn.innerText = state.nightMode ? '🌙' : '☀️';
-        
-        // הוספת פעולת הלחיצה (זה החלק שהיה חסר או לא עבד)
-        toggleBtn.onclick = () => { 
+        toggleBtn.onclick = function() { 
             state.nightMode = !state.nightMode; 
-            render(); // הרצה מחדש כדי לעדכן את התצוגה
+            render(); 
         };
     }
 
     const app = document.getElementById('app');
-    // ... מכאן המשך הקוד שלך בדיוק כפי שהוא (app.innerHTML = '' וכו')
+    if (!app) return;
+    app.innerHTML = '';
+
+    // הצגת מסך ניצחון/סיום אם קיים
+    if (state.winner) {
+        if (typeof renderWinScreen === 'function') {
+            renderWinScreen(app);
+        } else {
+            // גיבוי למקרה שאין renderWinScreen
+            app.innerHTML = `<div style="text-align:center; padding:50px;">
+                <h1>${state.winner.msg}</h1>
+                <button onclick="state.winner=null; state.screen='menu'; render();">חזרה לתפריט</button>
+            </div>`;
+        }
+        return;
+    }
+
+    // ניתוב מסכים (השארתי את ה-switch בדיוק כפי שהיה לך בגיבוי)
+    switch(state.screen) {
+        case 'welcome': renderWelcome(app); break;
+        case 'input': renderInput(app); break;
+        case 'flashcards': renderFlashcards(app); break;
+        case 'quiz': renderQuiz(app); break;
+        case 'menu': renderMenu(app); break;
+        case 'memory': renderMemory(app); break;
+        case 'c4_menu': renderC4Menu(app); break;
+        case 'connect4': renderConnect4(app); break;
+        case 'wordquest': renderWordQuest(app); break;
+    }
+
+    if (state.showShareModal && typeof renderShareModal === 'function') {
+        renderShareModal(app);
+    }
+}
     
 function renderHeader(subtext) {
     return `
@@ -755,6 +785,7 @@ function submitFinalReport(score) {
 
 // חיבור הפונקציה לחלון הגלובלי
 window.submitFinalReport = submitFinalReport;
+
 
 
 

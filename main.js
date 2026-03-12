@@ -114,24 +114,28 @@ function resetAllData() {
 }
 
 function render() {
-    document.body.classList.toggle('night-mode', state.nightMode);
-    const toggleBtn = document.getElementById('toggleNight');
-    if (toggleBtn) toggleBtn.innerText = state.nightMode ? '🌙' : '☀️';
     const app = document.getElementById('app');
-    app.innerHTML = '';
-    if (state.winner) { renderWinScreen(app); return; }
-    switch(state.screen) {
-        case 'welcome': renderWelcome(app); break;
-        case 'input': renderInput(app); break;
-        case 'flashcards': renderFlashcards(app); break;
-        case 'quiz': renderQuiz(app); break;
-        case 'menu': renderMenu(app); break;
-        case 'memory': renderMemory(app); break;
-        case 'c4_menu': renderC4Menu(app); break;
-        case 'connect4': renderConnect4(app); break;
-        case 'wordquest': renderWordQuest(app); break;
+    if (!app) return;
+
+    // 1. עדיפות עליונה: אם יש הודעת ניצחון/סיום (כולל ה-70% של הכרטיסיות)
+    if (state.winner) {
+        renderWinScreen(app);
+        return;
     }
-    if (state.showShareModal) renderShareModal(app);
+
+    // 2. ניתוב מסכים - וודא שכל השמות תואמים למה שיש לך בקוד
+    if (state.screen === 'welcome') {
+        if (typeof renderWelcome === 'function') renderWelcome(app);
+    } 
+    else if (state.screen === 'menu') {
+        if (typeof renderMenu === 'function') renderMenu(app);
+    } 
+    else if (state.screen === 'cards') {
+        if (typeof renderCards === 'function') renderCards(app);
+    } 
+    else if (state.screen === 'wordquest') {
+        renderWordQuest(app); // המשחק שלנו
+    }
 }
 
 function renderHeader(subtext) {
@@ -197,53 +201,94 @@ function renderFlashcards(app) {
         </div>`;
 }
 
-// --- אתגר (QUIZ) - מתוקן ---
-/**
- * 1. הגשר בין הכרטיסיות למשחק
- * פונקציה זו בודקת אם המשתמש עבר את רף ה-70%
- */
+// ==========================================
+// 1. הגשר: בדיקת מעבר מהכרטיסיות למשחק
+// ==========================================
 function finishLesson(correct, total) {
-    const percentage = (correct / total) * 100;
+    const percentage = (total > 0) ? (correct / total) * 100 : 0;
     
     if (percentage >= 70) {
         state.winner = {
             type: 'unlock',
             msg: "אלוף! עברת את האתגר",
             subMsg: `הצלחת ב-${Math.round(percentage)}%. עכשיו נראה אותך מפצח את הקוד!`,
-            action: "startWordQuest()" // כפתור שיפעיל את המשחק
+            action: "startWordQuest()" // לחיצה תפעיל את המשחק
         };
     } else {
         state.winner = {
             type: 'fail',
             msg: "צריך עוד קצת אימון",
-            subMsg: `קיבלת ${Math.round(percentage)}%. תחזור על הכרטיסיות ותנסה שוב להגיע ל-70%.`,
+            subMsg: `קיבלת ${Math.round(percentage)}%. צריך לפחות 70% כדי לפתוח את המשחק.`,
             action: "state.screen='menu'; state.winner=null; render();"
         };
     }
     render();
 }
 
-/**
- * 2. אתחול משחק "הקוד הסודי"
- */
-function startWordQuest() {
-    // איפוס מנצח קודם כדי למנוע מסך לבן
-    state.winner = null; 
+// ======================================================
+// 1. חיבור לכרטיסיות (Quiz) - בדיקת ה-70% ומסך סיום
+// ======================================================
 
-    // סינון מילים תקינות מהמאגר (תומך ב-eng ו-en)
+function finishLesson(correct, total) {
+    const percentage = (total > 0) ? (correct / total) * 100 : 0;
+    
+    if (percentage >= 70) {
+        state.winner = {
+            type: 'unlock',
+            msg: "אלוף! עברת את האתגר",
+            subMsg: `הצלחת ב-${Math.round(percentage)}%. עכשיו נראה אותך מפצח את הקוד!`,
+            action: "startWordQuest()" // הכפתור יפעיל את המשחק
+        };
+    } else {
+        state.winner = {
+            type: 'fail',
+            msg: "צריך עוד קצת אימון",
+            subMsg: `קיבלת ${Math.round(percentage)}%. צריך לפחות 70% כדי לפתוח את האתגר.`,
+            action: "state.screen='menu'; state.winner=null; render();"
+        };
+    }
+    render();
+}
+
+// פונקציית תצוגת מסך התוצאה (חובה כדי שיופיע הכפתור)
+function renderWinScreen(app) {
+    const win = state.winner;
+    const isDark = state.nightMode;
+    const action = win.action || "state.screen='menu'; state.winner=null; render();";
+
+    app.innerHTML = `
+        <div class="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
+            <div class="text-6xl mb-6">${win.type === 'fail' ? '😓' : '🏆'}</div>
+            <h1 class="text-4xl font-black mb-4 ${isDark ? 'text-white' : 'text-gray-900'}">${win.msg}</h1>
+            <p class="text-xl mb-10 max-w-md ${isDark ? 'text-gray-400' : 'text-gray-600'}">${win.subMsg}</p>
+            
+            <button onclick="${action}" 
+                class="bg-blue-600 hover:bg-blue-700 text-white px-12 py-4 rounded-full text-2xl font-bold shadow-2xl transform active:scale-95 transition-all">
+                ${win.type === 'unlock' ? 'התחל אתגר מילים' : (win.type === 'wq' ? 'מילה חדשה' : 'המשך')}
+            </button>
+        </div>
+    `;
+}
+
+// ======================================================
+// 2. אתחול ותצוגת משחק "הקוד הסודי" (WordQuest)
+// ======================================================
+
+function startWordQuest() {
+    state.winner = null; // איפוס מסך ניצחון
+    
     const pool = state.words.filter(w => {
         const word = (w.eng || w.en || "").trim();
         return word.length >= 2 && !word.includes(' ');
     });
 
     if (pool.length === 0) {
-        alert("אין מילים תקינות במאגר. אנא הוסף מילים בדף הבית.");
+        alert("אוצר המילים ריק או לא תקין.");
         state.screen = 'menu';
         render();
         return;
     }
 
-    // הגרלת מילה ואיפוס מצב המשחק
     const item = pool[Math.floor(Math.random() * pool.length)];
     state.screen = 'wordquest';
     state.wordQuest = {
@@ -254,59 +299,45 @@ function startWordQuest() {
         maxAttempts: 6,
         isGameOver: false
     };
-
     render();
 }
 
-/**
- * 3. תצוגת המשחק - מותאם למצב לילה (ללא רקעים מיותרים)
- */
 function renderWordQuest(app) {
     const w = state.wordQuest;
     if (!w) return;
-    
-    const isDark = document.body.classList.contains('dark-mode'); 
+    const isDark = state.nightMode;
     const wordLen = w.target.length;
 
-    // בניית גריד הניחושים
-    let gridHtml = `<div style="display: grid; grid-template-columns: repeat(${wordLen}, 1fr); gap: 8px; direction: ltr; margin: 20px auto; width: fit-content;">`;
-    
+    let gridHtml = `<div style="display: grid; grid-template-columns: repeat(${wordLen}, 1fr); gap: 6px; direction: ltr; margin: 20px auto; width: fit-content;">`;
     for (let i = 0; i < w.maxAttempts; i++) {
         const guess = w.guesses[i] || (i === w.guesses.length ? w.currentGuess : '');
         for (let j = 0; j < wordLen; j++) {
             const char = guess[j] || '';
             let style = isDark ? "border-2 border-gray-700 text-white bg-transparent" : "border-2 border-gray-300 text-gray-800 bg-white";
-            
             if (w.guesses[i]) {
-                if (char === w.target[j]) style = "bg-[#FFD700] border-[#D4AF37] text-white"; // זהב
-                else if (w.target.includes(char)) style = "bg-[#C0C0C0] border-[#A9A9A9] text-white"; // כסף
-                else style = "bg-[#4B5563] border-[#374151] text-white opacity-40"; // אפור כהה
-            } else if (i === w.guesses.length && char) {
-                style = isDark ? "border-blue-400 text-blue-300" : "border-blue-500 text-blue-600";
+                if (char === w.target[j]) style = "bg-[#FFD700] border-[#D4AF37] text-white";
+                else if (w.target.includes(char)) style = "bg-[#C0C0C0] border-[#A9A9A9] text-white";
+                else style = "bg-[#4B5563] border-[#374151] text-white opacity-40";
             }
-            gridHtml += `<div class="w-10 h-10 flex items-center justify-center rounded-lg font-black uppercase transition-all ${style}">${char}</div>`;
+            gridHtml += `<div class="w-10 h-10 flex items-center justify-center rounded-lg font-black uppercase ${style}">${char}</div>`;
         }
     }
     gridHtml += `</div>`;
-
-    // עיצוב כותרת ורמז - נקי וללא רקעים במצב לילה
-    const textColor = isDark ? "text-blue-300" : "text-blue-800";
-    const subTextColor = isDark ? "text-gray-400" : "text-gray-500";
 
     app.innerHTML = `
         <div class="max-w-md mx-auto p-4 text-center">
             <div class="flex justify-between items-center mb-4">
                  <button onclick="state.screen='menu'; state.winner=null; render()" class="text-gray-400">✕</button>
-                 <h2 class="text-xl font-black ${textColor} italic">THE SECRET CODE</h2>
+                 <h2 class="text-xl font-black ${isDark ? 'text-blue-300' : 'text-blue-800'} italic">THE SECRET CODE</h2>
                  <div class="w-8"></div>
             </div>
 
-            <div class="mb-6 border-t ${isDark ? 'border-gray-800' : 'border-gray-100'} pt-4">
-                <p class="text-lg font-bold">רמז: ${w.hint}</p>
-                <div class="flex justify-center gap-4 mt-2 text-[10px] font-bold ${subTextColor}">
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 bg-[#FFD700] rounded-full"></span> בול</span>
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 bg-[#C0C0C0] rounded-full"></span> פוגע</span>
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 bg-[#4B5563] rounded-full"></span> לא בסט</span>
+            <div class="mb-4 pt-4 border-t ${isDark ? 'border-gray-800' : 'border-gray-100'}">
+                <p class="text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}">רמז: ${w.hint}</p>
+                <div class="flex justify-center gap-3 mt-2 text-[10px] font-bold opacity-60 ${isDark ? 'text-gray-400' : 'text-gray-500'}">
+                    <span><b style="color:#FFD700">●</b> בול</span>
+                    <span><b style="color:#C0C0C0">●</b> פוגע</span>
+                    <span><b style="color:#4B5563">●</b> לא בסט</span>
                 </div>
             </div>
 
@@ -316,57 +347,38 @@ function renderWordQuest(app) {
     `;
 }
 
-/**
- * 4. מקלדת - רקע שקוף במצב לילה
- */
-function renderQwerty(isDark) { 
-    const rows = [['q','w','e','r','t','y','u','i','o','p'], ['a','s','d','f','g','h','j','k','l', '⌫'], ['z','x','c','v','b','n','m', 'ENTER']]; 
+function renderQwerty(isDark) {
+    const rows = [['q','w','e','r','t','y','u','i','o','p'], ['a','s','d','f','g','h','j','k','l', '⌫'], ['z','x','c','v','b','n','m', 'ENTER']];
     const keyStyle = isDark ? "border border-gray-800 text-white bg-transparent" : "bg-gray-200 text-gray-800";
-
     return rows.map(r => `
-        <div style="direction: ltr; display: flex; justify-content: center; gap: 4px; margin-bottom: 6px;">
-            ${r.map(k => {
-                const isWide = k === 'ENTER' || k === '⌫';
-                return `<button onclick="handleKey('${k}')" 
-                    class="${isWide ? 'px-2' : 'w-8'} h-11 rounded-lg font-bold uppercase active:scale-90 transition-transform ${keyStyle}">
-                    ${k === 'ENTER' ? 'OK' : k}
-                </button>`;
-            }).join('')}
+        <div style="direction: ltr; display: flex; justify-content: center; gap: 4px; margin-bottom: 5px;">
+            ${r.map(k => `<button onclick="handleKey('${k}')" class="${k.length > 1 ? 'px-2' : 'w-8'} h-10 rounded font-bold uppercase active:scale-95 transition-transform ${keyStyle}">${k === 'ENTER' ? 'OK' : k}</button>`).join('')}
         </div>
-    `).join(''); 
+    `).join('');
 }
 
-/**
- * 5. ניהול מקשים וניחושים
- */
 function handleKey(k) {
     const w = state.wordQuest;
     if (!w || w.isGameOver) return;
-    if (k === 'ENTER') {
-        if (w.currentGuess.length === w.target.length) submitGuess();
-    } else if (k === '⌫') {
-        w.currentGuess = w.currentGuess.slice(0, -1);
-    } else if (w.currentGuess.length < w.target.length && /^[a-z]$/i.test(k)) {
-        w.currentGuess += k.toLowerCase();
-    }
+    if (k === 'ENTER') { if (w.currentGuess.length === w.target.length) submitGuess(); }
+    else if (k === '⌫') { w.currentGuess = w.currentGuess.slice(0, -1); }
+    else if (w.currentGuess.length < w.target.length && /^[a-z]$/i.test(k)) { w.currentGuess += k.toLowerCase(); }
     render();
 }
 
 function submitGuess() {
     const w = state.wordQuest;
-    const guess = w.currentGuess;
-    w.guesses.push(guess);
-
-    if (guess === w.target || w.guesses.length >= w.maxAttempts) {
+    w.guesses.push(w.currentGuess);
+    if (w.currentGuess === w.target || w.guesses.length >= w.maxAttempts) {
         w.isGameOver = true;
-        const win = guess === w.target;
+        const win = w.currentGuess === w.target;
         setTimeout(() => {
             if (win && typeof triggerConfetti === 'function') triggerConfetti();
             state.winner = { 
                 type: 'wq', 
-                msg: win ? 'בול פגיעה!' : 'הקוד ננעל', 
-                subMsg: `המילה הייתה: ${w.target.toUpperCase()}`,
-                action: 'startWordQuest()' // כפתור להמשך למילה הבאה
+                msg: win ? 'פיצחת את הקוד!' : 'הקוד ננעל', 
+                subMsg: `המילה הייתה: ${w.target.toUpperCase()}`, 
+                action: 'startWordQuest()' 
             };
             render();
         }, 500);
@@ -374,23 +386,11 @@ function submitGuess() {
     w.currentGuess = '';
     render();
 }
-
-/**
- * 6. ה-Render המרכזי (לוודא שקיים ומנתב נכון)
- */
-function render() {
-    const app = document.getElementById('app');
-    if (state.winner) { renderWinScreen(app); return; }
-
-    if (state.screen === 'menu') renderMenu(app);
-    else if (state.screen === 'wordquest') renderWordQuest(app);
-    // הוסף כאן את שאר המסכים שלך (cards, welcome וכו')
-}
-
 window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && !state.wordQuest.showTutorial) { if (e.key === 'Enter') handleKey('ENTER'); else if (e.key === 'Backspace') handleKey('⌫'); else if (/^[a-z]$/i.test(e.key)) handleKey(e.key.toLowerCase()); } });
 
 loadFromLocal();
 render();
+
 
 
 

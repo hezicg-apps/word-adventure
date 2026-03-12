@@ -149,3 +149,23 @@ body:not(.night-mode) .word-cell.absent { background-color: #94a3b8 !important; 
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .animate-fade-in { animation: fadeIn 0.3s ease-in forwards; }
+
+/* מבטיח שמצב לילה יעבוד גם אם יש Tailwind ברקע */
+.night-mode, .night-mode body {
+    background-color: #1a202c !important;
+}
+
+.night-mode #app, 
+.night-mode div.bg-white, 
+.night-mode .welcome-card {
+    background-color: #2d3748 !important;
+    color: #facc15 !important;
+}
+
+/* הפיכת הרמקול לשקוף באופן גורף */
+button:has(> span:contains('🔊')), 
+button[onclick*="speak"] {
+    background: transparent !important;
+    border: none !important;
+}
+

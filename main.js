@@ -144,10 +144,14 @@ function resetAllData() {
 }
 
 function render() {
-    // 1. עדכון מצב לילה על ה-Body
-    document.body.classList.toggle('night-mode', state.nightMode);
+    // 1. עדכון מצב לילה - הוספה/הסרה של הקלאס מה-body
+    if (state.nightMode) {
+        document.body.classList.add('night-mode');
+    } else {
+        document.body.classList.remove('night-mode');
+    }
     
-    // 2. עדכון כפתור השמש/ירח - שימוש ב-var למניעת שגיאת "Already declared"
+    // 2. עדכון כפתור השמש/ירח
     var toggleBtn = document.getElementById('toggleNight');
     if (toggleBtn) {
         toggleBtn.innerText = state.nightMode ? '🌙' : '☀️';
@@ -161,21 +165,11 @@ function render() {
     if (!app) return;
     app.innerHTML = '';
 
-    // הצגת מסך ניצחון/סיום אם קיים
     if (state.winner) {
-        if (typeof renderWinScreen === 'function') {
-            renderWinScreen(app);
-        } else {
-            // גיבוי למקרה שאין renderWinScreen
-            app.innerHTML = `<div style="text-align:center; padding:50px;">
-                <h1>${state.winner.msg}</h1>
-                <button onclick="state.winner=null; state.screen='menu'; render();">חזרה לתפריט</button>
-            </div>`;
-        }
+        renderWinScreen(app);
         return;
     }
 
-    // ניתוב מסכים (השארתי את ה-switch בדיוק כפי שהיה לך בגיבוי)
     switch(state.screen) {
         case 'welcome': renderWelcome(app); break;
         case 'input': renderInput(app); break;
@@ -188,9 +182,7 @@ function render() {
         case 'wordquest': renderWordQuest(app); break;
     }
 
-    if (state.showShareModal && typeof renderShareModal === 'function') {
-        renderShareModal(app);
-    }
+    if (state.showShareModal) renderShareModal(app);
 }
     
 function renderHeader(subtext) {
@@ -785,6 +777,7 @@ function submitFinalReport(score) {
 
 // חיבור הפונקציה לחלון הגלובלי
 window.submitFinalReport = submitFinalReport;
+
 
 
 

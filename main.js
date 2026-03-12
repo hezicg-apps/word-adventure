@@ -144,32 +144,38 @@ function resetAllData() {
 }
 
 function render() {
-    // 1. עדכון מצב לילה - הוספה/הסרה של הקלאס מה-body
+    const app = document.getElementById('app');
+    if (!app) return;
+
+    // 1. עדכון מצב לילה - הכי חשוב שזה יהיה על ה-HTML וה-BODY
     if (state.nightMode) {
+        document.documentElement.classList.add('night-mode');
         document.body.classList.add('night-mode');
     } else {
+        document.documentElement.classList.remove('night-mode');
         document.body.classList.remove('night-mode');
     }
-    
+
     // 2. עדכון כפתור השמש/ירח
     var toggleBtn = document.getElementById('toggleNight');
     if (toggleBtn) {
         toggleBtn.innerText = state.nightMode ? '🌙' : '☀️';
-        toggleBtn.onclick = function() { 
+        toggleBtn.onclick = function(e) { 
+            e.preventDefault();
             state.nightMode = !state.nightMode; 
             render(); 
         };
     }
 
-    const app = document.getElementById('app');
-    if (!app) return;
-    app.innerHTML = '';
+    // 3. במקום למחוק את כל ה-innerHTML מיד, נבנה את התוכן במשתנה
+    let html = '';
 
     if (state.winner) {
-        renderWinScreen(app);
+        renderWinScreen(app); 
         return;
     }
 
+    // הניתוב הרגיל שלך...
     switch(state.screen) {
         case 'welcome': renderWelcome(app); break;
         case 'input': renderInput(app); break;
@@ -177,20 +183,9 @@ function render() {
         case 'quiz': renderQuiz(app); break;
         case 'menu': renderMenu(app); break;
         case 'memory': renderMemory(app); break;
-        case 'c4_menu': renderC4Menu(app); break;
         case 'connect4': renderConnect4(app); break;
         case 'wordquest': renderWordQuest(app); break;
     }
-
-    if (state.showShareModal) renderShareModal(app);
-}
-    
-function renderHeader(subtext) {
-    return `
-        <div class="mb-4">
-            <h1 class="text-3xl font-black text-gray-800 tracking-tight">${state.listName}</h1>
-            ${subtext ? `<p class="text-lg font-bold text-blue-600 mt-1">${subtext}</p>` : ''}
-        </div>`;
 }
 
 function renderWelcome(app) {
@@ -777,6 +772,7 @@ function submitFinalReport(score) {
 
 // חיבור הפונקציה לחלון הגלובלי
 window.submitFinalReport = submitFinalReport;
+
 
 
 

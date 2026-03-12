@@ -22,22 +22,28 @@ function saveToLocal() { localStorage.setItem('wordGame_state', JSON.stringify({
 function loadFromLocal() { const saved = localStorage.getItem('wordGame_state'); if (saved) { const parsed = JSON.parse(saved); state.words = parsed.words || []; state.listName = parsed.listName || 'אוצר המילים שלי'; state.masteryScore = parsed.masteryScore || 0; } }
 
 function render() {
-    // עדכון מצב לילה
+    // 1. הגדרת מצב לילה על ה-body
     document.body.classList.toggle('night-mode', state.nightMode);
+    
+    // 2. עדכון הכפתור הפיזי (השמש/ירח)
     var toggleBtn = document.getElementById('toggleNight');
     if (toggleBtn) {
         toggleBtn.innerText = state.nightMode ? '🌙' : '☀️';
-        toggleBtn.onclick = () => { state.nightMode = !state.nightMode; render(); };
+        toggleBtn.onclick = function() { 
+            state.nightMode = !state.nightMode; 
+            render(); 
+        };
     }
 
     const app = document.getElementById('app');
     if (!app) return;
     app.innerHTML = '';
 
-    // תיקון שקיפות רמקולים
+    // 3. תיקון רמקולים - הופך כל כפתור עם רמקול לשקוף מיד
     setTimeout(() => {
         document.querySelectorAll('button').forEach(btn => {
             if (btn.innerText.includes('🔊') || btn.innerHTML.includes('speak')) {
+                btn.style.background = 'transparent';
                 btn.style.backgroundColor = 'transparent';
                 btn.style.border = 'none';
                 btn.style.boxShadow = 'none';
@@ -47,6 +53,7 @@ function render() {
 
     if (state.winner) { renderWinScreen(app); return; }
 
+    // ה-switch הקיים שלך
     switch(state.screen) {
         case 'welcome': renderWelcome(app); break;
         case 'input': renderInput(app); break;
@@ -58,6 +65,7 @@ function render() {
         case 'wordquest': renderWordQuest(app); break;
     }
 }
+
 function renderWelcome(app) {
     app.innerHTML = `
         <div class="welcome-card p-8 rounded-3xl shadow-2xl text-center max-w-sm mx-auto animate-fade-in mt-10">
@@ -118,3 +126,4 @@ function renderWinScreen(app) { app.innerHTML = '<h2>ניצחת!</h2><button onc
 
 loadFromLocal();
 render();
+

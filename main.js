@@ -439,6 +439,7 @@ function checkWin(b) {
 }
 
 // 1. אתחול המשחק - בחירת מילה ואיפוס
+// 1. אתחול המשחק - הגרלת מילה ואיפוס נתונים
 function startWordQuest() {
     if (!state.words || state.words.length === 0) {
         alert("אוצר המילים ריק. אנא הוסף מילים בדף הבית.");
@@ -453,7 +454,7 @@ function startWordQuest() {
     });
 
     if (pool.length === 0) {
-        alert("לא נמצאו מילים תקינות.");
+        alert("לא נמצאו מילים תקינות (לפחות 2 אותיות ללא רווחים).");
         state.screen = 'menu';
         render();
         return;
@@ -462,87 +463,90 @@ function startWordQuest() {
     const item = pool[Math.floor(Math.random() * pool.length)];
     
     state.screen = 'wordquest'; 
-    state.winner = null;
+    state.winner = null; 
     state.wordQuest = {
         target: (item.eng || item.en).toLowerCase().trim(),
         hint: (item.heb || item.he || "רמז חסר"),
         guesses: [],
         currentGuess: '',
         maxAttempts: 6,
-        isGameOver: false,
-        keyStates: {}
+        isGameOver: false
     };
 
     render();
 }
 
-// 2. תצוגת המשחק עם מקרא וצבעים חדשים
+// 2. תצוגת המשחק (גריד, מקרא ומקלדת)
 function renderWordQuest(app) {
     const w = state.wordQuest;
     if (!w) return;
     
     const wordLen = w.target.length;
-    const boxSize = wordLen > 6 ? "w-9 h-9 text-lg" : "w-12 h-12 text-2xl";
+    const isDark = document.body.classList.contains('dark-mode'); 
 
+    // בניית גריד האותיות
     let gridHtml = `<div class="word-grid" style="display: grid; grid-template-columns: repeat(${wordLen}, 1fr); gap: 6px; direction: ltr; margin: 15px auto; width: fit-content;">`;
     
     for (let i = 0; i < w.maxAttempts; i++) {
         const guess = w.guesses[i] || (i === w.guesses.length ? w.currentGuess : '');
         for (let j = 0; j < wordLen; j++) {
             const char = guess[j] || '';
-            let style = "border-2 border-gray-300 text-gray-800 bg-white";
+            let style = isDark ? "border-2 border-gray-600 text-white bg-transparent" : "border-2 border-gray-300 text-gray-800 bg-white";
             
             if (w.guesses[i]) {
-                if (char === w.target[j]) style = "bg-[#FFD700] border-[#D4AF37] text-white shadow-sm"; // זהב
-                else if (w.target.includes(char)) style = "bg-[#C0C0C0] border-[#A9A9A9] text-white shadow-sm"; // כסף
-                else style = "bg-[#4B5563] border-[#374151] text-white opacity-80"; // אפור כהה
+                if (char === w.target[j]) style = "bg-[#FFD700] border-[#D4AF37] text-white"; // זהב
+                else if (w.target.includes(char)) style = "bg-[#C0C0C0] border-[#A9A9A9] text-white"; // כסף
+                else style = "bg-[#4B5563] border-[#374151] text-white opacity-50"; // אפור
             } else if (i === w.guesses.length && char) {
-                style = "border-blue-500 text-blue-600 scale-105";
+                style = isDark ? "border-blue-400 text-blue-300" : "border-blue-500 text-blue-600";
             }
-            gridHtml += `<div class="${boxSize} flex items-center justify-center rounded-lg font-black uppercase transition-all duration-300 ${style}">${char}</div>`;
+            gridHtml += `<div class="w-10 h-10 flex items-center justify-center rounded-lg font-black uppercase transition-all ${style}">${char}</div>`;
         }
     }
     gridHtml += `</div>`;
 
     app.innerHTML = `
         <div class="max-w-md mx-auto p-4 text-center">
-            <div class="flex justify-between items-center mb-2">
-                 <button onclick="state.screen='menu'; render()" class="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-xs">✕ סגור</button>
-                 <h2 class="text-xl font-black text-blue-800 italic">THE SECRET CODE</h2>
-                 <div class="w-12"></div>
+            <div class="flex justify-between items-center mb-4">
+                 <button onclick="state.screen='menu'; render()" class="text-gray-400 text-xl">✕</button>
+                 <h2 class="text-xl font-black ${isDark ? 'text-blue-300' : 'text-blue-800'} italic">THE SECRET CODE</h2>
+                 <div class="w-8"></div>
             </div>
 
-            <div class="bg-white border-2 border-blue-100 p-3 rounded-2xl shadow-sm mb-2">
-                <p class="text-md font-bold text-blue-900">רמז: ${w.hint}</p>
-                <div class="flex justify-center gap-4 mt-2 text-[10px] font-bold border-t pt-2">
-                    <div class="flex items-center gap-1"><span class="w-3 h-3 bg-[#FFD700] rounded-full"></span> אות במקום</div>
-                    <div class="flex items-center gap-1"><span class="w-3 h-3 bg-[#C0C0C0] rounded-full"></span> אות קיימת</div>
-                    <div class="flex items-center gap-1"><span class="w-3 h-3 bg-[#4B5563] rounded-full"></span> לא במילה</div>
+            <div class="${isDark ? 'bg-gray-800 border-gray-700' : 'bg-blue-50 border-blue-100'} p-3 rounded-2xl border-2 mb-4">
+                <p class="text-lg font-bold">רמז: ${w.hint}</p>
+                <div class="flex justify-center gap-3 mt-2 text-[10px] font-bold opacity-80">
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-[#FFD700] rounded-full"></span> בול</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-[#C0C0C0] rounded-full"></span> פוגע</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-[#4B5563] rounded-full"></span> לא בסט</span>
                 </div>
             </div>
 
             ${gridHtml}
-            
-            <div class="mt-4">${renderQwerty()}</div>
+            <div class="mt-6">${renderQwerty(isDark)}</div>
         </div>
     `;
 }
 
-// 3. מקלדת LTR עם צבעים מעודכנים
-function renderQwerty() { 
-    const rows = [['q','w','e','r','t','y','u','i','o','p'], ['a','s','d','f','g','h','j','k','l', '⌫'], ['z','x','c','v','b','n','m', 'ENTER']]; 
+// 3. מקלדת נקייה - ללא צבעים משתנים ועם רקע מותאם
+function renderQwerty(isDark) { 
+    const rows = [
+        ['q','w','e','r','t','y','u','i','o','p'], 
+        ['a','s','d','f','g','h','j','k','l', '⌫'], 
+        ['z','x','c','v','b','n','m', 'ENTER']
+    ]; 
+    
+    // עיצוב מקשים במצב לילה (שקוף עם מסגרת) או מצב רגיל (אפור בהיר)
+    const keyStyle = isDark 
+        ? "bg-gray-800 border border-gray-600 text-white" 
+        : "bg-gray-200 text-gray-800";
+
     return rows.map(r => `
-        <div class="qwerty-row" style="direction: ltr; display: flex; justify-content: center; gap: 3px; margin-bottom: 4px;">
+        <div class="qwerty-row" style="direction: ltr; display: flex; justify-content: center; gap: 4px; margin-bottom: 5px;">
             ${r.map(k => {
-                let colorClass = "bg-gray-200 text-gray-700";
-                const s = state.wordQuest.keyStates[k];
-                if (s === 'correct') colorClass = "bg-[#FFD700] text-white"; // זהב
-                else if (s === 'present') colorClass = "bg-[#C0C0C0] text-white"; // כסף
-                else if (s === 'absent') colorClass = "bg-[#4B5563] text-white opacity-40"; // אפור
-                
                 const isWide = k === 'ENTER' || k === '⌫';
                 return `<button onclick="handleKey('${k}')" 
-                    class="${isWide ? 'px-2 py-3 text-[10px]' : 'w-8 h-10'} rounded font-bold uppercase transition-all active:scale-90 ${colorClass}">
+                    class="${isWide ? 'px-2 py-3 text-[10px]' : 'w-8 h-10'} rounded font-bold uppercase active:scale-90 transition-transform ${keyStyle}">
                     ${k === 'ENTER' ? 'OK' : k}
                 </button>`;
             }).join('')}
@@ -550,7 +554,7 @@ function renderQwerty() {
     `).join(''); 
 }
 
-// 4. לוגיקה וסיום
+// 4. לוגיקת הקלדה
 function handleKey(k) {
     const w = state.wordQuest;
     if (!w || w.isGameOver) return;
@@ -565,41 +569,47 @@ function handleKey(k) {
     render();
 }
 
+// 5. בדיקת ניחוש וסיום
 function submitGuess() {
     const w = state.wordQuest;
     const guess = w.currentGuess;
     
-    for (let i = 0; i < guess.length; i++) {
-        const char = guess[i];
-        if (char === w.target[i]) w.keyStates[char] = 'correct';
-        else if (w.target.includes(char) && w.keyStates[char] !== 'correct') w.keyStates[char] = 'present';
-        else if (!w.target.includes(char)) w.keyStates[char] = 'absent';
-    }
-
     w.guesses.push(guess);
 
     if (guess === w.target) {
         w.isGameOver = true;
         setTimeout(() => {
-            triggerConfetti();
-            state.winner = { type: 'wq', msg: 'מצוין!', subMsg: `המילה היא: ${w.target.toUpperCase()}` };
+            if (typeof triggerConfetti === 'function') triggerConfetti();
+            state.winner = { 
+                type: 'wq', 
+                msg: 'בול פגיעה!', 
+                subMsg: `המילה היא: ${w.target.toUpperCase()}`,
+                action: 'startWordQuest()' // לחיצה במסך הניצחון תגריל מילה חדשה
+            };
             render();
-        }, 400);
+        }, 500);
     } else if (w.guesses.length >= w.maxAttempts) {
         w.isGameOver = true;
         setTimeout(() => {
-            state.winner = { type: 'wq', msg: 'אולי בפעם הבאה...', subMsg: `המילה הייתה: ${w.target.toUpperCase()}` };
+            state.winner = { 
+                type: 'wq', 
+                msg: 'הקוד לא פוענח...', 
+                subMsg: `המילה הייתה: ${w.target.toUpperCase()}`,
+                action: 'startWordQuest()' 
+            };
             render();
-        }, 400);
+        }, 500);
     }
     w.currentGuess = '';
     render();
 }
 
+
 window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && !state.wordQuest.showTutorial) { if (e.key === 'Enter') handleKey('ENTER'); else if (e.key === 'Backspace') handleKey('⌫'); else if (/^[a-z]$/i.test(e.key)) handleKey(e.key.toLowerCase()); } });
 
 loadFromLocal();
 render();
+
 
 
 

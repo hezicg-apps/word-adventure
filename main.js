@@ -447,19 +447,18 @@ function startWordQuest() {
 
 // 1. התחלת המשחק - בחירת מילה מהמאגר
 function startWordQuest() {
-    // בדיקה שהמאגר קיים ויש בו מילים
     if (!state.words || state.words.length === 0) {
-        alert("אופס! צריך להוסיף מילים לרשימה לפני שמשחקים.");
+        alert("אוצר המילים ריק. אנא הוסף מילים בדף הבית.");
         state.screen = 'menu';
         render();
         return;
     }
 
-    // סינון מילים שמתאימות למשחק (בין 3 ל-6 אותיות)
-    const pool = state.words.filter(w => w && w.en && w.en.length >= 3 && w.en.length <= 6);
+    // פילטר גמיש יותר: מילים בין 3 ל-8 אותיות
+    const pool = state.words.filter(w => w && w.en && w.en.trim().length >= 3 && w.en.trim().length <= 8);
     
     if (pool.length === 0) {
-        alert("לא נמצאו מילים באנגלית עם 3 עד 6 אותיות ברשימה שלך.");
+        alert("לא נמצאו מילים באורך מתאים (3-8 אותיות).");
         state.screen = 'menu';
         render();
         return;
@@ -475,7 +474,7 @@ function startWordQuest() {
         maxAttempts: 6,
         isGameOver: false,
         keyStates: {},
-        showTutorial: false, // ביטלתי את הטוטוריאל כדי שתיכנס ישר למשחק
+        showTutorial: false,
         roundIndex: 0,
         pool: pool
     };
@@ -483,6 +482,7 @@ function startWordQuest() {
     state.screen = 'wordQuest';
     render();
 }
+
 // 2. המקלדת המתוקנת (מיושרת לשמאל - LTR)
 function renderQwerty() { 
     // המערך מסודר משמאל לימין
@@ -552,6 +552,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

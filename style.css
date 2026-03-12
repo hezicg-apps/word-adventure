@@ -13,29 +13,36 @@ body {
 .eng-text { font-family: 'Comic Neue', 'Arial', sans-serif; font-weight: 800; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
 
 /* --- Night Mode Base --- */
+/* פתרון לרקע הלבן בכל האתר במצב לילה */
 body.night-mode { 
     background-color: #1a202c !important; 
-    color: #facc15 !important; 
 }
 
-.night-mode #app, .night-mode .bg-white, .night-mode .welcome-card { 
-    background-color: #2d3748 !important; 
+/* דורס את הרקע הלבן של ה-app וכל הדיבים בתוכו */
+body.night-mode #app, 
+body.night-mode div, 
+body.night-mode .bg-white,
+body.night-mode section { 
+    background-color: #1a202c !important; 
     color: #facc15 !important;
 }
 
-.night-mode .text-black, .night-mode .text-gray-800, .night-mode .text-gray-700,
-.night-mode .text-blue-900, .night-mode .text-green-900, .night-mode .text-purple-900,
-.night-mode .text-blue-600, .night-mode h1, .night-mode h2, .night-mode h3, 
-.night-mode p, .night-mode span:not(.eng-text) { 
-    color: #facc15 !important; 
-    font-weight: 800;
+/* פתרון לרמקול - הופך כל כפתור עם אימוג'י או תמונה לשקוף לגמרי */
+button {
+    background-color: transparent !important;
 }
 
-/* --- כפתור רמקול שקוף --- */
-button img[src*="speak"], button:contains('🔊'), .speaker-btn {
+/* אם הרמקול הוא תמונה, זה יבטיח שהרקע שלה לא לבן */
+button img, .speaker-btn {
     background: transparent !important;
+    background-color: transparent !important;
     border: none !important;
-    box-shadow: none !important;
+}
+
+/* מניעת הבהוב לבן במעבר בין שאלות */
+#app {
+    min-height: 100vh;
+    transition: none !important; /* ביטול האנימציה שגורמת להבהוב */
 }
 
 /* --- Win Screen Glows --- */
@@ -107,3 +114,4 @@ body:not(.night-mode) .word-cell.absent { background-color: #94a3b8 !important; 
 /* Animations */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+

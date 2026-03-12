@@ -144,38 +144,38 @@ function resetAllData() {
 }
 
 function render() {
-    const app = document.getElementById('app');
-    if (!app) return;
-
-    // 1. עדכון מצב לילה - הכי חשוב שזה יהיה על ה-HTML וה-BODY
-    if (state.nightMode) {
-        document.documentElement.classList.add('night-mode');
-        document.body.classList.add('night-mode');
-    } else {
-        document.documentElement.classList.remove('night-mode');
-        document.body.classList.remove('night-mode');
-    }
-
-    // 2. עדכון כפתור השמש/ירח
+    // 1. עדכון מצב לילה על הגוף וה-HTML
+    document.documentElement.classList.toggle('night-mode', state.nightMode);
+    document.body.classList.toggle('night-mode', state.nightMode);
+    
+    // 2. עדכון כפתור השמש/ירח - שימוש ב-var למניעת שגיאת "Already declared"
     var toggleBtn = document.getElementById('toggleNight');
     if (toggleBtn) {
         toggleBtn.innerText = state.nightMode ? '🌙' : '☀️';
-        toggleBtn.onclick = function(e) { 
-            e.preventDefault();
+        toggleBtn.onclick = function() { 
             state.nightMode = !state.nightMode; 
             render(); 
         };
     }
 
-    // 3. במקום למחוק את כל ה-innerHTML מיד, נבנה את התוכן במשתנה
-    let html = '';
+    const app = document.getElementById('app');
+    if (!app) return;
+    app.innerHTML = '';
 
-    if (state.winner) {
-        renderWinScreen(app); 
-        return;
-    }
+    // 3. תיקון רדיקלי לרמקול: מוודא שכל כפתורי הרמקול יהיו שקופים בכל רינדור
+    setTimeout(() => {
+        document.querySelectorAll('button').forEach(btn => {
+            if (btn.innerText.includes('🔊') || btn.innerText.includes('📢') || btn.innerHTML.includes('speak')) {
+                btn.style.backgroundColor = 'transparent';
+                btn.style.border = 'none';
+                btn.style.boxShadow = 'none';
+            }
+        });
+    }, 0);
 
-    // הניתוב הרגיל שלך...
+    if (state.winner) { renderWinScreen(app); return; }
+
+    // מכאן המשך עם ה-switch הקיים שלך...
     switch(state.screen) {
         case 'welcome': renderWelcome(app); break;
         case 'input': renderInput(app); break;
@@ -772,6 +772,7 @@ function submitFinalReport(score) {
 
 // חיבור הפונקציה לחלון הגלובלי
 window.submitFinalReport = submitFinalReport;
+
 
 
 

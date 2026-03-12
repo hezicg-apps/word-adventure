@@ -440,7 +440,7 @@ function checkWin(b) {
 
 // 1. אתחול המשחק - פונקציה חסינת תקלות
 function startWordQuest() {
-    // בדיקה אם יש מילים בכלל
+    // 1. בדיקה אם יש מילים
     if (!state.words || state.words.length === 0) {
         alert("אוצר המילים ריק. אנא הוסף מילים בדף הבית.");
         state.screen = 'menu';
@@ -448,24 +448,27 @@ function startWordQuest() {
         return;
     }
 
-    // סינון מילים: בודק גם en וגם eng, ומנקה רווחים
+    // 2. פילטר שתומך גם ב-eng וגם ב-en ומנקה רווחים
     const pool = state.words.filter(w => {
-        const word = (w.en || w.eng || "").trim();
+        const word = (w.eng || w.en || "").trim();
         return word.length >= 2 && !word.includes(' ');
     });
 
     if (pool.length === 0) {
-        alert("לא נמצאו מילים תקינות (צריך מילה באנגלית ללא רווחים).");
+        alert("לא נמצאו מילים תקינות (לפחות 2 אותיות ללא רווחים).");
         state.screen = 'menu';
         render();
         return;
     }
 
-    // הגרלת מילה
+    // 3. בחירת מילה אקראית
     const item = pool[Math.floor(Math.random() * pool.length)];
-    const target = (item.en || item.eng).toLowerCase().trim();
-    const hint = (item.he || item.heb || "רמז חסר");
+    const target = (item.eng || item.en).toLowerCase().trim();
+    const hint = (item.heb || item.he || "רמז חסר");
 
+    // 4. עדכון ה-State - שים לב ל-wordquest באותיות קטנות!
+    state.screen = 'wordquest'; 
+    state.winner = null;
     state.wordQuest = {
         target: target,
         hint: hint,
@@ -474,10 +477,12 @@ function startWordQuest() {
         maxAttempts: 6,
         isGameOver: false,
         keyStates: {},
-        showTutorial: false
+        showTutorial: false,
+        pool: pool,
+        roundIndex: 0
     };
 
-    state.screen = 'wordQuest';
+    // 5. הפעלה מחדש של התצוגה
     render();
 }
 
@@ -602,6 +607,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

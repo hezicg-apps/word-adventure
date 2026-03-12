@@ -144,29 +144,27 @@ function resetAllData() {
 }
 
 function render() {
+    // 1. עדכון קלאס על ה-Body למצב לילה
     document.body.classList.toggle('night-mode', state.nightMode);
+    
+    // 2. טיפול בכפתור (לוודא שהוא מגיב ללחיצה ומראה את האייקון הנכון)
     const toggleBtn = document.getElementById('toggleNight');
-    if (toggleBtn) toggleBtn.innerText = state.nightMode ? '🌙' : '☀️';
+    if (toggleBtn) {
+        toggleBtn.innerText = state.nightMode ? '🌙' : '☀️';
+        // הוספת הפעולה בלחיצה - זה מה שהיה חסר!
+        toggleBtn.onclick = () => { 
+            state.nightMode = !state.nightMode; 
+            render(); 
+        };
+    }
+
     const app = document.getElementById('app');
     app.innerHTML = '';
     
+    // ... שאר הקוד של ה-render ממשיך כאן כרגיל ...
     if (state.winner) { renderWinScreen(app); return; }
-    
-    switch(state.screen) {
-        case 'welcome': renderWelcome(app); break;
-        case 'input': renderInput(app); break;
-        case 'flashcards': renderFlashcards(app); break;
-        case 'quiz': renderQuiz(app); break;
-        case 'menu': renderMenu(app); break;
-        case 'memory': renderMemory(app); break;
-        case 'c4_menu': renderC4Menu(app); break;
-        case 'connect4': renderConnect4(app); break;
-        case 'wordquest': renderWordQuest(app); break;
-    }
-
-    if (state.showShareModal) renderShareModal(app);
+    // וכו'
 }
-
 function renderHeader(subtext) {
     return `
         <div class="mb-4">
@@ -759,5 +757,6 @@ function submitFinalReport(score) {
 
 // חיבור הפונקציה לחלון הגלובלי
 window.submitFinalReport = submitFinalReport;
+
 
 

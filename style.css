@@ -191,4 +191,33 @@ header img {
 .night-mode header img {
     filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
 }
+/* תיקון כיווניות למשחק הקוד הסודי - Word Quest */
+
+/* 1. מבטיח שהגריד של האותיות ירוץ משמאל לימין */
+.word-grid {
+    direction: ltr !important;
+    display: grid !important;
+    justify-content: center;
+}
+
+/* 2. מבטיח ששורות המקלדת ירוצו משמאל לימין (Q-W-E-R...) */
+.qwerty-row {
+    direction: ltr !important;
+    display: flex !important;
+    justify-content: center !important;
+    gap: 4px;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+/* 3. מוודא שהאותיות בתוך התאים לא מתהפכות */
+.word-cell {
+    direction: ltr !important;
+    unicode-bidi: bidi-override;
+}
+
+/* 4. מניעת זום ולחיצות כפולות בנייד */
+.key {
+    touch-action: manipulation;
+}
 

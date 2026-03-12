@@ -447,6 +447,7 @@ function startWordQuest() {
 
 // 1. התחלת המשחק - בחירת מילה מהמאגר
 function startWordQuest() {
+    // 1. בדיקה אם יש מילים בכלל
     if (!state.words || state.words.length === 0) {
         alert("אוצר המילים ריק. אנא הוסף מילים בדף הבית.");
         state.screen = 'menu';
@@ -454,11 +455,15 @@ function startWordQuest() {
         return;
     }
 
-    // פילטר גמיש יותר: מילים בין 3 ל-8 אותיות
-    const pool = state.words.filter(w => w && w.en && w.en.trim().length >= 3 && w.en.trim().length <= 8);
+    // 2. פילטר משופר: מנקה רווחים ובודק אורך (מ-2 עד 10 אותיות)
+    const pool = state.words.filter(w => {
+        if (!w || !w.en) return false;
+        const cleanWord = w.en.trim();
+        return cleanWord.length >= 2 && cleanWord.length <= 10;
+    });
     
     if (pool.length === 0) {
-        alert("לא נמצאו מילים באורך מתאים (3-8 אותיות).");
+        alert("לא נמצאו מילים תקינות ברשימה. וודא שהזנת מילים באנגלית.");
         state.screen = 'menu';
         render();
         return;
@@ -552,6 +557,7 @@ window.addEventListener('keydown', (e) => { if (state.screen === 'wordquest' && 
 
 loadFromLocal();
 render();
+
 
 
 

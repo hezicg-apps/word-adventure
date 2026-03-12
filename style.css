@@ -230,11 +230,22 @@ header img {
     margin: 10px auto;
 }
 
-/* התאמת גודל הריבועים למילים ארוכות */
+/* התאמה דינמית של הריבועים לפי כמות האותיות */
+.word-grid {
+    display: grid !important;
+    justify-content: center !important;
+    direction: ltr !important;
+    gap: 4px !important;
+    max-width: 98vw;
+    margin: 15px auto;
+}
+
 .word-grid div {
-    width: clamp(30px, 10vw, 50px) !important;
-    height: clamp(30px, 10vw, 50px) !important;
-    font-size: clamp(1rem, 4vw, 1.5rem) !important;
+    /* ככל שיש יותר אותיות, הריבועים יקטנו אוטומטית */
+    width: clamp(30px, 11vw, 55px) !important;
+    height: clamp(30px, 11vw, 55px) !important;
+    font-size: clamp(1rem, 5vw, 1.8rem) !important;
+    border-radius: 8px !important;
 }
 
 

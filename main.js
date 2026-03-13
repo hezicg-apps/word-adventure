@@ -261,7 +261,7 @@ function renderQuiz(app) {
         triggerConfetti();
 
         app.innerHTML = `
-            <div class="text-center space-y-8 w-full max-w-sm px-4 mx-auto mt-10 animate-fade-in">
+            <div class="text-center space-y-8 w-full max-w-sm px-4 mx-auto mt-2 animate-fade-in">
                 <div class="bg-white border-4 border-yellow-400 rounded-[3rem] p-10 shadow-2xl relative">
                     <h2 class="text-3xl font-black text-gray-800 mb-2">כל הכבוד! ✨</h2>
                     <p class="text-lg text-gray-500 font-bold mb-6">${state.listName}</p>
